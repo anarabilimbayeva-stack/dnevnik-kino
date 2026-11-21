@@ -692,7 +692,7 @@ function look(m){
 /* ---------- типы дней: как день ощущался. Сайт только предлагает, выбирает человек ---------- */
 const TYPES={
   iskry:{name:"Всё по маслу",hint:"всё получалось, много смеха",light:true,svg:`<path d="M20 4v9M20 27v9M4 20h9M27 20h9M9 9l6 6M25 25l6 6M31 9l-6 6M15 25l-6 6"/>`,k:"смея весел ура счаст радост получил выигр праздник танц здоров круто"},
-  pled:{name:"Свои рядом",hint:"уютно, свои рядом",light:true,svg:`<path d="M20 33C4 22 9 8 20 16 31 8 36 22 20 33z"/>`,k:"мам пап бабушк дедушк семь дома чай какао плед уют обним подруг тепл"},
+  pled:{name:"Как дома",hint:"уютно, свои рядом",light:true,svg:`<path d="M20 33C4 22 9 8 20 16 31 8 36 22 20 33z"/>`,k:"мам пап бабушк дедушк семь дома чай какао плед уют обним подруг тепл"},
   uragan:{name:"Водоворот",hint:"много всего, на бегу",svg:`<path d="M20 20c0-3 4-3 4 0s-5 6-9 2 0-13 7-12 12 8 8 15-12 11-19 6"/>`,k:"спеш успел бег дедлайн сдач экзамен контрольн нервнич опазд торопил"},
   tishina:{name:"На паузе",hint:"спокойно, наедине с собой",light:true,svg:`<path d="M27 6A15 15 0 1 0 34 27 11 11 0 1 1 27 6z"/>`,k:"тих спокой одна чита гуля думал молч"},
   tuchi:{name:"Не мой день",hint:"грустно, тяжело",hard:true,svg:`<path d="M11 27a6 6 0 0 1 1-12 8 8 0 0 1 15-2 7 7 0 0 1 2 14zM14 32l-2 4M21 32l-2 4M28 32l-2 4"/>`,k:"груст плак скуч одинок уехал тяжел устал печал слез"},
@@ -1376,7 +1376,7 @@ $("under").addEventListener("click",e=>{const b=e.target.closest("[data-mail]");
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=13;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=14;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
