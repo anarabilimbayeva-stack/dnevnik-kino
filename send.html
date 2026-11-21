@@ -27,11 +27,11 @@ small{font-family:"PT Mono",monospace;font-size:10px;letter-spacing:.1em;color:#
   <div id="bar"><i></i></div>
   <div id="list"></div>
   <p>Когда всё отправится, эту страницу можно закрыть.</p>
-  <small id="ver">страница отправки · версия 7</small>
+  <small id="ver">страница отправки · версия 8</small>
 </div>
 <script>
-const $=id=>document.getElementById(id),msg=t=>$("msg").textContent=t,RELAY="https://ntfy.sh/";
-const P=new URLSearchParams(location.search),T0=(P.get("t")||P.get("send")||"").split("."),TOPIC=T0[0],KEY=T0[1]||P.get("k")||location.hash.slice(1);
+const $=id=>document.getElementById(id),msg=t=>$("msg").textContent=t;
+const P=new URLSearchParams(location.search),T0=(P.get("t")||P.get("send")||"").split("."),TOPIC=T0[0],KEY=T0[1]||P.get("k")||location.hash.slice(1),OWN=T0[2]==="o",RELAY=OWN?"https://relay.62.238.3.191.sslip.io/":"https://ntfy.sh/",PART=OWN?12e6:1.8e6,CAP=OWN?250e6:17e6;
 const ub64=t=>Uint8Array.from(atob(t.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
 async function exifDate(file){
   try{const b=new DataView(await file.slice(0,262144).arrayBuffer());if(b.getUint16(0)===0xFFD8){let o=2;
@@ -68,9 +68,9 @@ function shrinkVideo(f){return new Promise(res=>{if(!f.type.startsWith("video")|
     for(const f of fs){k++;msg("отправляю "+k+" из "+fs.length+"…");$("bar").firstChild.style.width=((k-.5)/fs.length*100)+"%";
       try{if(f.type.startsWith("image")&&!exif)exif=await exifDate(f);
         if(f.type.startsWith("video"))msg("сжимаю видео "+k+" из "+fs.length+"… это займёт столько же, сколько оно длится");
-        const b=f.type.startsWith("video")?await shrinkVideo(f):await shrink(f);if(b.size>17e6){bad++;why="видео слишком длинное для отправки с телефона — добавь его файлом на компьютере";continue}
+        const b=f.type.startsWith("video")?await shrinkVideo(f):await shrink(f);if(b.size>CAP){bad++;why="видео слишком длинное для отправки с телефона — добавь его файлом на компьютере";continue}
         /* сервис пересылки принимает куски до 2 МБ: большой файл уходит частями, компьютер склеивает их обратно */
-        const name=f.name.replace(/\.[^.]+$/,"")+(b===f?(f.name.match(/\.[^.]+$/)||[""])[0]:/webm/.test(b.type)?".webm":/mp4/.test(b.type)?".mp4":".jpg"),CH=1.8e6,parts=Math.max(1,Math.ceil(b.size/CH)),fid=Math.random().toString(36).slice(2);
+        const name=f.name.replace(/\.[^.]+$/,"")+(b===f?(f.name.match(/\.[^.]+$/)||[""])[0]:/webm/.test(b.type)?".webm":/mp4/.test(b.type)?".mp4":".jpg"),CH=PART,parts=Math.max(1,Math.ceil(b.size/CH)),fid=Math.random().toString(36).slice(2);
         for(let i=0;i<parts;i++){if(parts>1)msg("отправляю "+k+" из "+fs.length+": часть "+(i+1)+" из "+parts+"…");
           const body=await seal(key,{name,mime:b.type||f.type||"image/jpeg",exif,fid,part:i,parts},await b.slice(i*CH,(i+1)*CH).arrayBuffer());
           let ok=false,err="";for(let t=0;t<3&&!ok;t++){try{const r=await fetch(RELAY+TOPIC,{method:"PUT",headers:{Filename:"p.bin"},body});if(r.ok)ok=true;else{err=r.status===413?"сервис пересылки принимает около 20 МБ за три часа с одного телефона, лимит исчерпан — остальное добавь файлом на компьютере":"ошибка "+r.status;if(r.status===413)break;if(r.status===429)await new Promise(z=>setTimeout(z,4000))}}catch(e){err="нет связи"}}

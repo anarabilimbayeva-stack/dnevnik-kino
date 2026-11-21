@@ -1343,7 +1343,7 @@ $("under").addEventListener("click",e=>{const b=e.target.closest("[data-mail]");
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAY="https://ntfy.sh/",VER=7;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=8;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
@@ -1359,8 +1359,11 @@ function addMedia(files,exif){const dt=new DataTransfer();[...$("n-media").files
 async function qrOpen(){const box=$("mail"),close=()=>{try{qrES&&qrES.close()}catch(e){}qrES=null;closeMail()};let got=0;
   box.innerHTML=`<div class="ml-in"><b>фото с телефона</b><p id="qr-msg">готовлю код…</p><div class="qrbox" id="qr-pic"></div><span class="qrn" id="qr-n"></span><p>Наведи камеру телефона на код и выбери фото — они появятся здесь через несколько секунд. Фото шифруются на телефоне, ключ есть только в этом коде.</p><p id="qr-alt" style="font-size:15px;word-break:break-all;opacity:.75"></p><button class="gobtn" data-close>готово</button><small style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:#8a7868">код · версия ${VER}</small></div>`;
   box.hidden=false;box.onclick=e=>{if(e.target===box||e.target.closest("[data-close]"))close()};
-  try{await loadJs(QRJS);const raw=crypto.getRandomValues(new Uint8Array(16)),key=await aesKey(raw),topic="kino"+b64u(crypto.getRandomValues(new Uint8Array(12))).replace(/[-_]/g,"x");
-    const link=new URL("send.html",location.href).href.split("?")[0].split("#")[0]+"?t="+topic+"."+b64u(raw),q=qrcode(0,"M");q.addData(link);q.make();$("qr-pic").dataset.link=link;$("qr-pic").innerHTML=q.createSvgTag({cellSize:6,margin:2,scalable:true});
+  try{await loadJs(QRJS);
+    /* свой сервис пересылки (без предела 20 МБ); если он не отвечает — запасной общий */
+    let rk="n";try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),3500),h=await(await fetch(RELAYS.o+"v1/health",{signal:ac.signal})).json();clearTimeout(tm);if(h.healthy)rk="o"}catch(e){}
+    const RELAY=RELAYS[rk],raw=crypto.getRandomValues(new Uint8Array(16)),key=await aesKey(raw),topic="kino"+b64u(crypto.getRandomValues(new Uint8Array(12))).replace(/[-_]/g,"x");
+    const link=new URL("send.html",location.href).href.split("?")[0].split("#")[0]+"?t="+topic+"."+b64u(raw)+"."+rk,q=qrcode(0,"M");q.addData(link);q.make();$("qr-pic").dataset.link=link;$("qr-pic").innerHTML=q.createSvgTag({cellSize:6,margin:2,scalable:true});
     qrES=new EventSource(RELAY+topic+"/sse");qrES.onopen=()=>{if($("qr-msg"))$("qr-msg").textContent="Код готов. Отсканируй его телефоном."};
     qrES.onerror=()=>{if($("qr-msg")&&!got)$("qr-msg").textContent="Соединение прерывается, пробую снова…"};
     qrES.onmessage=async e=>{let m;try{m=JSON.parse(e.data)}catch(err){return}if(m.event!=="message")return;
