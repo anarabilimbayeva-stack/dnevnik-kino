@@ -170,7 +170,7 @@ button.c:hover,button.c:focus-visible{transform:rotate(0) scale(1.7);z-index:3;o
 .thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .thumbs img,.thumbs video{width:74px;height:74px;object-fit:cover;background:#fff;padding:4px 4px 12px;box-shadow:0 3px 6px rgba(0,0,0,.4)}
 .thumbs>*:nth-child(odd){transform:rotate(-3deg)}.thumbs>*:nth-child(even){transform:rotate(2.5deg)}
-.sfoot{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:26px 0 4px;padding-left:34px}
+.sfoot{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:16px 0 4px;padding-left:34px}
 .gobtn{border:0;background:var(--red);color:#fff5dd;font-family:"Rubik Mono One",sans-serif;font-size:17px;padding:14px 24px;transform:rotate(-1.5deg);filter:url(#rough2) drop-shadow(2px 3px 0 rgba(0,0,0,.4))}
 .gobtn:disabled{opacity:.5}
 #n-status{font-family:var(--note);font-size:20px;color:var(--red)}
@@ -273,6 +273,12 @@ img.bigleaf{right:-34px;bottom:-30px;width:200px;height:auto;transform:rotate(-2
 .sr button{border:1.5px solid #2a1d14;background:none;font-family:var(--mono);font-size:11px;padding:5px 8px;flex:none}
 .sr button[data-pick]{background:#16110e;color:#f4ecdd}
 .sfile{margin-top:12px;font-family:var(--note);font-size:18px;color:#5d4a3d}.sfile summary{cursor:pointer}.sfile .pick{margin-top:8px}
+.chips{margin-top:8px}.chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.7);border:1px dashed #8a6f5c;font-family:var(--note);font-size:17px;line-height:1.15;padding:4px 6px 4px 10px;margin:0 6px 6px 0;max-width:100%}
+.chip button{border:0;background:#c73e24;color:#fff;width:22px;height:22px;border-radius:50%;font-size:12px;flex:none;line-height:1}
+.chk{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--note);font-size:22px;margin:22px 0 0;padding-left:34px;cursor:pointer}.chk input{width:22px;height:22px;accent-color:#c73e24}.chk small{font-size:17px;color:#5d4a3d}
+.ticket.nofilm{opacity:.92;filter:drop-shadow(0 6px 6px rgba(0,0,0,.4)) grayscale(.35)}
+.play.plus{background:#2a1d14}.ticket .play.plus::after{content:"+";border:0;margin:0;color:#fff;font-size:26px;line-height:1;font-family:var(--mono)}
+.unfilm{position:absolute!important;left:38px;bottom:12px;background:none;border:0;border-bottom:1px dashed currentColor;padding:0;font-family:var(--note);font-size:16px;color:var(--ink);opacity:.6}.unfilm:hover{opacity:1}
 .loading{position:fixed;inset:0;background:var(--desk);z-index:20;display:grid;place-items:center;font-size:22px;letter-spacing:.1em;transition:opacity .6s}
 .loading.off{opacity:0;pointer-events:none}
 
@@ -335,8 +341,9 @@ img.bigleaf{right:-34px;bottom:-30px;width:200px;height:auto;transform:rotate(-2
       <div class="scols">
         <div>
           <label class="lab" for="n-text">1. пара строк о дне</label>
-          <button type="button" class="pick mic" id="n-mic">🎙 рассказать голосом</button><small class="hintl" id="n-michint">нажми и просто расскажи о дне — слова сами появятся здесь</small>
+          <button type="button" class="pick mic" id="n-mic">🎙 рассказать голосом</button><button type="button" class="pick mic" id="n-tidy">✎ причесать текст</button><small class="hintl" id="n-michint">нажми и просто расскажи о дне — слова сами появятся здесь</small>
           <textarea id="n-text" rows="7" placeholder="Что было? С кем? Что запомнилось — запах, погода, смех…"></textarea>
+          <div class="chips" id="n-chips"></div>
           <label class="lab" for="n-date">какой это был день</label>
           <input type="date" id="n-date"><small class="hintl" id="n-datenote"></small>
         </div>
@@ -351,6 +358,7 @@ img.bigleaf{right:-34px;bottom:-30px;width:200px;height:auto;transform:rotate(-2
           <details class="sfile"><summary>или выбрать свой файл mp3</summary><label class="pick"><input type="file" id="n-song" accept="audio/*">выбрать файл</label><input type="text" id="n-sname" placeholder="как называется песня"></details>
         </div>
       </div>
+      <label class="chk"><input type="checkbox" id="n-film"> снять фильм об этом дне <small>— можно включить и потом, прямо на странице дня</small></label>
       <div class="sfoot"><button class="gobtn" id="n-go">вклеить в тетрадь</button><span id="n-status" role="status"></span></div>
       <p class="hintl">Всё хранится только в этом браузере на этом компьютере. Ничего никуда не отправляется.</p>
     </form>
@@ -497,8 +505,8 @@ function pageEl(d,side){
       <div class="row"><div class="slip drag pop" ${pop()}><b>чек дня № ${h.doy}</b>
         <div><span>песня</span><span>${esc(d.song.name)}</span></div><div><span>темп</span><span>${d.music.bpm} уд/мин</span></div><div><span>энергия</span><span>${bars}</span></div>
         <div><span>бумага</span><span>${L.pname}</span></div><div><span>фото</span><span>${d.media.length}</span></div><div><span>слов</span><span>${words(d.text).length}</span></div><div><span>кадров</span><span>${plan.shots.length}</span></div></div>
-      <button class="ticket drag pop" ${pop()} data-film><span class="play"></span><span><small>фильм дня · ${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}</small><em>${esc(d.title)}</em></span></button></div>
-      ${stick}${K==="olive"?`<img class="flower drag pop" alt="" draggable="false" src="tex/flower.webp">`:""}${dsvg(doodlesOf(d.text)[1],"d2")}${d.own?`<button class="rip" data-del="${d.id}">вырвать страницу ✂</button>`:""}<span class="pno">стр. ${h.doy*2}</span>`;
+      ${d.film!==false?`<button class="ticket drag pop" ${pop()} data-film><span class="play"></span><span><small>фильм дня · ${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}</small><em>${esc(d.title)}</em></span></button>`:`<button class="ticket nofilm drag pop" ${pop()} data-mkfilm="${d.id}"><span class="play plus"></span><span><small>фильма у этого дня пока нет</small><em>снять фильм</em></span></button>`}</div>
+      ${stick}${K==="olive"?`<img class="flower drag pop" alt="" draggable="false" src="tex/flower.webp">`:""}${dsvg(doodlesOf(d.text)[1],"d2")}${d.own?`<button class="rip" data-del="${d.id}">вырвать страницу ✂</button>`:""}${d.own&&d.film?`<button class="unfilm" data-unfilm="${d.id}">убрать фильм</button>`:""}<span class="pno">стр. ${h.doy*2}</span>`;
   }
   return el;
 }
@@ -549,8 +557,10 @@ function sentences(t){const a=(t.match(/[^.!?…]+[.!?…]*/g)||[]).map(s=>s.tri
 function filmPlan(d){
   const L=d.look,sent=sentences(d.text),m=d.media.length,per=sent.length>5?1:(L.shot<2.6?3:2);
   const shots=[{card:true,media:d.media[0],f:FR[0],mv:"in",dur:Math.max(L.shot,2.8)}],subs=[];let k=m>1?1:0,at=shots[0].dur;const used=new Array(m).fill(0);used[0]=1;
-  sent.forEach(s=>{if(s)subs.push({text:s,from:at+.35,to:at+per*L.shot-.3});
-    for(let j=0;j<per;j++){const pi=k%m,fi=used[pi]===0?0:1+((used[pi]-1)*3+pi*2)%(FR.length-1);used[pi]++;shots.push({media:d.media[pi],f:FR[fi],mv:MOVES[k%MOVES.length],dur:L.shot});k++;at+=L.shot}});
+  sent.forEach((s,si)=>{const start=at;let subFrom=at;
+    if(s&&m<4&&(per>1||si%2===0)){const dur=Math.max(L.shot,Math.min(4.2,1.6+s.length*.045));shots.push({paper:true,text:s,media:{url:"paper"},f:FR[0],mv:si%2?"left":"right",dur});at+=dur;subFrom=at}
+    for(let j=0;j<(m<4&&per>1?per-1:per);j++){const pi=k%m,fi=used[pi]===0?0:1+((used[pi]-1)*3+pi*2)%(FR.length-1);used[pi]++;shots.push({media:d.media[pi],f:FR[fi],mv:MOVES[k%MOVES.length],dur:L.shot});k++;at+=L.shot}
+    if(s&&subFrom===start)subs.push({text:s,from:subFrom+.35,to:at-.3})});
   shots.push({end:true,media:d.media[m-1],f:FR[0],mv:"out",dur:Math.max(L.shot,3)});
   let t=0;shots.forEach(s=>{s.at=t;t+=s.dur});
   return{shots,subs,total:t};
@@ -568,7 +578,7 @@ function drawShot(x,F,s,tt,alpha){
   const A={in:[z,0,0],out:[z*dz,0,0],right:[z*1.04,-p,0],left:[z*1.04,p,0],up:[z*1.04,0,p],down:[z*1.04,0,-p]}[s.mv],B={in:[z*dz,0,0],out:[z,0,0],right:[z*1.04,p,0],left:[z*1.04,-p,0],up:[z*1.04,0,-p],down:[z*1.04,0,p]}[s.mv];
   const zc=A[0]+(B[0]-A[0])*u,px=A[1]+(B[1]-A[1])*u,py=A[2]+(B[2]-A[2])*u,sc=Math.max(CW/w,CH/h)*1.06*zc,dw=w*sc,dh=h*sc;
   const dx=clamp((CW-dw)*s.f.x+px*CW,CW-dw,0),dy=clamp((CH-dh)*s.f.y+py*CH,CH-dh,0);
-  x.globalAlpha=alpha;x.filter=`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(${s.card||s.end?.58:.95})`;
+  x.globalAlpha=alpha;x.filter=s.paper?"none":`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(${s.card||s.end?.58:.95})`;
   x.drawImage(el,dx,dy,dw,dh);x.filter="none";x.globalAlpha=1;
 }
 function frame(x,F,t){
@@ -594,7 +604,10 @@ function frame(x,F,t){
     lines.forEach((ln,k)=>x.fillText(ln,CW/2,y0+k*lh));
     x.font=`400 ${Math.round(CH*.03)}px "PT Mono",monospace`;if("letterSpacing"in x){x.letterSpacing="0.42em";x.fillText(small,CW/2,y0-lh*.95);x.letterSpacing="0px"}else x.fillText([...small].join("\u2009\u2009"),CW/2,y0-lh*.95);
   }
-  const sb=plan.subs.find(b=>t>=b.from&&t<b.to);
+  if(s.paper){x.globalAlpha=clamp(tt/.5)*clamp((s.dur-tt)/.4);x.shadowBlur=0;x.fillStyle=L.ink;let lines,size;
+    for(size of[.15,.125,.105,.088,.074]){x.font=`500 ${Math.round(CH*size)}px "Caveat",cursive`;lines=wrapLines(x,s.text,CW*.74);if(lines.length*size*1.12<.82)break}
+    const lh=CH*size*1.12,y0=CH/2-lines.length*lh/2+lh*.78;lines.forEach((ln,k)=>x.fillText(ln,CW/2,y0+k*lh));x.shadowBlur=14;x.fillStyle="#f7ead9";x.globalAlpha=1}
+  const sb=s.paper?null:plan.subs.find(b=>t>=b.from&&t<b.to);
   if(sb){x.globalAlpha=clamp((t-sb.from)/.6)*clamp((sb.to-t)/.45)*.95;x.shadowBlur=8;x.font=`italic 400 ${Math.round(CH*.052)}px "Cormorant Garamond",Georgia,serif`;
     const lines=wrapLines(x,sb.text,CW*.78),lh=CH*.064;lines.forEach((ln,k)=>x.fillText(ln,CW/2,CH*.9-(lines.length-1-k)*lh))}
   x.shadowBlur=0;x.globalAlpha=1;
@@ -607,7 +620,7 @@ async function openFilm(record){
   const film=$("film"),cv=$("cv"),x=cv.getContext("2d");film.classList.add("on");film.classList.toggle("rec",!!record);
   $("fmsg").textContent=record?"идёт запись — досмотри фильм до конца, видео сохранится само":"";$("bar").style.width="0";
   x.fillStyle="#000";x.fillRect(0,0,CW,CH);noiseTiles();
-  await Promise.all([document.fonts.load('italic 400 40px "Cormorant Garamond"').catch(()=>{}),document.fonts.load('400 16px "PT Mono"').catch(()=>{}),
+  await Promise.all([document.fonts.load('italic 400 40px "Cormorant Garamond"').catch(()=>{}),document.fonts.load('400 16px "PT Mono"').catch(()=>{}),document.fonts.load('500 40px "Caveat"').catch(()=>{}),loadImg("tex/paper-"+L.key+".jpg").then(i=>F.els.set("paper",i)).catch(()=>{}),
     ...d.media.map(async m=>{try{F.els.set(m.url,await(m.video?loadVid:loadImg)(m.url))}catch(e){}})]);
   if(!F.alive)return;
   if(d.music.buf){try{const a=actx();a.resume();const src=a.createBufferSource(),g=a.createGain(),now=a.currentTime;src.buffer=d.music.buf;src.loop=true;
@@ -640,11 +653,12 @@ const CAPS={"demo-1":["с мамой","какао"],"demo-2":["волны!","м�
 const TAIL={быстрый:"на высокой скорости",яркий:"полный смеха",тёплый:"в тёплом свете",тихий:"в тихом ритме"};
 const hash=s=>{let h=7;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)%100000+1};
 const fromDemo=d=>({id:d.id,date:d.date,text:d.text,media:d.photos.map(p=>({url:"demo/"+p,video:false})),song:{name:d.song.name,url:"demo/"+d.song.file}});
-const fromStored=r=>({id:r.id,date:r.date,text:r.text,own:true,media:r.files.map(f=>({url:URL.createObjectURL(f),video:(f.type||"").startsWith("video")})),song:{name:r.song.name,url:URL.createObjectURL(r.song.blob)}});
+const fromStored=r=>({id:r.id,date:r.date,text:r.text,own:true,film:!!r.film,media:r.files.map(f=>({url:URL.createObjectURL(f),video:(f.type||"").startsWith("video")})),song:{name:r.song.name,url:URL.createObjectURL(r.song.blob)}});
 async function hydrate(raw){
   let music;try{music=await analyzeSong(raw.song.url)}catch(e){music={bpm:96,energy:.4,bright:.5,duration:30,wave:Array.from({length:90},(_,k)=>.4+.3*Math.sin(k/4))}}
   const L=look(music);return{...raw,seed:hash(raw.id),music,look:L,title:makeTitle(raw.text,raw.date,TAIL[L.word]),caps:CAPS[raw.id]||[human(raw.date).dd,raw.song.name]};
 }
+async function setFilm(id,v){const d=DAYS.find(x=>x.id===id);if(!d)return;d.film=v;const r=(await DB.all()).find(x=>x.id===id);if(r){r.film=v;await DB.put(r)}render(cur)}
 async function removeDay(id){await DB.del(id);DAYS=DAYS.filter(d=>d.id!==id);render(Math.min(cur,DAYS.length-1));renderYear()}
 /* дата съёмки из фото (EXIF); мессенджеры её стирают — тогда вернётся null */
 async function exifDate(file){
@@ -677,23 +691,46 @@ $("n-res").addEventListener("click",async e=>{const pl=e.target.closest("[data-p
   if(pk){const x=FOUND[+pk.dataset.pick];pk.textContent="…";try{const blob=await(await fetch(x.previewUrl)).blob();PICK={blob,name:`${x.trackName} — ${x.artistName}`};prev.pause();
       $("n-res").querySelectorAll(".sr").forEach(r=>r.classList.remove("sel"));pk.closest(".sr").classList.add("sel");$("n-res").querySelectorAll("[data-pick]").forEach(b=>b.textContent="выбрать");pk.textContent="выбрано ✓"}
     catch(err){pk.textContent="не скачалась"}}});
-/* диктовка: браузер сам превращает речь в текст */
+/* причёсывание текста по правилам (без нейросети): слова-паразиты, повторы, запятые, точки, длинные фразы */
+const allSent=t=>(t.match(/[^.!?…]+[.!?…]*/g)||[]).map(s=>s.trim()).filter(Boolean);
+function tidy(text){
+  let t=" "+text.replace(/\s+/g," ").trim()+" ";
+  t=t.replace(/\s+запятая(?=\s)/gi,",").replace(/\s+точка(?=\s)/gi,".").replace(/\s+восклицательный знак(?=\s)/gi,"!").replace(/\s+вопросительный знак(?=\s)/gi,"?");
+  for(let i=0;i<2;i++)t=t.replace(/(^|[\s,.!?])(ну|э+|эм+|м+м|как бы|типа|короче|в общем|это самое)[,]?(?=[\s.!?]|$)/gi,"$1");
+  t=t.replace(/(^|\s)([а-яёa-z]+)(\s+\2)+(?=[\s,.!?]|$)/gi,"$1$2");
+  t=t.replace(/([а-яё])\s+(потому что|так что|а|но|что|чтобы|если|когда|хотя|зато|который|которая|которое|которые|которого|которую|где|пока)(?=\s)/gi,(m,a,c)=>/^так что$/i.test(c)?`${a}, ${c}`:`${a}, ${c}`);
+  t=t.replace(/\s+([,.!?])/g,"$1").replace(/([,.!?])(?=[^\s,.!?])/g,"$1 ").replace(/,\s*([.!?])/g,"$1").replace(/([.!?])\s*,/g,"$1");
+  let out=allSent(t).map(s=>{s=s.replace(/^[,\s]+/,"");
+    if(s.split(" ").length>14)s=s.replace(/,?\s+(а потом|и потом|потом|затем|после этого|а ещё|а еще)\s+/i,(m,w)=>". "+w[0].toUpperCase()+w.slice(1)+" ");
+    return s});
+  out=allSent(out.join(" ")).map(s=>{s=s.replace(/^[,\s]+/,"");if(!s)return"";s=s[0].toUpperCase()+s.slice(1);return/[.!?…]$/.test(s)?s:s+"."}).filter(Boolean);
+  return out.join(" ");
+}
+function renderChips(){const ta=$("n-text"),ss=allSent(ta.value),box=$("n-chips");
+  box.innerHTML=ss.length>1||(ss.length===1&&ss[0].length>12)?`<small class="hintl">фразы по отдельности — нажми ✕, чтобы убрать лишнюю${ss.length>8?" (в фильм попадут первые 8)":""}</small>`+ss.map((s,i)=>`<span class="chip">${esc(s)}<button type="button" data-rm="${i}" aria-label="Убрать фразу">✕</button></span>`).join(""):""}
+$("n-chips").addEventListener("click",e=>{const b=e.target.closest("[data-rm]");if(!b)return;const ss=allSent($("n-text").value);ss.splice(+b.dataset.rm,1);$("n-text").value=ss.join(" ");renderChips()});
+$("n-text").addEventListener("input",()=>{clearTimeout(renderChips.t);renderChips.t=setTimeout(renderChips,400)});
+$("n-tidy").onclick=()=>{$("n-text").value=tidy($("n-text").value);renderChips()};
+/* диктовка: браузер сам превращает речь в текст; после остановки текст причёсывается */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let recog=null;
 if(!SR){$("n-mic").hidden=true;$("n-michint").textContent="рассказать голосом можно в Chrome или Safari"}
 else $("n-mic").onclick=()=>{const btn=$("n-mic"),ta=$("n-text");if(recog){recog.stop();return}
-  const base=ta.value.trim();let fin="";recog=new SR();recog.lang="ru-RU";recog.continuous=true;recog.interimResults=true;
-  recog.onresult=e=>{let live="";for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript.trim();if(!t)continue;if(e.results[i].isFinal)fin+=t[0].toUpperCase()+t.slice(1)+(/[.!?…]$/.test(t)?" ":". ");else live+=t+" "}
-    ta.value=(base?base+" ":"")+fin+live};
+  let base=ta.value.trim(),fin=[];recog=new SR();recog.lang="ru-RU";recog.continuous=true;recog.interimResults=true;
+  recog.onresult=e=>{let live="";for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript.trim();if(!t)continue;
+      if(!e.results[i].isFinal){live+=t+" ";continue}
+      if(/^(сотри|стереть|сотри это|удали|удали последнее|нет не так)$/i.test(t)){if(fin.length)fin.pop();else{const ss=allSent(base);ss.pop();base=ss.join(" ")}continue}
+      fin.push(t[0].toUpperCase()+t.slice(1)+(/[.!?…]$/.test(t)?"":"."))}
+    ta.value=[base,...fin,live].filter(Boolean).join(" ")};
   recog.onerror=e=>{$("n-michint").textContent=e.error==="not-allowed"?"браузер не пустил к микрофону — разреши доступ в адресной строке":"не расслышала — попробуй ещё раз"};
-  recog.onend=()=>{recog=null;btn.classList.remove("on");btn.textContent="🎙 рассказать голосом";ta.value=ta.value.trim()};
-  try{recog.start();btn.classList.add("on");btn.textContent="■ я слушаю — нажми, когда закончишь";$("n-michint").textContent="говори обычными фразами, после паузы поставлю точку"}catch(err){recog=null}};
+  recog.onend=()=>{recog=null;btn.classList.remove("on");btn.textContent="🎙 рассказать голосом";ta.value=tidy(ta.value);renderChips();$("n-michint").textContent="готово: расставила точки и запятые. Лишнюю фразу убери крестиком ниже"};
+  try{recog.start();btn.classList.add("on");btn.textContent="■ я слушаю — нажми, когда закончишь";$("n-michint").textContent="говори обычными фразами с паузами. Ошиблась — скажи «сотри», и последняя фраза исчезнет"}catch(err){recog=null}};
 $("n-form").onsubmit=async e=>{e.preventDefault();const st=$("n-status"),btn=$("n-go");
   const files=[...$("n-media").files].slice(0,12),song=PICK?PICK.blob:$("n-song").files[0],text=$("n-text").value.trim(),date=$("n-date").value;
   if(!files.length||!song||!text||!date){st.textContent="нужны все три: рассказ о дне, хотя бы одно фото и песня (найди её и нажми «выбрать»)";return}
   btn.disabled=true;st.textContent="слушаю песню и вклеиваю страницу…";
   try{const ok=[];for(const f of files){if(f.type.startsWith("video")){ok.push(f);continue}const u=URL.createObjectURL(f);try{await loadImg(u);ok.push(f)}catch(err){}URL.revokeObjectURL(u)}
     if(!ok.length)throw new Error("не получилось открыть фото. Если это HEIC с айфона, сохрани их как JPEG");
-    const rec={id:"d"+Date.now(),date,text,files:ok,song:{name:PICK?PICK.name:($("n-sname").value.trim()||"песня дня"),blob:song}},day=await hydrate(fromStored(rec));
+    const rec={id:"d"+Date.now(),date,text,film:$("n-film").checked,files:ok,song:{name:PICK?PICK.name:($("n-sname").value.trim()||"песня дня"),blob:song}},day=await hydrate(fromStored(rec));
     if(!day.music.buf)throw new Error("не получилось прочитать песню — попробуй файл mp3");
     await DB.put(rec);DAYS.push(day);sortDays();YEAR=null;openDay(DAYS.indexOf(day));
     $("n-form").reset();PICK=null;$("n-res").innerHTML="";$("n-thumbs").innerHTML="";$("n-mcount").textContent=$("n-scount").textContent=$("n-datenote").textContent="";$("n-date").value=today();
@@ -716,7 +753,7 @@ addEventListener("pointermove",e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=
   if(drag.moved){e.preventDefault();drag.el.classList.add("dragging");drag.el.style.translate=`${drag.ox+dx}px ${drag.oy+dy}px`;drag.el.dataset.x=drag.ox+dx;drag.el.dataset.y=drag.oy+dy}});
 addEventListener("pointerup",()=>{if(drag){drag.el.classList.remove("dragging");if(drag.moved)dragged=performance.now();drag=null}});
 addEventListener("dragstart",e=>{if(e.target.closest&&e.target.closest(".drag"))e.preventDefault()});
-$("book").addEventListener("click",e=>{if(performance.now()-dragged<250)return;if(e.target.closest("[data-film]"))openFilm(false);const del=e.target.closest("[data-del]");if(del&&confirm("Убрать этот день из тетради насовсем?"))removeDay(del.dataset.del)});
+$("book").addEventListener("click",e=>{if(performance.now()-dragged<250)return;if(e.target.closest("[data-film]"))openFilm(false);const mk=e.target.closest("[data-mkfilm]"),un=e.target.closest("[data-unfilm]");if(mk)setFilm(mk.dataset.mkfilm,true);if(un)setFilm(un.dataset.unfilm,false);const del=e.target.closest("[data-del]");if(del&&confirm("Убрать этот день из тетради насовсем?"))removeDay(del.dataset.del)});
 $("prev").onclick=()=>go(cur-1);$("next").onclick=()=>go(cur+1);
 $("nav-book").onclick=()=>show("book");$("nav-year").onclick=$("toyear").onclick=()=>show("year");$("nav-new").onclick=()=>show("new");
 $("view-year").addEventListener("click",e=>{const b=e.target.closest("[data-i]");if(b)openDay(+b.dataset.i)});
