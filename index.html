@@ -476,6 +476,13 @@ button.c{position:relative}
 .why dd{margin:0}.why dd b{font-weight:400;color:var(--red)}.why .sw{display:inline-flex;gap:4px;vertical-align:-2px;margin:0 4px}.why .sw i{width:16px;height:16px;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.3)}
 .fold{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-family:var(--mono);font-size:13px}
 .fold li{display:flex;gap:10px;align-items:baseline;border-bottom:1px dashed #b9a58c;padding:4px 0}.fold li span{flex:1}.fold li small{font-family:var(--note);font-size:15px;color:#7a6455}
+
+/* ---------- фото с телефона по QR ---------- */
+.qrbox{background:#fff;padding:10px;justify-self:center;line-height:0}.qrbox svg{width:min(240px,60vw);height:auto;display:block}
+.qrn{font-family:var(--note);font-size:22px;color:var(--red)}
+#sendv{position:fixed;inset:0;z-index:60;background:#2a1a0e url(tex/wood.jpg) center/cover;display:grid;place-items:center;padding:18px;overflow:auto}
+#sendv .ml-in{text-align:left}#sendv .pick{font-size:22px;padding:16px 20px;justify-self:stretch;text-align:center}
+#sv-list{display:flex;gap:6px;flex-wrap:wrap}#sv-list img{width:62px;height:62px;object-fit:cover;box-shadow:0 0 0 3px #fbf7ee,0 2px 4px rgba(0,0,0,.4)}
 </style>
 </head>
 <body>
@@ -524,7 +531,7 @@ button.c{position:relative}
         </div>
         <div>
           <span class="lab">2. фото и короткие видео дня</span>
-          <label class="pick"><input type="file" id="n-media" accept="image/*,video/*" multiple>выбрать файлы</label><small class="hintl" id="n-mcount">чем больше разных кадров, тем живее фильм (лучше 5–8)</small>
+          <label class="pick"><input type="file" id="n-media" accept="image/*,video/*" multiple>выбрать файлы</label> <button type="button" class="pick" id="n-qr">📱 с телефона по QR</button><small class="hintl" id="n-mcount">чем больше разных кадров, тем живее фильм (лучше 5–8)</small>
           <div class="thumbs" id="n-thumbs"></div>
           <span class="lab">3. песня дня</span>
           <div class="sfind"><input type="text" id="n-q" placeholder="название и исполнитель"><button type="button" class="pick" id="n-find">найти</button></div>
@@ -1223,10 +1230,42 @@ $("under").addEventListener("click",e=>{const b=e.target.closest("[data-mail]");
   if(k==="write")mailWrite(d);else if(k==="read")mailRead(d);else if(k==="sealed"){sfx("stamp");bop(b)}
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
+/* ---------- фото с телефона по QR: телефон и компьютер соединяются напрямую (WebRTC), фото нигде не хранятся ---------- */
+const SEND=new URLSearchParams(location.search).get("send");
+const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
+const PEERJS="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js",QRJS="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js";
+let qrPeer=null;
+function addMedia(files,exif){const dt=new DataTransfer();[...$("n-media").files,...files].slice(0,12).forEach(f=>dt.items.add(f));$("n-media").files=dt.files;$("n-media").dispatchEvent(new Event("change"));
+  if(exif)setTimeout(()=>{$("n-date").value=exif;$("n-datenote").textContent="дату взяла из фото — поправь, если не та"},400)}
+async function qrOpen(){const box=$("mail"),close=()=>{try{qrPeer&&qrPeer.destroy()}catch(e){}qrPeer=null;closeMail()};let got=0;
+  box.innerHTML=`<div class="ml-in"><b>фото с телефона</b><p id="qr-msg">готовлю код…</p><div class="qrbox" id="qr-pic"></div><span class="qrn" id="qr-n"></span><p>Наведи камеру телефона на код, выбери фото — они сразу появятся здесь. Фото идут напрямую с телефона на этот компьютер и нигде не сохраняются.</p><button class="gobtn" data-close>готово</button></div>`;
+  box.hidden=false;box.onclick=e=>{if(e.target===box||e.target.closest("[data-close]"))close()};
+  try{await Promise.all([loadJs(PEERJS),loadJs(QRJS)]);const id="kino-"+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);qrPeer=new Peer(id);
+    qrPeer.on("open",()=>{const q=qrcode(0,"M");q.addData(location.origin+location.pathname+"?send="+id);q.make();$("qr-pic").innerHTML=q.createSvgTag({cellSize:6,margin:2,scalable:true});$("qr-msg").textContent="Код готов. Отсканируй его телефоном."});
+    qrPeer.on("connection",c=>{if($("qr-msg"))$("qr-msg").textContent="Телефон подключился. Выбирай фото на телефоне.";sfx("ding",1);
+      c.on("data",m=>{if(!m||m.type!=="file")return;addMedia([new File([m.data],m.name,{type:m.mime})],m.exif);got++;if($("qr-n"))$("qr-n").textContent=`получено: ${got}`;sfx("shutter");try{c.send({type:"ok",n:got})}catch(e){}})});
+    qrPeer.on("error",()=>{if($("qr-msg"))$("qr-msg").textContent="Не получилось соединиться. Проверь интернет и попробуй ещё раз."})}
+  catch(e){$("qr-msg").textContent="Не получилось открыть код: нет интернета."}}
+$("n-qr").onclick=qrOpen;
+/* сторона телефона: страница открыта по коду, показывает только выбор фото */
+async function shrink(f){if(!f.type.startsWith("image"))return f;try{const bm=await createImageBitmap(f,{imageOrientation:"from-image"}),k=Math.min(1,1800/Math.max(bm.width,bm.height)),c=document.createElement("canvas");c.width=bm.width*k|0;c.height=bm.height*k|0;c.getContext("2d").drawImage(bm,0,0,c.width,c.height);
+  return await new Promise(r=>c.toBlob(b=>r(b||f),"image/jpeg",.86))}catch(e){return f}}
+async function sendMode(){$("loading").classList.add("off");const v=document.createElement("div");v.id="sendv";
+  v.innerHTML=`<div class="ml-in"><b>фото для дневника</b><p id="sv-msg">соединяюсь с компьютером…</p><label class="pick" id="sv-pick" hidden><input type="file" id="sv-in" accept="image/*,video/*" multiple hidden>выбрать фото</label><div id="sv-list"></div><p>Фото уйдут сразу на компьютер, где открыт дневник. Эту страницу потом можно закрыть.</p></div>`;document.body.append(v);
+  const msg=t=>$("sv-msg").textContent=t;
+  try{await loadJs(PEERJS);const peer=new Peer();peer.on("error",()=>msg("Не получилось соединиться. Открой код на компьютере заново и отсканируй ещё раз."));
+    peer.on("open",()=>{const c=peer.connect(SEND,{reliable:true});let sent=0,ok=0;
+      c.on("open",()=>{msg("Соединение есть. Выбирай фото.");$("sv-pick").hidden=false});c.on("data",m=>{if(m&&m.type==="ok"){ok=m.n;msg(`На компьютере уже ${ok}. Можно выбрать ещё.`)}});c.on("close",()=>{msg("Компьютер закрыл приём фото.");$("sv-pick").hidden=true});
+      $("sv-in").onchange=async()=>{const fs=[...$("sv-in").files];let exif=null;for(const f of fs){if(f.type.startsWith("image")&&!exif)try{exif=await exifDate(f)}catch(e){}
+          if(f.size>40e6){continue}const b=await shrink(f);sent++;msg(`отправляю ${sent}…`);c.send({type:"file",name:f.name.replace(/\.[^.]+$/,"")+(b===f?(f.name.match(/\.[^.]+$/)||[""])[0]:".jpg"),mime:b.type||f.type,exif,data:await b.arrayBuffer()});
+          if(f.type.startsWith("image")){const i=new Image();i.src=URL.createObjectURL(b);$("sv-list").append(i)}}$("sv-in").value=""}})}
+  catch(e){msg("Нет интернета: не получилось соединиться.")}}
+
 /* ---------- старт ---------- */
 $("logo").innerHTML=ransom("дневник-кино",11,6,.5);$("n-head").innerHTML=ransom("новый день",23,6,.6);$("hbig").innerHTML=ransom("сейчас непросто",31,5,.5);lockBtn();
 let li=0;const ltxt="загрузка",lt=setInterval(()=>{$("loadtxt").innerHTML=[...ltxt].map((c,k)=>`<b class="s${k===li%ltxt.length?1+li%5:0}" style="--r:${k===li%ltxt.length?-6:0}deg">${c}</b>`).join("");li++},260);
 (async()=>{
+  if(SEND){clearInterval(lt);sendMode();return}
   await DB.open();
   const dj=await (await fetch("demo/days-kino.json",{cache:"no-cache"})).json();
   /* песни демо-дней — официальные 30-секундные фрагменты из iTunes; сами песни в проекте не хранятся */
