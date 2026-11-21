@@ -370,6 +370,53 @@ button.c.dim{opacity:.16;filter:grayscale(1)}
   .months{grid-template-columns:repeat(2,1fr);gap:18px}.scols{grid-template-columns:1fr;padding-left:28px}.sheet{padding:28px 18px 24px}.shead,.sfoot,.sheet>.hintl{padding-left:28px}.shead .rs{font-size:28px}.nav button{font-size:18px;padding:8px 12px 12px}.year{padding:26px 18px 28px}.yhead .big{font-size:36px}
 }
 @media (prefers-reduced-motion:reduce){.leak,.reel{animation:none}.leaf{transition:none}}
+
+/* ---------- обложка тетради ---------- */
+.front{position:fixed;inset:0;z-index:18;background:#2a1a0e url(tex/wood.jpg) center/cover;display:grid;place-items:center;overflow:hidden;transition:opacity .7s}
+.front::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 65% at 50% 46%,rgba(255,206,150,.26),transparent 58%,rgba(0,0,0,.7) 100%)}
+.front.off{opacity:0;pointer-events:none}
+.fstage{position:relative;display:grid;justify-items:center;gap:30px;perspective:2600px}
+.fbook{--w:min(410px,74vw,52vh);position:relative;width:var(--w);height:calc(var(--w)*1.4);transform-style:preserve-3d;transform:rotate(-2.5deg);transition:transform 1s cubic-bezier(.5,.05,.2,1)}
+.front.open .fbook{transform:translateX(calc(var(--w)/2))}
+.fbase{position:absolute;inset:0;background:var(--paper,#979a76) var(--pimg) center/cover;box-shadow:0 0 0 1px #22140c,7px 0 0 -1px #cdbfa6,8px 0 0 -1px #8f7f68,12px 3px 0 -2px #cdbfa6,0 46px 60px -22px rgba(0,0,0,.9),0 8px 18px rgba(0,0,0,.6)}
+.fleaf,.fcover{position:absolute;inset:0;transform-origin:left center;transform-style:preserve-3d;transform:translateZ(var(--z));transition:transform .56s cubic-bezier(.45,.05,.3,1)}
+.fcover{transition-duration:.95s;cursor:pointer;outline:0}
+.fleaf.fl,.fcover.fl{transform:rotateY(-180deg) translateZ(var(--z))}
+.fleaf>i,.fcover>i{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;font-style:normal;overflow:hidden}
+.fleaf>i{background:var(--paper) var(--pimg) center/cover;color:var(--ink);padding:12% 10%}
+.fleaf>i.fb,.fcover>i.fc-in{transform:rotateY(180deg)}
+.fleaf>i.fb{filter:brightness(.9)}
+.fleaf>i::after{content:"";position:absolute;top:0;bottom:0;left:0;width:46px;background:linear-gradient(270deg,transparent,rgba(0,0,0,.34))}
+.fleaf>i.fb::after{left:auto;right:0;transform:scaleX(-1)}
+.fleaf small{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.85}
+.fleaf em{display:block;font-family:var(--note);font-style:normal;font-size:clamp(22px,6vw,34px);line-height:1.05;margin-top:10px;transform:rotate(-2deg);transform-origin:left}
+.fc-out{background:#b99a6c url(tex/kraft.jpg) center/cover;color:#2a1d14;border-radius:3px 9px 9px 3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35),inset -10px 0 18px -10px rgba(0,0,0,.45),inset 0 0 60px rgba(60,30,8,.35)}
+.fc-out::before{content:"";position:absolute;left:0;top:0;bottom:0;width:11%;background:#7c2413 var(--fiber);background-size:120px;background-blend-mode:multiply;box-shadow:inset -6px 0 8px -4px rgba(0,0,0,.6),2px 0 0 rgba(255,255,255,.12)}
+.fc-out::after{content:"";position:absolute;inset:0;background:var(--grunge);background-size:600px 800px;opacity:.16;mix-blend-mode:multiply;pointer-events:none}
+.fc-in{background:#d8c49d url(tex/kraft.jpg) center/cover;display:grid;place-content:center;text-align:center;padding:14%;color:#3a2a1c;font-family:var(--note);font-size:clamp(20px,5vw,27px);line-height:1.2;box-shadow:inset 0 0 0 1000px rgba(244,232,205,.5),inset 12px 0 22px -10px rgba(0,0,0,.5)}
+.fc-in b{font-weight:400;color:var(--red);font-size:1.5em;display:block}
+.ft{position:absolute;left:19%;right:6%;top:9%;display:grid;gap:.12em;justify-items:start}
+.ft{top:11%}.ft .rs{font-size:calc(var(--w)*.098);flex-wrap:nowrap}.ft .rs+.rs{font-size:calc(var(--w)*.158);margin-left:5%;transform:rotate(-3deg)}
+.fsub{position:absolute;left:20%;top:40.5%;font-family:var(--note);font-size:clamp(18px,calc(var(--w)*.062),26px);line-height:1;transform:rotate(-4deg);color:#2a1d14;border-bottom:2px solid var(--red);padding-bottom:3px}
+.ffilm{position:absolute;left:8%;right:-3%;top:50%;height:21%;background:#14110e;transform:rotate(3deg);display:flex;gap:2.5%;padding:5.2% 3%;box-shadow:0 5px 9px rgba(0,0,0,.5)}
+.ffilm::before,.ffilm::after{content:"";position:absolute;left:0;right:0;height:13%;background:repeating-linear-gradient(90deg,transparent 0 7px,#e9dcc0 7px 15px,transparent 15px 22px)}
+.ffilm::before{top:7%}.ffilm::after{bottom:7%}
+.ffilm img{flex:1;min-width:0;height:100%;object-fit:cover;filter:sepia(.35) saturate(1.15) contrast(1.05)}
+.ftape{position:absolute;right:-5%;top:47%;width:27%;transform:rotate(-38deg)}
+.fname{position:absolute;left:19%;bottom:8%;width:52%;background:#f4ecd8 var(--fiber);background-size:140px;background-blend-mode:multiply;padding:8px 12px 12px;transform:rotate(-2deg);box-shadow:1px 2px 3px rgba(0,0,0,.45);font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#5d4a3d}
+.fname input{display:block;width:100%;border:0;border-bottom:1.5px solid #2a1d14;background:transparent;font-family:var(--hand);font-size:21px;color:#2a1d14;outline:0;padding:2px 0 0;-webkit-text-stroke:.3px currentColor}
+.fname input::placeholder{color:#a08a78;-webkit-text-stroke:0}
+.fstamp{position:absolute;right:5%;bottom:5%;width:25%;color:var(--red);transform:rotate(14deg);opacity:.85}
+.fstamp text{font-family:var(--mono);fill:currentColor;letter-spacing:.16em}
+.fs1{position:absolute;right:4%;top:1.5%;width:15%;transform:rotate(14deg)}.fs2{position:absolute;left:21%;bottom:27%;width:9%;transform:rotate(-20deg)}
+.fhint{margin:0;font-family:var(--note);font-size:24px;color:rgba(242,230,208,.92);text-align:center;transition:opacity .3s;animation:fh 1.4s ease-in-out infinite alternate}
+.fhint small{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-top:6px}
+.front.open .fhint{opacity:0;animation:none}
+@keyframes fh{to{transform:translateY(-5px)}}
+.fcover:focus-visible .fc-out{box-shadow:0 0 0 3px var(--yellow)}
+#logo{cursor:pointer}
+@media (max-width:900px){.front.open .fbook{transform:none}}
+@media (prefers-reduced-motion:reduce){.fhint{animation:none}}
 </style>
 </head>
 <body>
@@ -381,6 +428,7 @@ button.c.dim{opacity:.16;filter:grayscale(1)}
   <radialGradient id="gC" cx="35%" cy="28%"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#f2e6d0"/><stop offset="1" stop-color="#bfae8e"/></radialGradient>
   <symbol id="st" viewBox="0 0 40 40"><path d="M20 4l4.6 10.4 11.3 1.2-8.5 7.6 2.5 11.1L20 28.6 10.1 34.3l2.5-11.1-8.5-7.6 11.3-1.2z" stroke-width="4" stroke-linejoin="round"/></symbol>
 </svg>
+<div class="front" id="front" hidden><div class="fstage"><div class="fbook" id="fbook"></div><p class="fhint" id="fhint"></p></div></div>
 <div class="loading" id="loading"><span class="rs" id="loadtxt"></span></div>
 <header>
   <div class="logo" id="logo"></div>
@@ -917,6 +965,45 @@ $("n-form").onsubmit=async e=>{e.preventDefault();const st=$("n-status"),btn=$("
   }catch(err){st.textContent=err.message}
   btn.disabled=false};
 
+/* ---------- обложка: тетрадь закрыта, по нажатию открывается и пролистывается до последнего дня ---------- */
+function flick(at,f,vol=.15){try{const a=actx();if(a.state!=="running")a.resume();const n=a.sampleRate*.17|0,b=a.createBuffer(1,n,a.sampleRate),c=b.getChannelData(0);
+  for(let i=0;i<n;i++){const t=i/n;c[i]=(Math.random()*2-1)*Math.pow(1-t,2.2)*(t<.04?t/.04:1)}
+  const s=a.createBufferSource(),q=a.createBiquadFilter(),g=a.createGain();s.buffer=b;q.type="bandpass";q.Q.value=1.1;q.frequency.value=f;g.gain.value=vol;s.connect(q);q.connect(g);g.connect(a.destination);s.start(a.currentTime+at)}catch(e){}}
+function thump(at=0,vol=.3){try{const a=actx(),o=a.createOscillator(),g=a.createGain(),t=a.currentTime+at;o.type="sine";o.frequency.setValueAtTime(96,t);o.frequency.exponentialRampToValueAtTime(46,t+.22);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+.26);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+.28)}catch(e){}}
+const dayWord=n=>n%10===1&&n%100!==11?"день":[2,3,4].includes(n%10)&&![12,13,14].includes(n%100)?"дня":"дней";
+let frontBusy=false;
+function buildFront(){
+  const n=DAYS.length,last=DAYS[n-1],pool=DAYS.slice(0,-1).length?DAYS.slice(0,-1):DAYS,N=Math.max(9,pool.length);
+  const pics=[...new Set(DAYS.map(d=>(d.media.find(m=>!m.video)||{}).url).filter(Boolean))].slice(-4);
+  const face=(d,c)=>`<i class="${c} k-${d.look.key}" style="--paper:${d.look.paper};--ink:${d.look.ink}">${c==="ff"?`<small>${esc(human(d.date).big)}</small><em>${esc(d.title)}</em>`:""}</i>`;
+  let owner="";try{owner=localStorage.getItem("kino-owner")||""}catch(e){}
+  const yr=last?new Date(last.date+"T12:00").getFullYear():new Date().getFullYear();
+  $("fbook").innerHTML=`<div class="fbase k-${last.look.key}" style="--paper:${last.look.paper}"></div>`+
+    Array.from({length:N},(_,k)=>{const d=pool[k%pool.length];return`<div class="fleaf" style="--z:${((N-k)*.6).toFixed(1)}px">${face(d,"ff")}${face(pool[(k+1)%pool.length],"fb")}</div>`}).reverse().join("")+
+    `<div class="fcover" id="fcover" role="button" tabindex="0" aria-label="Открыть дневник" style="--z:${((N+2)*.6).toFixed(1)}px"><i class="fc-out">
+      <div class="ft">${ransom("дневник",41,6,.55)}${ransom("кино",42,8,.75)}</div>
+      <div class="fsub">тетрадь памятных дней</div>
+      <img class="fs1" alt="" src="tex/stargold.webp"><img class="fs2" alt="" src="tex/starblack.webp">
+      <div class="ffilm">${pics.map(u=>`<img alt="" src="${u}">`).join("")}</div><img class="ftape" alt="" src="tex/tape.webp">
+      <label class="fname">чья тетрадь<input id="fowner" maxlength="24" placeholder="впиши имя" value="${esc(owner)}"></label>
+      <svg class="fstamp" viewBox="0 0 120 120" fill="none" stroke="currentColor"><circle cx="60" cy="60" r="55" stroke-width="3"/><circle cx="60" cy="60" r="37" stroke-width="1.5"/><path id="farc" d="M60 60m-46 0a46 46 0 1 1 92 0a46 46 0 1 1 -92 0"/><text font-size="9.5" stroke="none"><textPath href="#farc">памятные дни · песня · фото · фильм ·</textPath></text><text x="60" y="66" text-anchor="middle" font-size="17" stroke="none">${yr}</text></svg>
+    </i><i class="fc-in"><span>в этой тетради<b>${n} ${dayWord(n)}</b>у каждого своя песня</span></i></div>`;
+  $("fhint").innerHTML=`нажми на тетрадь, она откроется<small>внутри ${n} ${dayWord(n)} · со звуком</small>`;
+  const o=$("fowner");o.onclick=e=>e.stopPropagation();o.onkeydown=e=>{e.stopPropagation();if(e.key==="Enter")o.blur()};o.oninput=()=>{try{localStorage.setItem("kino-owner",o.value)}catch(e){}};
+  const c=$("fcover");c.onclick=openFront;c.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openFront()}};
+}
+function showFront(){buildFront();const F=$("front");F.classList.remove("open");F.hidden=false;F.getBoundingClientRect();F.classList.remove("off");frontBusy=false;scrollTo(0,0)}
+function openFront(){
+  if(frontBusy)return;frontBusy=true;const F=$("front"),done=()=>{F.hidden=true;frontBusy=false};
+  if(matchMedia("(prefers-reduced-motion:reduce)").matches){F.classList.add("off");setTimeout(done,700);return}
+  rustle();thump(.05,.22);F.classList.add("open");$("fcover").classList.add("fl");
+  const L=[...F.querySelectorAll(".fleaf")].reverse();let t=720;
+  L.forEach((el,k)=>{setTimeout(()=>el.classList.add("fl"),t);flick(t/1000,1500+k*190,.13+.05*Math.random());t+=Math.max(72,170-k*13)});
+  thump((t+420)/1000,.2);setTimeout(()=>F.classList.add("off"),t+620);setTimeout(done,t+1350);
+}
+$("logo").onclick=()=>{show("book");showFront()};$("logo").title="закрыть тетрадь";
+
 /* ---------- старт ---------- */
 $("logo").innerHTML=ransom("дневник-кино",11,6,.5);$("n-head").innerHTML=ransom("новый день",23,6,.6);$("hbig").innerHTML=ransom("сейчас непросто",31,5,.5);lockBtn();
 let li=0;const ltxt="загрузка",lt=setInterval(()=>{$("loadtxt").innerHTML=[...ltxt].map((c,k)=>`<b class="s${k===li%ltxt.length?1+li%5:0}" style="--r:${k===li%ltxt.length?-6:0}deg">${c}</b>`).join("");li++},260);
@@ -924,7 +1011,7 @@ let li=0;const ltxt="загрузка",lt=setInterval(()=>{$("loadtxt").innerHTM
   await DB.open();
   const demo=(await (await fetch("demo/days-kino.json",{cache:"no-cache"})).json()).map(fromDemo),own=(await DB.all()).map(fromStored);
   DAYS=await Promise.all([...demo,...own].map(hydrate));sortDays();
-  render(DAYS.length-1);renderYear();if(getPin())openLock("ask");clearInterval(lt);$("loading").classList.add("off");
+  render(DAYS.length-1);renderYear();showFront();if(getPin())openLock("ask");clearInterval(lt);$("loading").classList.add("off");
 })();
 let drag=null,dragged=0;
 addEventListener("pointerdown",e=>{const el=e.target.closest(".drag");if(!el||e.button||e.pointerType!=="mouse")return;drag={el,x:e.clientX,y:e.clientY,ox:+el.dataset.x||0,oy:+el.dataset.y||0,moved:false}});
