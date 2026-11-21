@@ -276,6 +276,7 @@ img.bigleaf{right:-34px;bottom:-30px;width:200px;height:auto;transform:rotate(-2
 .chips{margin-top:8px}.chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.7);border:1px dashed #8a6f5c;font-family:var(--note);font-size:17px;line-height:1.15;padding:4px 6px 4px 10px;margin:0 6px 6px 0;max-width:100%}
 .chip button{border:0;background:#c73e24;color:#fff;width:22px;height:22px;border-radius:50%;font-size:12px;flex:none;line-height:1}
 .chk{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--note);font-size:22px;margin:22px 0 0;padding-left:34px;cursor:pointer}.chk input{width:22px;height:22px;accent-color:#c73e24}.chk small{font-size:17px;color:#5d4a3d}
+.chk.c2{margin-top:8px;font-size:19px}
 .ticket.nofilm{opacity:.92;filter:drop-shadow(0 6px 6px rgba(0,0,0,.4)) grayscale(.35)}
 .play.plus{background:#2a1d14}.ticket .play.plus::after{content:"+";border:0;margin:0;color:#fff;font-size:26px;line-height:1;font-family:var(--mono)}
 .unfilm{position:absolute!important;left:38px;bottom:12px;background:none;border:0;border-bottom:1px dashed currentColor;padding:0;font-family:var(--note);font-size:16px;color:var(--ink);opacity:.6}.unfilm:hover{opacity:1}
@@ -359,6 +360,7 @@ img.bigleaf{right:-34px;bottom:-30px;width:200px;height:auto;transform:rotate(-2
         </div>
       </div>
       <label class="chk"><input type="checkbox" id="n-film"> снять фильм об этом дне <small>— можно включить и потом, прямо на странице дня</small></label>
+      <label class="chk c2"><input type="checkbox" id="n-mood" checked> если фото мало, добавить в фильм кадры настроения по тексту <small>— море, дождь, чай, школа…</small></label>
       <div class="sfoot"><button class="gobtn" id="n-go">вклеить в тетрадь</button><span id="n-status" role="status"></span></div>
       <p class="hintl">Всё хранится только в этом браузере на этом компьютере. Ничего никуда не отправляется.</p>
     </form>
@@ -504,7 +506,7 @@ function pageEl(d,side){
       ${extra.length?`<div class="contact drag pop" ${pop()}>${extra.map(m=>`<span>${mtag(m)}</span>`).join("")}</div>`:""}
       <div class="row"><div class="slip drag pop" ${pop()}><b>чек дня № ${h.doy}</b>
         <div><span>песня</span><span>${esc(d.song.name)}</span></div><div><span>темп</span><span>${d.music.bpm} уд/мин</span></div><div><span>энергия</span><span>${bars}</span></div>
-        <div><span>бумага</span><span>${L.pname}</span></div><div><span>фото</span><span>${d.media.length}</span></div><div><span>слов</span><span>${words(d.text).length}</span></div><div><span>кадров</span><span>${plan.shots.length}</span></div></div>
+        <div><span>бумага</span><span>${L.pname}</span></div><div><span>фото</span><span>${d.media.length}</span></div><div><span>слов</span><span>${words(d.text).length}</span></div><div><span>кадров</span><span>${plan.shots.length}</span></div>${plan.moods?`<div><span>настроения</span><span>+${plan.moods}</span></div>`:""}</div>
       ${d.film!==false?`<button class="ticket drag pop" ${pop()} data-film><span class="play"></span><span><small>фильм дня · ${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}</small><em>${esc(d.title)}</em></span></button>`:`<button class="ticket nofilm drag pop" ${pop()} data-mkfilm="${d.id}"><span class="play plus"></span><span><small>фильма у этого дня пока нет</small><em>снять фильм</em></span></button>`}</div>
       ${stick}${K==="olive"?`<img class="flower drag pop" alt="" draggable="false" src="tex/flower.webp">`:""}${dsvg(doodlesOf(d.text)[1],"d2")}${d.own?`<button class="rip" data-del="${d.id}">вырвать страницу ✂</button>`:""}${d.own&&d.film?`<button class="unfilm" data-unfilm="${d.id}">убрать фильм</button>`:""}<span class="pno">стр. ${h.doy*2}</span>`;
   }
@@ -554,16 +556,27 @@ function openDay(i){render(i);show("book")}
 const FR=[{z:1.08,x:.5,y:.5},{z:1.35,x:.25,y:.7},{z:1.3,x:.75,y:.32},{z:1.12,x:.5,y:.76},{z:1.5,x:.3,y:.38},{z:1.4,x:.7,y:.66},{z:1.12,x:.5,y:.27},{z:1.6,x:.5,y:.56}];
 const MOVES=["in","right","out","up","left","in","down","out"];
 function sentences(t){const a=(t.match(/[^.!?…]+[.!?…]*/g)||[]).map(s=>s.trim()).filter(Boolean);return(a.length?a:[""]).slice(0,8)}
+/* кадры настроения: если своих фото мало, фильм добирает кадры по словам из текста */
+const MOOD=[["sea","мор волн пляж"],["leaves","лист осен"],["park","парк скамей гуля прогул"],["rain","дожд капл ливен"],["puddles","луж мокр"],["snowfall","снег снеж метел"],["snow","сугроб зим мороз"],["citynight","ноч огн"],["tea","чай какао"],["cafe","кафе кофе пицц"],["school","школ урок класс учител"],["study","проект уроки домашк дедлайн сдач экзамен контрольн"],["sky","солн неб ярк жарк"],["sunset","закат вечер"],["morning","утр рассвет проснул"],["forest","лес"],["mountains","горы горах горам"],["lake","озер рек речк"],["road","дорог ехал поехал машин поезд"],["cake","рожден торт"],["party","праздник шарик подар"],["concert","концерт сцен выступ"],["music","музык песн наушник"],["cat","кот кошк"],["dog","собак щен"],["home","дома комнат книг чита плед"],["baking","готов пек пирог печен бабушк"],["blossom","весн цвет"],["cinema","кино фильм"],["friends","друз подруг"],["dinner","ужин обед мам пап семь"],["sport","трениров спорт бег футбол волейбол"],["dance","танц"],["stars","звезд"],["swing","груст скуч одинок уехал"],["joy","смея весел радост счаст"]].map(([f,k])=>[f,k.split(" ")]);
+const MOODBACK={fire:["sky","joy"],olive:["sunset","leaves"],night:["citynight","stars"],rain:["rain","tea"]};
+function moodFor(d){
+  if(d.mood===false)return[];const need=Math.min(5,6-d.media.length);if(need<=0)return[];
+  const w=words(d.text),hit=[];
+  for(const[f,ks]of MOOD){const i=w.findIndex(x=>ks.some(k=>x.startsWith(k)&&x.length<=k.length+4));if(i>=0)hit.push([i,f])}
+  let names=hit.sort((a,b)=>a[0]-b[0]).map(h=>h[1]);
+  if(names.length<2&&d.media.length<3)names=[...new Set([...names,...MOODBACK[d.look.key]])];
+  return names.slice(0,need).map(f=>({url:`mood/${f}.jpg`,video:false,mood:true}));
+}
 function filmPlan(d){
-  const L=d.look,sent=sentences(d.text),m=d.media.length,per=sent.length>5?1:(L.shot<2.6?3:2);
+  const L=d.look,sent=sentences(d.text),media=d.media.concat(moodFor(d)),m=media.length,per=sent.length>5?1:(L.shot<2.6?3:2);
   const shots=[{card:true,media:d.media[0],f:FR[0],mv:"in",dur:Math.max(L.shot,2.8)}],subs=[];let k=m>1?1:0,at=shots[0].dur;const used=new Array(m).fill(0);used[0]=1;
   sent.forEach((s,si)=>{const start=at;let subFrom=at;
     if(s&&m<4&&(per>1||si%2===0)){const dur=Math.max(L.shot,Math.min(4.2,1.6+s.length*.045));shots.push({paper:true,text:s,media:{url:"paper"},f:FR[0],mv:si%2?"left":"right",dur});at+=dur;subFrom=at}
-    for(let j=0;j<(m<4&&per>1?per-1:per);j++){const pi=k%m,fi=used[pi]===0?0:1+((used[pi]-1)*3+pi*2)%(FR.length-1);used[pi]++;shots.push({media:d.media[pi],f:FR[fi],mv:MOVES[k%MOVES.length],dur:L.shot});k++;at+=L.shot}
+    for(let j=0;j<(m<4&&per>1?per-1:per);j++){const pi=k%m,fi=used[pi]===0?0:1+((used[pi]-1)*3+pi*2)%(FR.length-1);used[pi]++;shots.push({media:media[pi],f:FR[fi],mv:MOVES[k%MOVES.length],dur:L.shot});k++;at+=L.shot}
     if(s&&subFrom===start)subs.push({text:s,from:subFrom+.35,to:at-.3})});
-  shots.push({end:true,media:d.media[m-1],f:FR[0],mv:"out",dur:Math.max(L.shot,3)});
+  shots.push({end:true,media:d.media[d.media.length-1],f:FR[0],mv:"out",dur:Math.max(L.shot,3)});
   let t=0;shots.forEach(s=>{s.at=t;t+=s.dur});
-  return{shots,subs,total:t};
+  return{shots,subs,total:t,moods:media.length-d.media.length};
 }
 const CW=1280,CH=536;
 const loadImg=url=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
@@ -621,7 +634,7 @@ async function openFilm(record){
   $("fmsg").textContent=record?"идёт запись — досмотри фильм до конца, видео сохранится само":"";$("bar").style.width="0";
   x.fillStyle="#000";x.fillRect(0,0,CW,CH);noiseTiles();
   await Promise.all([document.fonts.load('italic 400 40px "Cormorant Garamond"').catch(()=>{}),document.fonts.load('400 16px "PT Mono"').catch(()=>{}),document.fonts.load('500 40px "Caveat"').catch(()=>{}),loadImg("tex/paper-"+L.key+".jpg").then(i=>F.els.set("paper",i)).catch(()=>{}),
-    ...d.media.map(async m=>{try{F.els.set(m.url,await(m.video?loadVid:loadImg)(m.url))}catch(e){}})]);
+    ...[...new Map(plan.shots.filter(x=>!x.paper).map(x=>[x.media.url,x.media])).values()].map(async m=>{try{F.els.set(m.url,await(m.video?loadVid:loadImg)(m.url))}catch(e){}})]);
   if(!F.alive)return;
   if(d.music.buf){try{const a=actx();a.resume();const src=a.createBufferSource(),g=a.createGain(),now=a.currentTime;src.buffer=d.music.buf;src.loop=true;
     g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(.9,now+1.8);g.gain.setValueAtTime(.9,now+Math.max(1.9,plan.total-1.6));g.gain.linearRampToValueAtTime(0,now+plan.total+.2);
@@ -653,7 +666,7 @@ const CAPS={"demo-1":["с мамой","какао"],"demo-2":["волны!","м�
 const TAIL={быстрый:"на высокой скорости",яркий:"полный смеха",тёплый:"в тёплом свете",тихий:"в тихом ритме"};
 const hash=s=>{let h=7;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)%100000+1};
 const fromDemo=d=>({id:d.id,date:d.date,text:d.text,media:d.photos.map(p=>({url:"demo/"+p,video:false})),song:{name:d.song.name,url:"demo/"+d.song.file}});
-const fromStored=r=>({id:r.id,date:r.date,text:r.text,own:true,film:!!r.film,media:r.files.map(f=>({url:URL.createObjectURL(f),video:(f.type||"").startsWith("video")})),song:{name:r.song.name,url:URL.createObjectURL(r.song.blob)}});
+const fromStored=r=>({id:r.id,date:r.date,text:r.text,own:true,film:!!r.film,mood:r.mood!==false,media:r.files.map(f=>({url:URL.createObjectURL(f),video:(f.type||"").startsWith("video")})),song:{name:r.song.name,url:URL.createObjectURL(r.song.blob)}});
 async function hydrate(raw){
   let music;try{music=await analyzeSong(raw.song.url)}catch(e){music={bpm:96,energy:.4,bright:.5,duration:30,wave:Array.from({length:90},(_,k)=>.4+.3*Math.sin(k/4))}}
   const L=look(music);return{...raw,seed:hash(raw.id),music,look:L,title:makeTitle(raw.text,raw.date,TAIL[L.word]),caps:CAPS[raw.id]||[human(raw.date).dd,raw.song.name]};
@@ -730,10 +743,10 @@ $("n-form").onsubmit=async e=>{e.preventDefault();const st=$("n-status"),btn=$("
   btn.disabled=true;st.textContent="слушаю песню и вклеиваю страницу…";
   try{const ok=[];for(const f of files){if(f.type.startsWith("video")){ok.push(f);continue}const u=URL.createObjectURL(f);try{await loadImg(u);ok.push(f)}catch(err){}URL.revokeObjectURL(u)}
     if(!ok.length)throw new Error("не получилось открыть фото. Если это HEIC с айфона, сохрани их как JPEG");
-    const rec={id:"d"+Date.now(),date,text,film:$("n-film").checked,files:ok,song:{name:PICK?PICK.name:($("n-sname").value.trim()||"песня дня"),blob:song}},day=await hydrate(fromStored(rec));
+    const rec={id:"d"+Date.now(),date,text,film:$("n-film").checked,mood:$("n-mood").checked,files:ok,song:{name:PICK?PICK.name:($("n-sname").value.trim()||"песня дня"),blob:song}},day=await hydrate(fromStored(rec));
     if(!day.music.buf)throw new Error("не получилось прочитать песню — попробуй файл mp3");
     await DB.put(rec);DAYS.push(day);sortDays();YEAR=null;openDay(DAYS.indexOf(day));
-    $("n-form").reset();PICK=null;$("n-res").innerHTML="";$("n-thumbs").innerHTML="";$("n-mcount").textContent=$("n-scount").textContent=$("n-datenote").textContent="";$("n-date").value=today();
+    $("n-form").reset();PICK=null;$("n-mood").checked=true;$("n-res").innerHTML="";$("n-thumbs").innerHTML="";$("n-mcount").textContent=$("n-scount").textContent=$("n-datenote").textContent="";$("n-date").value=today();
     st.textContent=ok.length<files.length?`страница готова. ${files.length-ok.length} фото не открылись (возможно, HEIC)`:"";
   }catch(err){st.textContent=err.message}
   btn.disabled=false};
