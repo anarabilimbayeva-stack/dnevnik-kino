@@ -404,7 +404,7 @@ button.c.dim{opacity:.16;filter:grayscale(1)}
 .ffilm img{flex:1;min-width:0;height:100%;object-fit:cover;filter:sepia(.35) saturate(1.15) contrast(1.05)}
 .ftape{position:absolute;right:-5%;top:47%;width:27%;transform:rotate(-38deg)}
 .fname{position:absolute;left:19%;bottom:8%;width:52%;background:#f4ecd8 var(--fiber);background-size:140px;background-blend-mode:multiply;padding:8px 12px 12px;transform:rotate(-2deg);box-shadow:1px 2px 3px rgba(0,0,0,.45);font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#5d4a3d}
-.fname input{display:block;width:100%;border:0;border-bottom:1.5px solid #2a1d14;background:transparent;font-family:var(--hand);font-size:21px;color:#2a1d14;outline:0;padding:2px 0 0;-webkit-text-stroke:.3px currentColor}
+.fname{width:40%}.fname b{display:block;font-weight:400;font-family:var(--hand);font-size:22px;letter-spacing:0;text-transform:none;color:#2a1d14;-webkit-text-stroke:.3px currentColor;margin-top:2px}.fname input{display:block;width:100%;border:0;border-bottom:1.5px solid #2a1d14;background:transparent;font-family:var(--hand);font-size:21px;color:#2a1d14;outline:0;padding:2px 0 0;-webkit-text-stroke:.3px currentColor}
 .fname input::placeholder{color:#a08a78;-webkit-text-stroke:0}
 .fstamp{position:absolute;right:5%;bottom:5%;width:25%;color:var(--red);transform:rotate(14deg);opacity:.85}
 .fstamp text{font-family:var(--mono);fill:currentColor;letter-spacing:.16em}
@@ -977,7 +977,6 @@ function buildFront(){
   const n=DAYS.length,last=DAYS[n-1],pool=DAYS.slice(0,-1).length?DAYS.slice(0,-1):DAYS,N=Math.max(9,pool.length);
   const pics=[...new Set(DAYS.map(d=>(d.media.find(m=>!m.video)||{}).url).filter(Boolean))].slice(-4);
   const face=(d,c)=>`<i class="${c} k-${d.look.key}" style="--paper:${d.look.paper};--ink:${d.look.ink}">${c==="ff"?`<small>${esc(human(d.date).big)}</small><em>${esc(d.title)}</em>`:""}</i>`;
-  let owner="";try{owner=localStorage.getItem("kino-owner")||""}catch(e){}
   const yr=last?new Date(last.date+"T12:00").getFullYear():new Date().getFullYear();
   $("fbook").innerHTML=`<div class="fbase k-${last.look.key}" style="--paper:${last.look.paper}"></div>`+
     Array.from({length:N},(_,k)=>{const d=pool[k%pool.length];return`<div class="fleaf" style="--z:${((N-k)*.6).toFixed(1)}px">${face(d,"ff")}${face(pool[(k+1)%pool.length],"fb")}</div>`}).reverse().join("")+
@@ -986,11 +985,10 @@ function buildFront(){
       <div class="fsub">тетрадь памятных дней</div>
       <img class="fs1" alt="" src="tex/stargold.webp"><img class="fs2" alt="" src="tex/starblack.webp">
       <div class="ffilm">${pics.map(u=>`<img alt="" src="${u}">`).join("")}</div><img class="ftape" alt="" src="tex/tape.webp">
-      <label class="fname">чья тетрадь<input id="fowner" maxlength="24" placeholder="впиши имя" value="${esc(owner)}"></label>
+      <div class="fname">внутри<b>${n} ${dayWord(n)}</b></div>
       <svg class="fstamp" viewBox="0 0 120 120" fill="none" stroke="currentColor"><circle cx="60" cy="60" r="55" stroke-width="3"/><circle cx="60" cy="60" r="37" stroke-width="1.5"/><path id="farc" d="M60 60m-46 0a46 46 0 1 1 92 0a46 46 0 1 1 -92 0"/><text font-size="9.5" stroke="none"><textPath href="#farc">памятные дни · песня · фото · фильм ·</textPath></text><text x="60" y="66" text-anchor="middle" font-size="17" stroke="none">${yr}</text></svg>
     </i><i class="fc-in"><span>в этой тетради<b>${n} ${dayWord(n)}</b>у каждого своя песня</span></i></div>`;
   $("fhint").innerHTML=`нажми на тетрадь, она откроется<small>внутри ${n} ${dayWord(n)} · со звуком</small>`;
-  const o=$("fowner");o.onclick=e=>e.stopPropagation();o.onkeydown=e=>{e.stopPropagation();if(e.key==="Enter")o.blur()};o.oninput=()=>{try{localStorage.setItem("kino-owner",o.value)}catch(e){}};
   const c=$("fcover");c.onclick=openFront;c.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openFront()}};
 }
 function showFront(){buildFront();const F=$("front");F.classList.remove("open");F.hidden=false;F.getBoundingClientRect();F.classList.remove("off");frontBusy=false;scrollTo(0,0)}
