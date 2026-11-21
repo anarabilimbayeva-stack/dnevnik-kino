@@ -97,7 +97,7 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;
 .pol:only-child{width:66%;transform:rotate(calc(var(--tilt)*-.6));margin:0}
 .pol:hover{transform:rotate(0) scale(1.04);z-index:3}
 .pol .ph{position:relative;overflow:hidden;aspect-ratio:1/1;background:#111}
-.pol img,.pol video{display:block;width:100%;height:100%;object-fit:cover;filter:sepia(.25) saturate(1.15) contrast(1.08)}
+.pol img,.pol video{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 32%;filter:sepia(.25) saturate(1.15) contrast(1.08)}
 .pol .ph::after{content:"";position:absolute;inset:0;background:var(--fiber) 0 0/120px,radial-gradient(ellipse at 85% 10%,rgba(255,190,110,.5),transparent 50%),radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.35));mix-blend-mode:soft-light;opacity:.7}
 .pol i{position:absolute;left:0;right:0;bottom:7px;text-align:center;font-family:var(--note);font-style:normal;font-size:21px;color:#3b2a24}
 .pol .tape{position:absolute;top:-14px;left:50%;width:96px;height:28px;transform:translateX(-50%) rotate(-4deg);background:repeating-linear-gradient(45deg,var(--acc) 0 7px,color-mix(in srgb,var(--acc) 78%,#fff) 7px 14px);opacity:.88;filter:url(#rough2) drop-shadow(0 1px 1px rgba(0,0,0,.35))}
@@ -493,6 +493,9 @@ button.c{position:relative}
 #sendv{position:fixed;inset:0;z-index:60;background:#2a1a0e url(tex/wood.jpg) center/cover;display:grid;place-items:center;padding:18px;overflow:auto}
 #sendv .ml-in{text-align:left}#sendv .pick{font-size:22px;padding:16px 20px;justify-self:stretch;text-align:center}
 #sv-list{display:flex;gap:6px;flex-wrap:wrap}#sv-list img{width:62px;height:62px;object-fit:cover;box-shadow:0 0 0 3px #fbf7ee,0 2px 4px rgba(0,0,0,.4)}
+.micbar{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 2px}.micbar button{border:1.5px dashed currentColor;background:none;color:inherit;font-family:var(--note);font-size:16px;padding:3px 10px 4px;opacity:.85}.micbar button.on{background:var(--red);color:#fff;border-style:solid;opacity:1}
+.hsay{flex-wrap:wrap}.hsay .micbar{flex-basis:100%;order:3}
+#n-undo{margin-left:6px}.hintl .lnk{border:0;background:none;padding:0;text-decoration:underline;font:inherit;color:inherit}
 </style>
 </head>
 <body>
@@ -533,9 +536,9 @@ button.c{position:relative}
       <div class="scols">
         <div>
           <label class="lab" for="n-text">1. пара строк о дне</label>
-          <button type="button" class="pick mic" id="n-mic">🎙 рассказать голосом</button><button type="button" class="pick mic" id="n-tidy">✎ причесать текст</button><small class="hintl" id="n-michint">нажми и просто расскажи о дне — слова сами появятся здесь</small>
+          <button type="button" class="pick mic" id="n-mic">🎙 рассказать голосом</button><button type="button" class="pick mic" id="n-tidy">✎ причесать текст</button><button type="button" class="pick mic" id="n-undo">⌫ сотри</button><small class="hintl" id="n-michint">нажми и просто расскажи о дне — слова сами появятся здесь</small>
           <textarea id="n-text" rows="7" placeholder="Что было? С кем? Что запомнилось — запах, погода, смех…"></textarea>
-          <div class="chips" id="n-chips"></div>
+          <div class="chips" id="n-chips"></div><small class="hintl" id="n-voicenote"></small>
           <label class="lab" for="n-date">какой это был день</label>
           <input type="date" id="n-date"><small class="hintl" id="n-datenote"></small>
         </div>
@@ -717,6 +720,7 @@ function renderHard(){
     <div id="h-hard" hidden>${hard.length?hard.slice().reverse().map(d=>{const a=afterOf(d);return`<div class="hpair">${scrap(d)}<i>${a?`через ${a.gap} ${plural(a.gap,"день","дня","дней")} →`:"светлый день ещё впереди"}</i>${a?scrap(a.day):""}</div>`}).join(""):`<p class="hnote">Трудных дней в тетради нет.</p>`}</div>
     <p class="hhelp">Если тяжело уже давно или кажется, что не справиться, расскажи взрослому, которому доверяешь. Можно и анонимно: <b>150</b> — телефон доверия для детей и молодёжи в Казахстане.</p>
     <p class="hsmall">Дневник не лечит и не даёт советов. Он только показывает то, что ты сама в него записала.</p>`;
+  if(typeof micBar==="function")micBar($("h-kind"));
 }
 $("view-hard").addEventListener("click",e=>{const o=e.target.closest("[data-open]"),sg=e.target.closest("[data-song]");
   if(o){hsong.pause();const i=DAYS.findIndex(d=>d.id===o.dataset.open);if(i>=0)openDay(i);return}
@@ -942,12 +946,15 @@ function moodFor(d){
   if(names.length<2&&d.media.length<3)names=[...new Set([...names,...MOODBACK[d.look.key]])];
   return names.slice(0,need).map(f=>({url:`mood/${f}.jpg`,video:false,mood:true}));
 }
+/* титры фильма: не повтор записи, а короткие «главы» дня — где, с кем, что, песня, что получилось, каким был день */
+function filmCaps(d){const w=words(d.text),c=[],add=v=>{if(v&&!c.includes(v))c.push(v)},th=find(THINGS,w);
+  add(find(PLACES,w));add(find(WITH,w));if(th)add(th.replace(/^и /,""));add(find(EVENTS,w));add("♪ "+d.song.name.split(" — ")[0]);if(d.good)add("получилось: "+d.good);add("день «"+TYPES[d.type].name+"»");return c}
 function filmPlan(d){
-  const L=d.look,sent=sentences(d.text),media=d.media.concat(moodFor(d)),m=media.length,per=sent.length>5?1:(L.shot<2.6?3:2);
+  const L=d.look,caps=filmCaps(d),sent0=sentences(d.text),sent=sent0.length>=caps.length?sent0:sent0.concat(new Array(caps.length-sent0.length).fill(" ")),media=d.media.concat(moodFor(d)),m=media.length,per=sent.length>5?1:(L.shot<2.6?3:2);
   const shots=[{card:true,media:d.media[0],f:FR[0],mv:"in",dur:Math.max(L.shot,2.8)}],subs=[];let k=m>1?1:0,at=shots[0].dur;const used=new Array(m).fill(0);used[0]=1;
-  sent.forEach((s,si)=>{const start=at;let subFrom=at;
-    if(s&&m<4&&(per>1||si%2===0)){const dur=Math.max(L.shot,Math.min(4.2,1.6+s.length*.045));shots.push({paper:true,text:s,media:{url:"paper"},f:FR[0],mv:si%2?"left":"right",dur});at+=dur;subFrom=at}
-    for(let j=0;j<(m<4&&per>1?per-1:per);j++){const pi=k%m,fi=used[pi]===0?0:1+((used[pi]-1)*3+pi*2)%(FR.length-1);used[pi]++;shots.push({media:media[pi],f:FR[fi],mv:MOVES[k%MOVES.length],dur:L.shot});k++;at+=L.shot}
+  sent.forEach((s0,si)=>{const s=caps[si]||"";const start=at;let subFrom=at;
+    if(s&&m<4&&(per>1||si%2===0)){const dur=Math.max(L.shot*.8,Math.min(3.2,1.5+s.length*.05));shots.push({paper:true,text:s,media:{url:"paper"},f:FR[0],mv:si%2?"left":"right",dur});at+=dur;subFrom=at}
+    for(let j=0;j<(m<4&&per>1?per-1:per);j++){const pi=k%m,fi=used[pi]===0?0:1+((used[pi]-1)*3+pi*2)%(FR.length-1);used[pi]++;shots.push({media:media[pi],f:FR[fi],close:used[pi]%2===0,mv:MOVES[k%MOVES.length],dur:L.shot});k++;at+=L.shot}
     if(s&&subFrom===start)subs.push({text:s,from:subFrom+.35,to:at-.3})});
   shots.push({end:true,media:d.media[d.media.length-1],f:FR[0],mv:"out",dur:Math.max(L.shot,3)});
   let t=0;shots.forEach(s=>{s.at=t;t+=s.dur});
@@ -960,14 +967,23 @@ function wrapLines(x,text,maxW){const out=[];let line="";for(const w of text.spl
 let NOISE=null,ACTX=null;
 const actx=()=>ACTX||(ACTX=new(window.AudioContext||window.webkitAudioContext)());
 function noiseTiles(){if(NOISE)return NOISE;NOISE=[];for(let n=0;n<6;n++){const c=document.createElement("canvas");c.width=c.height=160;const x=c.getContext("2d"),im=x.createImageData(160,160);for(let i=0;i<im.data.length;i+=4){const v=Math.random()*255;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}x.putImageData(im,0,0);NOISE.push(c)}return NOISE}
+/* кадр фильма: фото показывается целиком (по бокам — его же размытая копия), а не обрезается под широкий экран.
+   Крупный план делается только если браузер нашёл на фото лицо, и тогда в кадре всё лицо с запасом. */
+function bgOf(F,url,el,w,h){let c=F.bg.get(url);if(c)return c;c=document.createElement("canvas");c.width=320;c.height=134;const g=c.getContext("2d"),k=Math.max(320/w,134/h)*1.15;
+  g.filter="blur(9px) brightness(.5) saturate(1.15)";g.drawImage(el,(320-w*k)/2,(134-h*k)/2,w*k,h*k);F.bg.set(url,c);return c}
 function drawShot(x,F,s,tt,alpha){
   const el=F.els.get(s.media.url);if(!el)return;const w=el.videoWidth||el.naturalWidth,h=el.videoHeight||el.naturalHeight;if(!w)return;
-  const L=F.L,u=clamp(tt/(s.dur+L.fade+.3)),z=s.f.z,dz=1+L.zoom*1.6,p=.022/z;
-  const A={in:[z,0,0],out:[z*dz,0,0],right:[z*1.04,-p,0],left:[z*1.04,p,0],up:[z*1.04,0,p],down:[z*1.04,0,-p]}[s.mv],B={in:[z*dz,0,0],out:[z,0,0],right:[z*1.04,p,0],left:[z*1.04,-p,0],up:[z*1.04,0,-p],down:[z*1.04,0,p]}[s.mv];
-  const zc=A[0]+(B[0]-A[0])*u,px=A[1]+(B[1]-A[1])*u,py=A[2]+(B[2]-A[2])*u,sc=Math.max(CW/w,CH/h)*1.06*zc,dw=w*sc,dh=h*sc;
-  const dx=clamp((CW-dw)*s.f.x+px*CW,CW-dw,0),dy=clamp((CH-dh)*s.f.y+py*CH,CH-dh,0);
-  x.globalAlpha=alpha;x.filter=s.paper?"none":`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(${s.card||s.end?.58:.95})`;
-  x.drawImage(el,dx,dy,dw,dh);x.filter="none";x.globalAlpha=1;
+  const L=F.L,u=clamp(tt/(s.dur+L.fade+.3)),grade=s.paper?"none":`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(${s.card||s.end?.58:.95})`;
+  const zin=1+L.zoom*.9*u,zout=1+L.zoom*.9*(1-u),zz=s.mv==="out"?zout:zin,fc=F.focus.get(s.media.url),cx=fc?fc.cx:.5,cy=fc?fc.cy:.4,drift=(u-.5)*.018*({right:1,left:-1}[s.mv]||0);
+  x.globalAlpha=alpha;
+  if(s.paper||s.card||s.end||w/h>=1.9){const sc=Math.max(CW/w,CH/h)*1.03*zz,dw=w*sc,dh=h*sc;x.filter=grade;x.drawImage(el,clamp(CW/2-cx*dw+drift*CW,CW-dw,0),clamp(CH/2-cy*dh,CH-dh,0),dw,dh)}
+  else{if(el.videoWidth){const k=Math.max(CW/w,CH/h)*1.1;x.filter="brightness(.35)";x.drawImage(el,(CW-w*k)/2,(CH-h*k)/2,w*k,h*k)}else{x.filter="none";x.drawImage(bgOf(F,s.media.url,el,w,h),0,0,CW,CH)}
+    let sc,dx,dy;
+    if(fc&&s.close){sc=CH/(h*clamp(fc.h*3.4,.5,1))*(.97+.05*u);const dw=w*sc,dh=h*sc;dy=clamp(CH/2-fc.cy*dh,CH-dh,0);dx=dw>=CW?clamp(CW/2-fc.cx*dw,CW-dw,0):(CW-dw)/2}
+    else{sc=Math.min(CH*.94/h,CW*.94/w)*(1+(zz-1)*.6);dx=(CW-w*sc)/2+drift*CW;dy=(CH-h*sc)/2}
+    x.filter="none";x.shadowColor="rgba(0,0,0,.55)";x.shadowBlur=34;x.fillStyle="#000";x.fillRect(dx,dy,w*sc,h*sc);x.shadowBlur=0;x.shadowColor="transparent";
+    x.filter=grade;x.drawImage(el,dx,dy,w*sc,h*sc)}
+  x.filter="none";x.globalAlpha=1;
 }
 function frame(x,F,t){
   const{plan,L,d,h}=F,e=d.music.energy,sh=plan.shots;let i=sh.findIndex(s=>t<s.at+s.dur);if(i<0)i=sh.length-1;const s=sh[i],tt=t-s.at,fn=Math.floor(t*12);
@@ -996,20 +1012,22 @@ function frame(x,F,t){
     for(size of[.15,.125,.105,.088,.074]){x.font=`500 ${Math.round(CH*size)}px "Caveat",cursive`;lines=wrapLines(x,s.text,CW*.74);if(lines.length*size*1.12<.82)break}
     const lh=CH*size*1.12,y0=CH/2-lines.length*lh/2+lh*.78;lines.forEach((ln,k)=>x.fillText(ln,CW/2,y0+k*lh));x.shadowBlur=14;x.fillStyle="#f7ead9";x.globalAlpha=1}
   const sb=s.paper?null:plan.subs.find(b=>t>=b.from&&t<b.to);
-  if(sb){x.globalAlpha=clamp((t-sb.from)/.6)*clamp((sb.to-t)/.45)*.95;x.shadowBlur=8;x.font=`italic 400 ${Math.round(CH*.052)}px "Cormorant Garamond",Georgia,serif`;
-    const lines=wrapLines(x,sb.text,CW*.78),lh=CH*.064;lines.forEach((ln,k)=>x.fillText(ln,CW/2,CH*.9-(lines.length-1-k)*lh))}
+  if(sb){x.globalAlpha=clamp((t-sb.from)/.6)*clamp((sb.to-t)/.45)*.95;x.shadowBlur=8;x.font=`italic 400 ${Math.round(CH*.064)}px "Cormorant Garamond",Georgia,serif`;
+    const lines=wrapLines(x,sb.text,CW*.78),lh=CH*.076;lines.forEach((ln,k)=>x.fillText(ln,CW/2,CH*.9-(lines.length-1-k)*lh))}
   x.shadowBlur=0;x.globalAlpha=1;
   const b=Math.max(1-clamp((t-.2)/1.4),clamp((t-(plan.total-1.4))/1.4));if(b>0){x.globalAlpha=b;x.fillStyle="#000";x.fillRect(0,0,CW,CH);x.globalAlpha=1}
 }
 function saveFile(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
 let run=null;
 async function openFilm(record){stopSong();
-  closeFilm();const d=DAYS[cur],L=d.look,plan=filmPlan(d),F={d,L,plan,h:human(d.date),els:new Map(),alive:true};run=F;
+  closeFilm();const d=DAYS[cur],L=d.look,plan=filmPlan(d),F={d,L,plan,h:human(d.date),els:new Map(),bg:new Map(),focus:new Map(),alive:true};run=F;
   const film=$("film"),cv=$("cv"),x=cv.getContext("2d");film.classList.add("on");film.classList.toggle("rec",!!record);
   $("fmsg").textContent=record?"идёт запись — досмотри фильм до конца, видео сохранится само":"";$("bar").style.width="0";
   x.fillStyle="#000";x.fillRect(0,0,CW,CH);noiseTiles();
   await Promise.all([document.fonts.load('italic 400 40px "Cormorant Garamond"').catch(()=>{}),document.fonts.load('400 16px "PT Mono"').catch(()=>{}),document.fonts.load('500 40px "Caveat"').catch(()=>{}),loadImg("tex/paper-"+L.key+".jpg").then(i=>F.els.set("paper",i)).catch(()=>{}),
-    ...[...new Map(plan.shots.filter(x=>!x.paper).map(x=>[x.media.url,x.media])).values()].map(async m=>{try{F.els.set(m.url,await(m.video?loadVid:loadImg)(m.url))}catch(e){}})]);
+    ...[...new Map(plan.shots.filter(x=>!x.paper).map(x=>[x.media.url,x.media])).values()].map(async m=>{try{const el=await(m.video?loadVid:loadImg)(m.url);F.els.set(m.url,el);
+      if(!m.video&&window.FaceDetector){const fs=await new FaceDetector({fastMode:true}).detect(el),f=fs.sort((a,b)=>b.boundingBox.width*b.boundingBox.height-a.boundingBox.width*a.boundingBox.height)[0];
+        if(f){const b=f.boundingBox;F.focus.set(m.url,{cx:(b.x+b.width/2)/el.naturalWidth,cy:(b.y+b.height/2)/el.naturalHeight,h:b.height/el.naturalHeight})}}}catch(e){}})]);
   if(!F.alive)return;
   if(!d.music.buf){try{d.music.buf=(await analyzeSong(d.song.url)).buf}catch(e){}if(!F.alive)return}
   if(d.music.buf){try{const a=actx();a.resume();const src=a.createBufferSource(),g=a.createGain(),now=a.currentTime;src.buffer=d.music.buf;src.loop=true;
@@ -1100,8 +1118,27 @@ function renderChips(){const ta=$("n-text"),ss=allSent(ta.value),box=$("n-chips"
 $("n-chips").addEventListener("click",e=>{const b=e.target.closest("[data-rm]");if(!b)return;const ss=allSent($("n-text").value);ss.splice(+b.dataset.rm,1);$("n-text").value=ss.join(" ");renderChips()});
 $("n-text").addEventListener("input",()=>{clearTimeout(renderChips.t);renderChips.t=setTimeout(renderChips,400)});
 $("n-tidy").onclick=()=>{$("n-text").value=tidy($("n-text").value);renderChips()};
+$("n-undo").onclick=()=>{const ss=allSent($("n-text").value);ss.pop();$("n-text").value=ss.join(" ");renderChips()};
+/* пока идёт диктовка, голос записывается: потом он и читает запись на странице дня */
+let NVOICE=null,nrec=null;
+async function nrecStart(){try{const st=await navigator.mediaDevices.getUserMedia({audio:true}),ch=[],r=new MediaRecorder(st);nrec=r;r.ondataavailable=e=>ch.push(e.data);
+  r.onstop=()=>{st.getTracks().forEach(t=>t.stop());const b=new Blob(ch,{type:r.mimeType||"audio/webm"});if(nrec===r)nrec=null;if(b.size>6000){NVOICE=b;$("n-voicenote").innerHTML='твой рассказ записан голосом — на странице дня его можно будет послушать. <button type="button" class="lnk" id="n-novoice">не сохранять голос</button>'}};r.start()}catch(e){nrec=null}}
+$("n-voicenote").addEventListener("click",e=>{if(e.target.id==="n-novoice"){NVOICE=null;$("n-voicenote").textContent=""}});
+/* диктовка, «причесать» и «сотри» для любого поля */
+function dictate(btn,ta){if(!SR)return;if(recog){recog.stop();return}let base=ta.value.trim(),fin=[];const lbl=btn.textContent;recog=new SR();recog.lang="ru-RU";recog.continuous=true;recog.interimResults=true;
+  recog.onresult=e=>{let live="";for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript.trim();if(!t)continue;if(!e.results[i].isFinal){live+=t+" ";continue}
+      if(/^(сотри|стереть|сотри это|удали|удали последнее|нет не так)$/i.test(t)){if(fin.length)fin.pop();else{const ss=allSent(base);ss.pop();base=ss.join(" ")}continue}
+      fin.push(t[0].toUpperCase()+t.slice(1)+(/[.!?…]$/.test(t)?"":"."))}ta.value=[base,...fin,live].filter(Boolean).join(" ")};
+  recog.onerror=()=>{};recog.onend=()=>{recog=null;btn.classList.remove("on");btn.textContent=lbl;ta.value=tidy(ta.value);ta.dispatchEvent(new Event("input"))};
+  try{recog.start();btn.classList.add("on");btn.textContent="■ стоп"}catch(err){recog=null}}
+function micBar(ta){if(!ta||ta.nextElementSibling&&ta.nextElementSibling.classList.contains("micbar"))return;const bar=document.createElement("span");bar.className="micbar";
+  bar.innerHTML=(SR?'<button type="button" data-a="mic">🎙 сказать голосом</button>':"")+'<button type="button" data-a="tidy">✎ причесать</button><button type="button" data-a="undo">⌫ сотри</button>';ta.after(bar);
+  bar.onclick=e=>{const b=e.target.closest("button");if(!b)return;e.stopPropagation();const a=b.dataset.a;if(a==="mic"){dictate(b,ta);return}
+    if(a==="tidy")ta.value=tidy(ta.value);else{const ss=allSent(ta.value);ss.pop();ta.value=ss.join(" ")}ta.dispatchEvent(new Event("input"))}}
+
 /* диктовка: браузер сам превращает речь в текст; после остановки текст причёсывается */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let recog=null;
+micBar($("n-good"));micBar($("n-kind"));
 if(!SR){$("n-mic").hidden=true;$("n-michint").textContent="рассказать голосом можно в Chrome или Safari"}
 else $("n-mic").onclick=()=>{const btn=$("n-mic"),ta=$("n-text");if(recog){recog.stop();return}
   let base=ta.value.trim(),fin=[];recog=new SR();recog.lang="ru-RU";recog.continuous=true;recog.interimResults=true;
@@ -1111,8 +1148,8 @@ else $("n-mic").onclick=()=>{const btn=$("n-mic"),ta=$("n-text");if(recog){recog
       fin.push(t[0].toUpperCase()+t.slice(1)+(/[.!?…]$/.test(t)?"":"."))}
     ta.value=[base,...fin,live].filter(Boolean).join(" ")};
   recog.onerror=e=>{$("n-michint").textContent=e.error==="not-allowed"?"браузер не пустил к микрофону — разреши доступ в адресной строке":"не расслышала — попробуй ещё раз"};
-  recog.onend=()=>{recog=null;btn.classList.remove("on");btn.textContent="🎙 рассказать голосом";ta.value=tidy(ta.value);renderChips();$("n-michint").textContent="готово: расставила точки и запятые. Лишнюю фразу убери крестиком ниже"};
-  try{recog.start();btn.classList.add("on");btn.textContent="■ я слушаю — нажми, когда закончишь";$("n-michint").textContent="говори обычными фразами с паузами. Ошиблась — скажи «сотри», и последняя фраза исчезнет"}catch(err){recog=null}};
+  recog.onend=()=>{recog=null;try{nrec&&nrec.stop()}catch(e){}btn.classList.remove("on");btn.textContent="🎙 рассказать голосом";ta.value=tidy(ta.value);renderChips();$("n-michint").textContent="готово: расставила точки и запятые. Лишнюю фразу убери крестиком ниже"};
+  try{recog.start();nrecStart();btn.classList.add("on");btn.textContent="■ я слушаю — нажми, когда закончишь";$("n-michint").textContent="говори обычными фразами с паузами. Ошиблась — скажи «сотри», и последняя фраза исчезнет"}catch(err){recog=null}};
 let NTYPE=null;
 function drawTypes(){const sug=NTYPE?null:wordType($("n-text").value);$("n-types").innerHTML=TKEYS.map(t=>`<button type="button" data-nt="${t}" class="${t===NTYPE?"on":t===sug?"sug":""}" title="${TYPES[t].hint}">${tsvg(t)}${TYPES[t].name}</button>`).join("");
   $("n-kindbox").hidden=!(NTYPE&&TYPES[NTYPE].hard);$("n-thint").textContent=NTYPE?`${TYPES[NTYPE].name}: ${TYPES[NTYPE].hint}`:sug?`по словам похоже на «${TYPES[sug].name}» — так? нажми на тот, который правда подходит`:"выбери сама. Не выберешь — сайт предложит по словам и песне, а ты поправишь на странице дня"}
@@ -1125,7 +1162,7 @@ $("n-form").onsubmit=async e=>{e.preventDefault();const st=$("n-status"),btn=$("
   btn.disabled=true;st.textContent="слушаю песню и вклеиваю страницу…";
   try{const ok=[];for(const f of files){if(f.type.startsWith("video")){ok.push(f);continue}const u=URL.createObjectURL(f);try{await loadImg(u);ok.push(f)}catch(err){}URL.revokeObjectURL(u)}
     if(!ok.length)throw new Error("не получилось открыть фото. Если это HEIC с айфона, сохрани их как JPEG");
-    const rec={id:"d"+Date.now(),date,text,film:$("n-film").checked,mood:$("n-mood").checked,type:NTYPE||undefined,good:$("n-good").value.trim(),kind:NTYPE&&TYPES[NTYPE].hard?$("n-kind").value.trim():"",files:ok,song:{name:PICK?PICK.name:($("n-sname").value.trim()||"песня дня"),blob:song,genre:PICK?PICK.genre:"",year:PICK?PICK.year:"",link:PICK?PICK.link:""}},day=await hydrate(fromStored(rec));
+    const rec={id:"d"+Date.now(),date,text,film:$("n-film").checked,mood:$("n-mood").checked,type:NTYPE||undefined,good:$("n-good").value.trim(),kind:NTYPE&&TYPES[NTYPE].hard?$("n-kind").value.trim():"",files:ok,song:{name:PICK?PICK.name:($("n-sname").value.trim()||"песня дня"),blob:song,genre:PICK?PICK.genre:"",year:PICK?PICK.year:"",link:PICK?PICK.link:""}},day=await hydrate(fromStored(rec));if(NVOICE){VOICES.set(rec.id,NVOICE);await DB.put({id:"voice:"+rec.id,blob:NVOICE});NVOICE=null;$("n-voicenote").textContent=""}
     if(!day.music.buf)throw new Error("не получилось прочитать песню — попробуй файл mp3");
     await DB.put(rec);DAYS.push(day);sortDays();YEAR=null;openDay(DAYS.indexOf(day));
     $("n-form").reset();PICK=null;NTYPE=null;drawTypes();$("n-mood").checked=true;$("n-res").innerHTML="";$("n-thumbs").innerHTML="";$("n-mcount").textContent=$("n-scount").textContent=$("n-datenote").textContent="";$("n-date").value=today();
@@ -1225,7 +1262,7 @@ function mailWrite(d){const box=$("mail"),add=(m)=>{const x=new Date();x.setMont
   box.innerHTML=`<div class="ml-in"><b>письмо себе в будущее</b><p>День: ${fullDate(d.date)}. Что ты хочешь сказать себе потом?</p><textarea id="ml-t" rows="6" maxlength="1500" placeholder="Привет, это я. Сегодня…"></textarea>
     <div class="ml-when">открыть через:<button data-m="1">месяц</button><button data-m="6">полгода</button><button data-m="12" class="on">год</button><input type="date" id="ml-d" min="${add(0)}" value="${when}" aria-label="Свой срок"></div>
     <span id="ml-msg"></span><button class="gobtn" id="ml-go">запечатать</button><button class="lnk" data-close>не сейчас</button></div>`;
-  box.hidden=false;$("ml-t").focus();
+  box.hidden=false;micBar($("ml-t"));$("ml-t").focus();
   box.onclick=e=>{const m=e.target.closest("[data-m]");
     if(m){when=add(+m.dataset.m);$("ml-d").value=when;box.querySelectorAll("[data-m]").forEach(b=>b.classList.toggle("on",b===m));sfx("tab");return}
     if(e.target.id==="ml-go"){const t=$("ml-t").value.trim();when=$("ml-d").value||when;
