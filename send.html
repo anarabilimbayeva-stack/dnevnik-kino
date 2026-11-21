@@ -27,11 +27,11 @@ small{font-family:"PT Mono",monospace;font-size:10px;letter-spacing:.1em;color:#
   <div id="bar"><i></i></div>
   <div id="list"></div>
   <p>Когда всё отправится, эту страницу можно закрыть.</p>
-  <small id="ver">страница отправки · версия 5</small>
+  <small id="ver">страница отправки · версия 6</small>
 </div>
 <script>
 const $=id=>document.getElementById(id),msg=t=>$("msg").textContent=t,RELAY="https://ntfy.sh/";
-const P=new URLSearchParams(location.search),TOPIC=P.get("t")||P.get("send"),KEY=P.get("k")||location.hash.slice(1);
+const P=new URLSearchParams(location.search),T0=(P.get("t")||P.get("send")||"").split("."),TOPIC=T0[0],KEY=T0[1]||P.get("k")||location.hash.slice(1);
 const ub64=t=>Uint8Array.from(atob(t.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
 async function exifDate(file){
   try{const b=new DataView(await file.slice(0,262144).arrayBuffer());if(b.getUint16(0)===0xFFD8){let o=2;
@@ -60,7 +60,7 @@ function shrinkVideo(f){return new Promise(res=>{if(!f.type.startsWith("video")|
   v.src=URL.createObjectURL(f)})}
 (async()=>{
   let key;
-  try{if(!TOPIC||!KEY)throw new Error("в ссылке нет ключа");if(!window.crypto||!crypto.subtle)throw new Error("браузер не умеет шифровать");key=await crypto.subtle.importKey("raw",ub64(KEY),"AES-GCM",false,["encrypt"])}
+  try{if(!TOPIC||!KEY)throw new Error("код сделан старой версией сайта: обнови страницу на компьютере и открой код заново");if(!window.crypto||!crypto.subtle)throw new Error("браузер не умеет шифровать");key=await crypto.subtle.importKey("raw",ub64(KEY),"AES-GCM",false,["encrypt"])}
   catch(e){msg("Код прочитался не полностью ("+e.message+"). Открой код на компьютере заново и отсканируй ещё раз.");$("pick").hidden=true;return}
   fetch(RELAY+TOPIC,{method:"POST",body:"телефон подключился"}).then(r=>{if(!r.ok)msg("Сервис пересылки ответил ошибкой "+r.status+". Попробуй через минуту.")}).catch(()=>msg("Нет связи с интернетом на телефоне."));
   let sent=0,bad=0,why="";

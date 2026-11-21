@@ -765,7 +765,7 @@ function bestVoice(){const ru=speechSynthesis.getVoices().filter(x=>/^ru/i.test(
 function sayDay(btn){const d=DAYS[cur],off=()=>btn.classList.remove("on");
   if(btn.classList.contains("on")){try{speechSynthesis.cancel()}catch(e){}vplay.pause();SAYID++;off();return}
   stopSong();const mine=VOICES.get(d.id);
-  if(mine){vplay.src=URL.createObjectURL(mine);vplay.onended=off;vplay.play().catch(off);btn.classList.add("on");return}
+  if(mine&&mine.length){const my=++SAYID;let k=0;const nx=()=>{if(my!==SAYID)return;if(k>=mine.length){off();return}vplay.src=URL.createObjectURL(mine[k++]);vplay.onended=nx;vplay.play().catch(off)};btn.classList.add("on");nx();return}
   const S=window.speechSynthesis;if(!S){btn.querySelector("i").textContent="в этом браузере нет озвучки";return}
   const v=voiceOf(d),voice=bestVoice(),parts=(d.text.match(/[^.!?…]+[.!?…]*/g)||[d.text]).map(x=>x.trim()).filter(Boolean),my=++SAYID,gap=Math.round(520-clamp((d.music.bpm-70)/80)*300);btn.classList.add("on");
   const next=k=>{if(my!==SAYID)return;if(k>=parts.length){off();return}const t=parts[k],u=new SpeechSynthesisUtterance(t),last=k===parts.length-1,ex=/!/.test(t),qu=/\?/.test(t);
@@ -776,7 +776,7 @@ async function recVoice(btn){const d=DAYS[cur];
   if(vrec){vrec.stop();return}
   if(VOICES.has(d.id)){if(confirm("Убрать запись твоего голоса для этого дня?")){VOICES.delete(d.id);await DB.del("voice:"+d.id);render(cur)}return}
   try{const st=await navigator.mediaDevices.getUserMedia({audio:true}),ch=[];vrec=new MediaRecorder(st);stopSong();
-    vrec.ondataavailable=e=>ch.push(e.data);vrec.onstop=async()=>{st.getTracks().forEach(t=>t.stop());const blob=new Blob(ch,{type:vrec.mimeType||"audio/webm"});vrec=null;VOICES.set(d.id,blob);await DB.put({id:"voice:"+d.id,blob});sfx("ding",1);render(cur)};
+    vrec.ondataavailable=e=>ch.push(e.data);vrec.onstop=async()=>{st.getTracks().forEach(t=>t.stop());const blob=new Blob(ch,{type:vrec.mimeType||"audio/webm"});vrec=null;VOICES.set(d.id,[blob]);await DB.put({id:"voice:"+d.id,blobs:[blob]});sfx("ding",1);render(cur)};
     vrec.start();btn.classList.add("on");btn.firstChild.textContent="■ стоп, я дочитала";setTimeout(()=>{if(vrec)vrec.stop()},120000)}
   catch(e){btn.querySelector("i").textContent="нет доступа к микрофону"}}
 try{speechSynthesis.getVoices()}catch(e){}
@@ -818,7 +818,7 @@ async function folderZip(d){const enc=new TextEncoder(),F=[],dir=folderName(d)+"
   if(d.song.link)add("песня-ссылка.txt",enc.encode(d.song.name+"\n"+d.song.link+"\n"));
   try{add("воспоминание.png",new Uint8Array(await(await poster(d)).arrayBuffer()))}catch(e){}
   add("почему-так.txt",enc.encode(whyRows(d).map(r=>`${r[0]}: ${r[1]} → ${r[2]}`).join("\n")+"\n"));
-  if(VOICES.has(d.id))add("голос."+(/mp4|m4a|aac/.test(VOICES.get(d.id).type)?"m4a":"webm"),new Uint8Array(await VOICES.get(d.id).arrayBuffer()));
+  if(VOICES.has(d.id)){const vs=VOICES.get(d.id);for(let k=0;k<vs.length;k++)add("голос"+(vs.length>1?"-"+(k+1):"")+"."+(/mp4|m4a|aac/.test(vs[k].type)?"m4a":"webm"),new Uint8Array(await vs[k].arrayBuffer()))}
   const v=voiceOf(d);add("голос.txt",enc.encode(`Голос озвучки: ${v.word}.\nСкорость ${v.rate}, высота ${v.pitch}, громкость ${v.vol}.\nОзвучка звучит на сайте по кнопке «послушать запись».\n`));
   if(l&&l.open<=today())add("письмо-себе.txt",enc.encode(`Написано ${fullDate(l.written)}, открыто ${fullDate(l.open)}\n\n${l.text}\n`));
   return zipBlob(F)}
@@ -957,6 +957,9 @@ function filmPlan(d){
     for(let j=0;j<(m<4&&per>1?per-1:per);j++){const pi=k%m,fi=used[pi]===0?0:1+((used[pi]-1)*3+pi*2)%(FR.length-1);used[pi]++;shots.push({media:media[pi],f:FR[fi],close:used[pi]%2===0,mv:MOVES[k%MOVES.length],dur:L.shot});k++;at+=L.shot}
     if(s&&subFrom===start)subs.push({text:s,from:subFrom+.35,to:at-.3})});
   shots.push({end:true,media:d.media[d.media.length-1],f:FR[0],mv:"out",dur:Math.max(L.shot,3)});
+  /* путь камеры по каждому фото: делим высоту фото на отрезки по числу его появлений; чётные фото идут сверху вниз, нечётные — снизу вверх */
+  const by=new Map();shots.forEach(s=>{if(!s.card&&!s.end&&!s.paper){const a=by.get(s.media.url)||[];a.push(s);by.set(s.media.url,a)}});let mi=0;
+  by.forEach(a=>{const n=a.length,up=mi++%2===1;a.forEach((s,k)=>{let p0=n===1?.12:k/n*.86,p1=n===1?.7:Math.min(1,(k+1)/n*.86+.14);if(up){const t0=p0;p0=1-p1;p1=1-t0;[p0,p1]=[p1,p0]}s.p0=p0;s.p1=p1})});
   let t=0;shots.forEach(s=>{s.at=t;t+=s.dur});
   return{shots,subs,total:t,moods:media.length-d.media.length};
 }
@@ -967,23 +970,14 @@ function wrapLines(x,text,maxW){const out=[];let line="";for(const w of text.spl
 let NOISE=null,ACTX=null;
 const actx=()=>ACTX||(ACTX=new(window.AudioContext||window.webkitAudioContext)());
 function noiseTiles(){if(NOISE)return NOISE;NOISE=[];for(let n=0;n<6;n++){const c=document.createElement("canvas");c.width=c.height=160;const x=c.getContext("2d"),im=x.createImageData(160,160);for(let i=0;i<im.data.length;i+=4){const v=Math.random()*255;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}x.putImageData(im,0,0);NOISE.push(c)}return NOISE}
-/* кадр фильма: фото показывается целиком (по бокам — его же размытая копия), а не обрезается под широкий экран.
-   Крупный план делается только если браузер нашёл на фото лицо, и тогда в кадре всё лицо с запасом. */
-function bgOf(F,url,el,w,h){let c=F.bg.get(url);if(c)return c;c=document.createElement("canvas");c.width=320;c.height=134;const g=c.getContext("2d"),k=Math.max(320/w,134/h)*1.15;
-  g.filter="blur(9px) brightness(.5) saturate(1.15)";g.drawImage(el,(320-w*k)/2,(134-h*k)/2,w*k,h*k);F.bg.set(url,c);return c}
+/* кадр фильма: фото заполняет весь широкий кадр по ширине, а камера медленно скользит по нему сверху вниз.
+   Если фото встречается в фильме несколько раз, каждый следующий кадр продолжает путь с того места, где закончился прошлый — так видно всё фото, ничего не обрезано. */
 function drawShot(x,F,s,tt,alpha){
   const el=F.els.get(s.media.url);if(!el)return;const w=el.videoWidth||el.naturalWidth,h=el.videoHeight||el.naturalHeight;if(!w)return;
-  const L=F.L,u=clamp(tt/(s.dur+L.fade+.3)),grade=s.paper?"none":`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(${s.card||s.end?.58:.95})`;
-  const zin=1+L.zoom*.9*u,zout=1+L.zoom*.9*(1-u),zz=s.mv==="out"?zout:zin,fc=F.focus.get(s.media.url),cx=fc?fc.cx:.5,cy=fc?fc.cy:.4,drift=(u-.5)*.018*({right:1,left:-1}[s.mv]||0);
-  x.globalAlpha=alpha;
-  if(s.paper||s.card||s.end||w/h>=1.9){const sc=Math.max(CW/w,CH/h)*1.03*zz,dw=w*sc,dh=h*sc;x.filter=grade;x.drawImage(el,clamp(CW/2-cx*dw+drift*CW,CW-dw,0),clamp(CH/2-cy*dh,CH-dh,0),dw,dh)}
-  else{if(el.videoWidth){const k=Math.max(CW/w,CH/h)*1.1;x.filter="brightness(.35)";x.drawImage(el,(CW-w*k)/2,(CH-h*k)/2,w*k,h*k)}else{x.filter="none";x.drawImage(bgOf(F,s.media.url,el,w,h),0,0,CW,CH)}
-    let sc,dx,dy;
-    if(fc&&s.close){sc=CH/(h*clamp(fc.h*3.4,.5,1))*(.97+.05*u);const dw=w*sc,dh=h*sc;dy=clamp(CH/2-fc.cy*dh,CH-dh,0);dx=dw>=CW?clamp(CW/2-fc.cx*dw,CW-dw,0):(CW-dw)/2}
-    else{sc=Math.min(CH*.94/h,CW*.94/w)*(1+(zz-1)*.6);dx=(CW-w*sc)/2+drift*CW;dy=(CH-h*sc)/2}
-    x.filter="none";x.shadowColor="rgba(0,0,0,.55)";x.shadowBlur=34;x.fillStyle="#000";x.fillRect(dx,dy,w*sc,h*sc);x.shadowBlur=0;x.shadowColor="transparent";
-    x.filter=grade;x.drawImage(el,dx,dy,w*sc,h*sc)}
-  x.filter="none";x.globalAlpha=1;
+  const L=F.L,u0=clamp(tt/(s.dur+L.fade+.3)),u=u0*u0*(3-2*u0),grade=s.paper?"none":`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(${s.card||s.end?.58:.95})`;
+  const zz=1+L.zoom*.5*(s.mv==="out"?1-u:u),sc=Math.max(CW/w,CH/h)*1.02*(s.paper?1:zz),dw=w*sc,dh=h*sc,over=Math.max(0,dh-CH),fc=F.focus.get(s.media.url);
+  let p;if(s.paper)p=.5;else if(s.card||s.end)p=fc?clamp((fc.cy*dh-CH/2)/(over||1)):.3;else{const a=s.p0??.3,b=s.p1??.3;p=a+(b-a)*u}
+  x.globalAlpha=alpha;x.filter=grade;x.drawImage(el,(CW-dw)/2+(u-.5)*.012*CW*({right:1,left:-1}[s.mv]||0),-p*over,dw,dh);x.filter="none";x.globalAlpha=1;
 }
 function frame(x,F,t){
   const{plan,L,d,h}=F,e=d.music.energy,sh=plan.shots;let i=sh.findIndex(s=>t<s.at+s.dur);if(i<0)i=sh.length-1;const s=sh[i],tt=t-s.at,fn=Math.floor(t*12);
@@ -1120,10 +1114,10 @@ $("n-text").addEventListener("input",()=>{clearTimeout(renderChips.t);renderChip
 $("n-tidy").onclick=()=>{$("n-text").value=tidy($("n-text").value);renderChips()};
 $("n-undo").onclick=()=>{const ss=allSent($("n-text").value);ss.pop();$("n-text").value=ss.join(" ");renderChips()};
 /* пока идёт диктовка, голос записывается: потом он и читает запись на странице дня */
-let NVOICE=null,nrec=null;
+let NVOICE=[],nrec=null;
 async function nrecStart(){try{const st=await navigator.mediaDevices.getUserMedia({audio:true}),ch=[],r=new MediaRecorder(st);nrec=r;r.ondataavailable=e=>ch.push(e.data);
-  r.onstop=()=>{st.getTracks().forEach(t=>t.stop());const b=new Blob(ch,{type:r.mimeType||"audio/webm"});if(nrec===r)nrec=null;if(b.size>6000){NVOICE=b;$("n-voicenote").innerHTML='твой рассказ записан голосом — на странице дня его можно будет послушать. <button type="button" class="lnk" id="n-novoice">не сохранять голос</button>'}};r.start()}catch(e){nrec=null}}
-$("n-voicenote").addEventListener("click",e=>{if(e.target.id==="n-novoice"){NVOICE=null;$("n-voicenote").textContent=""}});
+  r.onstop=()=>{st.getTracks().forEach(t=>t.stop());const b=new Blob(ch,{type:r.mimeType||"audio/webm"});if(nrec===r)nrec=null;if(b.size>6000){NVOICE.push(b);$("n-voicenote").innerHTML='твой рассказ записан голосом целиком (все части по порядку) — на странице дня его можно будет послушать. <button type="button" class="lnk" id="n-novoice">не сохранять голос</button>'}};r.start()}catch(e){nrec=null}}
+$("n-voicenote").addEventListener("click",e=>{if(e.target.id==="n-novoice"){NVOICE=[];$("n-voicenote").textContent=""}});
 /* диктовка, «причесать» и «сотри» для любого поля */
 function dictate(btn,ta){if(!SR)return;if(recog){recog.stop();return}let base=ta.value.trim(),fin=[];const lbl=btn.textContent;recog=new SR();recog.lang="ru-RU";recog.continuous=true;recog.interimResults=true;
   recog.onresult=e=>{let live="";for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript.trim();if(!t)continue;if(!e.results[i].isFinal){live+=t+" ";continue}
@@ -1162,7 +1156,7 @@ $("n-form").onsubmit=async e=>{e.preventDefault();const st=$("n-status"),btn=$("
   btn.disabled=true;st.textContent="слушаю песню и вклеиваю страницу…";
   try{const ok=[];for(const f of files){if(f.type.startsWith("video")){ok.push(f);continue}const u=URL.createObjectURL(f);try{await loadImg(u);ok.push(f)}catch(err){}URL.revokeObjectURL(u)}
     if(!ok.length)throw new Error("не получилось открыть фото. Если это HEIC с айфона, сохрани их как JPEG");
-    const rec={id:"d"+Date.now(),date,text,film:$("n-film").checked,mood:$("n-mood").checked,type:NTYPE||undefined,good:$("n-good").value.trim(),kind:NTYPE&&TYPES[NTYPE].hard?$("n-kind").value.trim():"",files:ok,song:{name:PICK?PICK.name:($("n-sname").value.trim()||"песня дня"),blob:song,genre:PICK?PICK.genre:"",year:PICK?PICK.year:"",link:PICK?PICK.link:""}},day=await hydrate(fromStored(rec));if(NVOICE){VOICES.set(rec.id,NVOICE);await DB.put({id:"voice:"+rec.id,blob:NVOICE});NVOICE=null;$("n-voicenote").textContent=""}
+    const rec={id:"d"+Date.now(),date,text,film:$("n-film").checked,mood:$("n-mood").checked,type:NTYPE||undefined,good:$("n-good").value.trim(),kind:NTYPE&&TYPES[NTYPE].hard?$("n-kind").value.trim():"",files:ok,song:{name:PICK?PICK.name:($("n-sname").value.trim()||"песня дня"),blob:song,genre:PICK?PICK.genre:"",year:PICK?PICK.year:"",link:PICK?PICK.link:""}},day=await hydrate(fromStored(rec));if(NVOICE.length){VOICES.set(rec.id,NVOICE);await DB.put({id:"voice:"+rec.id,blobs:NVOICE});NVOICE=[];$("n-voicenote").textContent=""}
     if(!day.music.buf)throw new Error("не получилось прочитать песню — попробуй файл mp3");
     await DB.put(rec);DAYS.push(day);sortDays();YEAR=null;openDay(DAYS.indexOf(day));
     $("n-form").reset();PICK=null;NTYPE=null;drawTypes();$("n-mood").checked=true;$("n-res").innerHTML="";$("n-thumbs").innerHTML="";$("n-mcount").textContent=$("n-scount").textContent=$("n-datenote").textContent="";$("n-date").value=today();
@@ -1279,7 +1273,9 @@ $("under").addEventListener("click",e=>{const b=e.target.closest("[data-mail]");
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAY="https://ntfy.sh/";
+const SEND=new URLSearchParams(location.search).get("send"),RELAY="https://ntfy.sh/",VER=6;
+/* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
+fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
 const QRJS="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js";
 const b64u=u=>btoa(String.fromCharCode(...u)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""),ub64=t=>Uint8Array.from(atob(t.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
@@ -1291,10 +1287,10 @@ let qrES=null;const qrParts=new Map();
 function addMedia(files,exif){const dt=new DataTransfer();[...$("n-media").files,...files].slice(0,12).forEach(f=>dt.items.add(f));$("n-media").files=dt.files;$("n-media").dispatchEvent(new Event("change"));
   if(exif)setTimeout(()=>{$("n-date").value=exif;$("n-datenote").textContent="дату взяла из фото — поправь, если не та"},400)}
 async function qrOpen(){const box=$("mail"),close=()=>{try{qrES&&qrES.close()}catch(e){}qrES=null;closeMail()};let got=0;
-  box.innerHTML=`<div class="ml-in"><b>фото с телефона</b><p id="qr-msg">готовлю код…</p><div class="qrbox" id="qr-pic"></div><span class="qrn" id="qr-n"></span><p>Наведи камеру телефона на код и выбери фото — они появятся здесь через несколько секунд. Фото шифруются на телефоне, ключ есть только в этом коде.</p><p id="qr-alt" style="font-size:15px;word-break:break-all;opacity:.75"></p><button class="gobtn" data-close>готово</button></div>`;
+  box.innerHTML=`<div class="ml-in"><b>фото с телефона</b><p id="qr-msg">готовлю код…</p><div class="qrbox" id="qr-pic"></div><span class="qrn" id="qr-n"></span><p>Наведи камеру телефона на код и выбери фото — они появятся здесь через несколько секунд. Фото шифруются на телефоне, ключ есть только в этом коде.</p><p id="qr-alt" style="font-size:15px;word-break:break-all;opacity:.75"></p><button class="gobtn" data-close>готово</button><small style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:#8a7868">код · версия ${VER}</small></div>`;
   box.hidden=false;box.onclick=e=>{if(e.target===box||e.target.closest("[data-close]"))close()};
   try{await loadJs(QRJS);const raw=crypto.getRandomValues(new Uint8Array(16)),key=await aesKey(raw),topic="kino"+b64u(crypto.getRandomValues(new Uint8Array(12))).replace(/[-_]/g,"x");
-    const link=new URL("send.html",location.href).href.split("?")[0].split("#")[0]+"?t="+topic+"&k="+b64u(raw)+"&v="+Date.now().toString(36),q=qrcode(0,"M");q.addData(link);q.make();$("qr-pic").dataset.link=link;$("qr-pic").innerHTML=q.createSvgTag({cellSize:6,margin:2,scalable:true});
+    const link=new URL("send.html",location.href).href.split("?")[0].split("#")[0]+"?t="+topic+"."+b64u(raw),q=qrcode(0,"M");q.addData(link);q.make();$("qr-pic").dataset.link=link;$("qr-pic").innerHTML=q.createSvgTag({cellSize:6,margin:2,scalable:true});
     qrES=new EventSource(RELAY+topic+"/sse");qrES.onopen=()=>{if($("qr-msg"))$("qr-msg").textContent="Код готов. Отсканируй его телефоном."};
     qrES.onerror=()=>{if($("qr-msg")&&!got)$("qr-msg").textContent="Соединение прерывается, пробую снова…"};
     qrES.onmessage=async e=>{let m;try{m=JSON.parse(e.data)}catch(err){return}if(m.event!=="message")return;
@@ -1321,7 +1317,7 @@ let li=0;const ltxt="проявляем плёнку",lt=setInterval(()=>{if(li%
   try{const ids=[...new Set(dj.map(x=>x.song.itunes).filter(Boolean))],ac=new AbortController(),tm=setTimeout(()=>ac.abort(),4000),j=await(await fetch("https://itunes.apple.com/lookup?id="+ids.join(","),{signal:ac.signal})).json();clearTimeout(tm);
     const by=new Map((j.results||[]).map(r=>[r.trackId,r]));dj.forEach(x=>{const r=by.get(x.song.itunes);if(r&&r.previewUrl){x.song.url=r.previewUrl;x.song.link=r.trackViewUrl||""}})}catch(e){}
   const demo=dj.map(fromDemo),own=(await DB.all()).filter(r=>!String(r.id).startsWith("voice:")).map(fromStored);
-  for(const r of await DB.all())if(String(r.id).startsWith("voice:"))VOICES.set(r.id.slice(6),r.blob);
+  for(const r of await DB.all())if(String(r.id).startsWith("voice:"))VOICES.set(r.id.slice(6),r.blobs||[r.blob]);
   DAYS=await Promise.all([...demo,...own].map(hydrate));sortDays();
   render(DAYS.length-1);renderYear();showFront();await new Promise(r=>setTimeout(r,Math.max(0,1700-performance.now())));if(getPin())openLock("ask");clearInterval(lt);$("loading").classList.add("off");
 })();
