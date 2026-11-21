@@ -38,6 +38,6 @@
 
 ## Инструменты
 
-HTML, CSS, JavaScript; две открытые библиотеки только для передачи фото с телефона по QR (PeerJS, qrcode-generator); Web Audio API (анализ песни), Canvas и MediaRecorder (фильм и запись видео), IndexedDB (хранение дней), шрифты Google Fonts.
+HTML, CSS, JavaScript; для передачи фото с телефона по QR — библиотека qrcode-generator и сервис пересылки ntfy.sh (фото шифруются на телефоне); Web Audio API (анализ песни), Canvas и MediaRecorder (фильм и запись видео), IndexedDB (хранение дней), шрифты Google Fonts.
 Web Speech API (диктовка голосом), открытый каталог iTunes Search (поиск песни и её 30-секундный отрывок).
 Демо-фотографии, кадры настроения, текстуры бумаги и предметы коллажа сгенерированы нейросетью (Higgsfield), демо-мелодии — тестовые. Код написан с помощью Claude.
