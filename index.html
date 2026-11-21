@@ -1254,10 +1254,10 @@ let qrES=null;
 function addMedia(files,exif){const dt=new DataTransfer();[...$("n-media").files,...files].slice(0,12).forEach(f=>dt.items.add(f));$("n-media").files=dt.files;$("n-media").dispatchEvent(new Event("change"));
   if(exif)setTimeout(()=>{$("n-date").value=exif;$("n-datenote").textContent="дату взяла из фото — поправь, если не та"},400)}
 async function qrOpen(){const box=$("mail"),close=()=>{try{qrES&&qrES.close()}catch(e){}qrES=null;closeMail()};let got=0;
-  box.innerHTML=`<div class="ml-in"><b>фото с телефона</b><p id="qr-msg">готовлю код…</p><div class="qrbox" id="qr-pic"></div><span class="qrn" id="qr-n"></span><p>Наведи камеру телефона на код и выбери фото — они появятся здесь через несколько секунд. Фото шифруются на телефоне, ключ есть только в этом коде.</p><button class="gobtn" data-close>готово</button></div>`;
+  box.innerHTML=`<div class="ml-in"><b>фото с телефона</b><p id="qr-msg">готовлю код…</p><div class="qrbox" id="qr-pic"></div><span class="qrn" id="qr-n"></span><p>Наведи камеру телефона на код и выбери фото — они появятся здесь через несколько секунд. Фото шифруются на телефоне, ключ есть только в этом коде.</p><p id="qr-alt" style="font-size:15px;word-break:break-all;opacity:.75"></p><button class="gobtn" data-close>готово</button></div>`;
   box.hidden=false;box.onclick=e=>{if(e.target===box||e.target.closest("[data-close]"))close()};
   try{await loadJs(QRJS);const raw=crypto.getRandomValues(new Uint8Array(16)),key=await aesKey(raw),topic="kino"+b64u(crypto.getRandomValues(new Uint8Array(12))).replace(/[-_]/g,"x");
-    const link=location.origin+location.pathname+"?send="+topic+"#"+b64u(raw),q=qrcode(0,"M");q.addData(link);q.make();$("qr-pic").dataset.link=link;$("qr-pic").innerHTML=q.createSvgTag({cellSize:6,margin:2,scalable:true});
+    const link=new URL("send.html",location.href).href.split("?")[0].split("#")[0]+"?t="+topic+"&k="+b64u(raw)+"&v="+Date.now().toString(36),q=qrcode(0,"M");q.addData(link);q.make();$("qr-pic").dataset.link=link;$("qr-pic").innerHTML=q.createSvgTag({cellSize:6,margin:2,scalable:true});
     qrES=new EventSource(RELAY+topic+"/sse");qrES.onopen=()=>{if($("qr-msg"))$("qr-msg").textContent="Код готов. Отсканируй его телефоном."};
     qrES.onerror=()=>{if($("qr-msg")&&!got)$("qr-msg").textContent="Соединение прерывается, пробую снова…"};
     qrES.onmessage=async e=>{let m;try{m=JSON.parse(e.data)}catch(err){return}if(m.event!=="message")return;
@@ -1269,16 +1269,7 @@ $("n-qr").onclick=qrOpen;
 /* сторона телефона: страница открыта по коду и показывает только выбор фото */
 async function shrink(f){if(!f.type.startsWith("image"))return f;try{const bm=await createImageBitmap(f,{imageOrientation:"from-image"}),k=Math.min(1,1800/Math.max(bm.width,bm.height)),c=document.createElement("canvas");c.width=bm.width*k|0;c.height=bm.height*k|0;c.getContext("2d").drawImage(bm,0,0,c.width,c.height);
   return await new Promise(r=>c.toBlob(b=>r(b||f),"image/jpeg",.86))}catch(e){return f}}
-async function sendMode(){$("loading").classList.add("off");const v=document.createElement("div");v.id="sendv";
-  v.innerHTML=`<div class="ml-in"><b>фото для дневника</b><p id="sv-msg">Выбери фото — они уйдут на компьютер, где открыт дневник.</p><label class="pick" id="sv-pick"><input type="file" id="sv-in" accept="image/*,video/*" multiple hidden>выбрать фото</label><div id="sv-list"></div><p>Когда всё отправится, эту страницу можно закрыть.</p></div>`;document.body.append(v);
-  const msg=t=>$("sv-msg").textContent=t;let key;try{key=await aesKey(ub64(location.hash.slice(1)))}catch(e){msg("Код прочитался не полностью. Отсканируй его ещё раз.");$("sv-pick").hidden=true;return}
-  fetch(RELAY+SEND,{method:"POST",body:"телефон подключился"}).catch(()=>msg("Нет интернета на телефоне."));let sent=0,bad=0;
-  $("sv-in").onchange=async()=>{const fs=[...$("sv-in").files];let exif=null,k=0;
-    for(const f of fs){k++;msg(`отправляю ${k} из ${fs.length}…`);try{if(f.type.startsWith("image")&&!exif)try{exif=await exifDate(f)}catch(e){}
-        const b=await shrink(f);if(b.size>14e6){bad++;continue}const name=f.name.replace(/\.[^.]+$/,"")+(b===f?(f.name.match(/\.[^.]+$/)||[""])[0]:".jpg"),body=await seal(key,{name,mime:b.type||f.type,exif},await b.arrayBuffer());
-        const r=await fetch(RELAY+SEND,{method:"PUT",headers:{Filename:"p.bin"},body});if(!r.ok)throw 0;sent++;
-        if(f.type.startsWith("image")){const i=new Image();i.src=URL.createObjectURL(b);$("sv-list").append(i)}}catch(e){bad++}}
-    msg(`Отправлено: ${sent}.`+(bad?` Не отправилось: ${bad} (слишком большой файл или нет связи).`:" Можно выбрать ещё."));$("sv-in").value=""}}
+function sendMode(){location.replace("send.html?t="+encodeURIComponent(SEND)+"&k="+encodeURIComponent(location.hash.slice(1)))}
 
 /* ---------- старт ---------- */
 $("logo").innerHTML=ransom("дневник-кино",11,6,.5);$("n-head").innerHTML=ransom("новый день",23,6,.6);$("hbig").innerHTML=ransom("сейчас непросто",31,5,.5);lockBtn();
