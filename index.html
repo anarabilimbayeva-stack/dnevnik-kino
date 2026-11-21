@@ -183,7 +183,7 @@ button.c:hover,button.c:focus-visible{transform:rotate(0) scale(1.7);z-index:3;o
 .fresh .pop{animation:pop .55s cubic-bezier(.2,.9,.3,1.25) backwards}
 @keyframes pop{from{opacity:0;translate:0 -22px;scale:1.12}}
 .drag{cursor:grab}.dragging{cursor:grabbing;z-index:9!important;filter:drop-shadow(0 18px 14px rgba(0,0,0,.55))!important;transition:none!important}
-svg.star.drag{pointer-events:auto}
+img.star.drag{pointer-events:auto}
 .contact{display:flex;gap:5px;width:80%;margin:-12px auto 20px;padding:11px 9px;background:#141210;transform:rotate(-2.5deg);z-index:2;box-shadow:0 10px 16px -8px rgba(0,0,0,.8);
   background-image:repeating-linear-gradient(90deg,transparent 0 6px,rgba(242,230,208,.85) 6px 12px,transparent 12px 18px),repeating-linear-gradient(90deg,transparent 0 6px,rgba(242,230,208,.85) 6px 12px,transparent 12px 18px);background-size:18px 5px,18px 5px;background-position:0 3px,0 calc(100% - 3px);background-repeat:repeat-x}
 .contact span{flex:1;min-width:0;aspect-ratio:3/2;overflow:hidden;background:#000}
@@ -230,6 +230,49 @@ svg.star.drag{pointer-events:auto}
 .k-rain .text{color:#22201c;font-size:21.5px;line-height:32px;transform:none}
 .k-rain .text em{background:none;text-decoration:underline wavy #c73e24 1.6px;text-underline-offset:5px;padding:0}
 .k-rain .tb-tape{display:block;position:absolute;z-index:2;right:10%;top:-12px;width:92px;height:26px;background:repeating-linear-gradient(45deg,rgba(242,197,61,.85) 0 7px,rgba(246,214,110,.85) 7px 14px);transform:rotate(5deg);filter:url(#rough2)}
+/* ---------- настоящие текстуры и предметы (tex/) ---------- */
+body{background:#2a1a0e url(tex/wood.jpg) center/cover fixed}
+body::before{background:radial-gradient(ellipse 85% 75% at 50% 42%,transparent 35%,rgba(0,0,0,.6) 100%)}
+.k-fire{--pimg:url(tex/paper-fire.jpg)}.k-olive{--pimg:url(tex/paper-olive.jpg)}.k-night{--pimg:url(tex/paper-night.jpg)}.k-rain{--pimg:url(tex/paper-rain.jpg)}
+.page::before{background:var(--pimg) center/cover;mix-blend-mode:normal;opacity:1}
+.page.pr::before{filter:brightness(.93)}
+.ring{border:0;box-shadow:none;filter:none;clip-path:none;border-radius:0;width:190px;height:190px;background:url(tex/ring.jpg) center/contain no-repeat;mix-blend-mode:multiply;opacity:.85}
+.k-night .ring{display:none}
+.pol .tape{width:124px;height:30px;top:-17px;background:url(tex/tape.webp) center/100% 100% no-repeat;opacity:.96;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+.k-fire .pol .tape,.k-rain .pol .tape{background-image:url(tex/washi.webp)}
+.pol .clip{width:36px;height:auto;top:-30px;right:18px;filter:drop-shadow(1px 3px 2px rgba(0,0,0,.5))}
+img.star{height:auto}
+.pen{width:380px;height:auto;right:90px;bottom:26px}
+.k-olive .tb-tape{background:url(tex/tape.webp) center/100% 100% no-repeat;width:120px;height:28px;box-shadow:none;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+.k-rain .tb-tape{background:url(tex/washi.webp) center/100% 100% no-repeat;width:112px;height:24px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+.k-olive .tbox{background:url(tex/card.webp) center/100% 100% no-repeat;clip-path:none!important;padding:28px 28px 26px}
+.k-olive .text{line-height:1.5}
+.k-rain .tbox{background:url(tex/sheet.webp) center/100% 100% no-repeat;clip-path:none!important;padding:46px 28px 30px 30px}
+.k-rain .text{line-height:1.5}
+.blot{left:-36px;top:-26px;width:380px;height:286px;background:url(tex/blot.jpg) center/contain no-repeat;mix-blend-mode:multiply;opacity:.7;filter:none}
+.chalk{background:url(tex/chalk.jpg) center/cover;mix-blend-mode:screen;opacity:.5}
+img.bigleaf{right:-34px;bottom:-30px;width:200px;height:auto;transform:rotate(-26deg);filter:drop-shadow(1px 4px 3px rgba(0,0,0,.35))}
+.flower{position:absolute!important;right:3%;bottom:9%;width:66px;height:auto;transform:rotate(16deg);z-index:3;filter:drop-shadow(1px 3px 2px rgba(0,0,0,.35))}
+.s-night b{background:url(tex/sticky.webp) center/100% 100% no-repeat;box-shadow:none;border-radius:0;width:126px;height:126px;padding:0 10px 8px}
+.s-olive b{background:url(tex/tag.webp) center/100% 100% no-repeat;clip-path:none;width:196px;padding:22px 16px 20px 62px}
+.s-rain b{background:url(tex/stamp.webp) center/100% 100% no-repeat;border:0;box-shadow:none;width:98px;height:128px}
+.ticket{background:url(tex/ticket.webp) center/100% 100% no-repeat;-webkit-mask:none;mask:none;padding:20px 26px 20px 50px}
+.ticket>span:last-child{border-left:0;padding-left:0}
+.slip{background:url(tex/receipt.webp) center/100% 100% no-repeat;-webkit-mask:none;mask:none;padding:16px 18px 30px;width:164px}
+.year{background:#cbb28c url(tex/kraft.jpg) center/cover}.year::before{display:none}
+.year .pin{background:url(tex/tape.webp) center/100% 100% no-repeat;opacity:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4));width:140px;height:32px}
+.sheet .pin{background:url(tex/washi.webp) center/100% 100% no-repeat;opacity:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4));width:140px;height:28px}
+/* диктовка и поиск песни */
+.mic{margin:0 0 4px;transform:rotate(.6deg)}.mic.on{background:var(--red);animation:micp 1s ease-in-out infinite alternate}
+@keyframes micp{to{filter:url(#rough2) drop-shadow(0 0 8px rgba(199,62,36,.9))}}
+.sfind{display:flex;gap:10px;align-items:flex-end}.sfind input{flex:1;max-width:none!important;margin-top:0!important}
+.sres{margin-top:8px;display:grid;gap:6px}
+.sr{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.55);padding:5px 8px;font-size:12.5px;line-height:1.25}
+.sr.sel{background:#f6d04a}
+.sr img{width:40px;height:40px;flex:none}.sr span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sr b{display:block;font-weight:400;font-size:13.5px;overflow:hidden;text-overflow:ellipsis}
+.sr button{border:1.5px solid #2a1d14;background:none;font-family:var(--mono);font-size:11px;padding:5px 8px;flex:none}
+.sr button[data-pick]{background:#16110e;color:#f4ecdd}
+.sfile{margin-top:12px;font-family:var(--note);font-size:18px;color:#5d4a3d}.sfile summary{cursor:pointer}.sfile .pick{margin-top:8px}
 .loading{position:fixed;inset:0;background:var(--desk);z-index:20;display:grid;place-items:center;font-size:22px;letter-spacing:.1em;transition:opacity .6s}
 .loading.off{opacity:0;pointer-events:none}
 
@@ -276,7 +319,7 @@ svg.star.drag{pointer-events:auto}
   <div id="view-book">
     <main class="book" id="book"><div class="half" id="L"></div><div class="half" id="R"></div><i class="staple" style="top:20%"></i><i class="staple" style="top:74%"></i>
       <button class="arrow prev" id="prev" aria-label="Предыдущий день">←</button><button class="arrow next" id="next" aria-label="Следующий день">→</button></main>
-    <svg class="pen" viewBox="0 0 330 30" aria-hidden="true"><rect x="40" y="7" width="250" height="16" rx="8" fill="#8f2413"/><rect x="40" y="7" width="250" height="5" rx="2.5" fill="#c9553f" opacity=".7"/><rect x="230" y="5" width="66" height="20" rx="9" fill="#1a1512"/><rect x="236" y="2" width="52" height="4" rx="2" fill="#c9c5bd"/><path d="M40 8 L10 14 L2 15 L10 16 L40 22z" fill="#c9c5bd"/><path d="M12 13.5 L2 15 L12 16.5z" fill="#2a2a2a"/><rect x="290" y="9" width="12" height="12" rx="5" fill="#c9c5bd"/></svg>
+    <img class="pen" alt="" src="tex/pen.webp">
     <p class="note">стрелки ← → листают · фото, наклейки и чек можно двигать мышкой · нужный день быстрее найти в <button id="toyear">год</button></p>
   </div>
   <div id="view-year" hidden>
@@ -292,6 +335,7 @@ svg.star.drag{pointer-events:auto}
       <div class="scols">
         <div>
           <label class="lab" for="n-text">1. пара строк о дне</label>
+          <button type="button" class="pick mic" id="n-mic">🎙 рассказать голосом</button><small class="hintl" id="n-michint">нажми и просто расскажи о дне — слова сами появятся здесь</small>
           <textarea id="n-text" rows="7" placeholder="Что было? С кем? Что запомнилось — запах, погода, смех…"></textarea>
           <label class="lab" for="n-date">какой это был день</label>
           <input type="date" id="n-date"><small class="hintl" id="n-datenote"></small>
@@ -301,8 +345,10 @@ svg.star.drag{pointer-events:auto}
           <label class="pick"><input type="file" id="n-media" accept="image/*,video/*" multiple>выбрать файлы</label><small class="hintl" id="n-mcount">чем больше разных кадров, тем живее фильм (лучше 5–8)</small>
           <div class="thumbs" id="n-thumbs"></div>
           <span class="lab">3. песня дня</span>
-          <label class="pick"><input type="file" id="n-song" accept="audio/*">выбрать песню (mp3)</label><small class="hintl" id="n-scount">её темп и громкость выберут бумагу, наклон фото и ритм фильма</small>
-          <input type="text" id="n-sname" placeholder="как называется песня">
+          <div class="sfind"><input type="text" id="n-q" placeholder="название и исполнитель"><button type="button" class="pick" id="n-find">найти</button></div>
+          <div class="sres" id="n-res"></div>
+          <small class="hintl" id="n-scount">сайт возьмёт отрывок песни (30 секунд): его темп и громкость выберут бумагу, наклон фото и ритм фильма</small>
+          <details class="sfile"><summary>или выбрать свой файл mp3</summary><label class="pick"><input type="file" id="n-song" accept="audio/*">выбрать файл</label><input type="text" id="n-sname" placeholder="как называется песня"></details>
         </div>
       </div>
       <div class="sfoot"><button class="gobtn" id="n-go">вклеить в тетрадь</button><span id="n-status" role="status"></span></div>
@@ -340,7 +386,7 @@ function ransom(text,seed=1,jit=5,share=.42){
     let s=0;if(/[\wа-яё]/i.test(c)&&r()<share){do{s=1+Math.floor(r()*5)}while(s===last);last=s}
     return`<b class="s${s}" style="--r:${((r()-.5)*2*jit*(s?1:.35)).toFixed(1)}deg;--y:${((r()-.5)*.12).toFixed(2)}em">${c}</b>`}).join("")+`</span>`).join("")+`</span>`;
 }
-const star=(x,y,s,r,g)=>`<svg class="star" style="left:${x}%;top:${y}%;--s:${s}px;--r:${r}deg"><use href="#st" fill="url(#${g})" stroke="url(#${g})"/></svg>`;
+const star=(x,y,s,r,g)=>`<img class="star drag" alt="" draggable="false" src="tex/star${{gG:"gold",gK:"black",gC:"cream"}[g]}.webp" style="left:${x}%;top:${y}%;--s:${Math.round(s*1.3)}px;--r:${r}deg">`;
 
 /* ---------- название папки дня и рисунки на полях — из текста ---------- */
 const words=t=>t.toLowerCase().replace(/ё/g,"е").split(/[^a-zа-я0-9-]+/).filter(Boolean);
@@ -410,7 +456,7 @@ function human(d){const x=new Date(d+"T12:00");return{big:`${x.getDate()} ${MONT
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
 const mtag=m=>m.video?`<video src="${m.url}#t=0.1" muted playsinline preload="metadata"></video>`:`<img src="${m.url}" alt="">`;
 const cover=d=>d.media.find(m=>!m.video)||d.media[0];
-const CLIP=`<svg class="clip" viewBox="0 0 22 58" fill="none" stroke="#c9c5bd" stroke-width="2.4" stroke-linecap="round"><path d="M6 44V12a5 5 0 0 1 10 0v36a8 8 0 0 1-14 0V16"/></svg>`;
+const CLIP=`<img class="clip" alt="" draggable="false" src="tex/clip.webp">`;
 function torn(seed,sides){const r=rng(seed),p=[],N=24,has=c=>sides.includes(c);
   for(let i=0;i<=N;i++)p.push(`${(i/N*100).toFixed(1)}% ${has("t")?(r()*3).toFixed(1):0}%`);
   for(let i=1;i<=8;i++)p.push(`${has("r")?(100-r()*1.6).toFixed(1):100}% ${(i/8*100).toFixed(1)}%`);
@@ -427,9 +473,9 @@ function pageEl(d,side){
     const dd=doodlesOf(d.text);
     const txt=esc(d.text).split(" ").map(t=>`<span class="wj" style="--a:${((r()-.5)*2.6).toFixed(1)}deg;--b:${((r()-.5)*3).toFixed(1)}px">${markText(t)}</span>`).join(" ");
     const deco={fire:`<i class="deco halftone"></i><svg class="deco swipe" viewBox="0 0 300 60" preserveAspectRatio="none"><path d="M6 36C50 18 96 46 150 28S250 22 294 32M10 44C80 30 170 50 290 40"/></svg>`,
-      olive:`<i class="deco stitch"></i><svg class="deco bigleaf" viewBox="0 0 60 60">${DOODLES.leaf}</svg>`,
+      olive:`<i class="deco stitch"></i><img class="deco bigleaf" alt="" src="tex/leaf.webp">`,
       night:`<i class="deco chalk"></i><svg class="deco constel" viewBox="0 0 200 120"><path d="M12 92L52 42 96 64 142 22 186 50"/><circle cx="12" cy="92" r="3"/><circle cx="52" cy="42" r="4"/><circle cx="96" cy="64" r="3"/><circle cx="142" cy="22" r="5"/><circle cx="186" cy="50" r="3"/></svg>`,
-      rain:`<svg class="deco blot" viewBox="0 0 220 150"><ellipse cx="100" cy="74" rx="92" ry="56"/><ellipse cx="166" cy="104" rx="36" ry="28"/><ellipse cx="40" cy="40" rx="22" ry="16"/></svg>`}[K];
+      rain:`<i class="deco blot"></i>`}[K];
     el.innerHTML=`${deco}<i class="ring" style="left:${40+r()*30}%;top:${56+r()*18}%;transform:rotate(${r()*360|0}deg)"></i>
       ${star(3+r()*4,88+r()*4,26,-18,G())}${star(11+r()*3,91,15,20,G())}
       <svg class="stamp pop" ${pop()} viewBox="0 0 120 120" fill="none" stroke="currentColor"><circle cx="60" cy="60" r="55" stroke-width="3"/><circle cx="60" cy="60" r="38" stroke-width="1.5"/><path id="arc${d.seed}" d="M60 60m-45 0a45 45 0 1 1 90 0a45 45 0 1 1-90 0" stroke="none"/><text font-size="9.5" stroke="none"><textPath href="#arc${d.seed}">ДНЕВНИК-КИНО ★ ДЕНЬ ${h.doy} ИЗ 365 ★ ${h.y} ★</textPath></text><text x="60" y="58" text-anchor="middle" font-size="19" stroke="none" style="letter-spacing:.04em">${h.dd}</text><text x="60" y="74" text-anchor="middle" font-size="8" stroke="none">${L.word.toUpperCase()}</text><path d="M26 86h68M30 34h60" stroke-width="1"/></svg>
@@ -445,14 +491,14 @@ function pageEl(d,side){
       night:`<div class="sticker s-night drag pop" ${pop()}><b>${L.word} день.<br>${d.music.bpm} ударов<br>в минуту</b></div>`,
       rain:`<div class="sticker s-rain drag pop" ${pop()}><b>${h.doy}<small>${L.word} день</small></b></div>`}[K];
     el.innerHTML=`${K==="rain"?`<i class="deco graph"></i>`:K==="fire"?`<i class="deco halftone h2"></i>`:K==="night"?`<i class="deco chalk c2"></i>`:`<i class="deco stitch"></i>`}
-      <svg class="star drag" style="left:${6+r()*8}%;top:${6+r()*6}%;--s:34px;--r:14deg"><use href="#st" fill="url(#${G()})" stroke="url(#${G()})"/></svg>${star(84+r()*6,58+r()*6,22,-20,G())}${star(46+r()*10,92,18,30,G())}
+      ${star(6+r()*8,5+r()*5,34,14,G())}${star(84+r()*6,58+r()*6,22,-20,G())}${star(46+r()*10,92,18,30,G())}
       <div class="photos">${d.media.slice(0,2).map((m,k)=>`<figure class="pol drag pop" ${pop()}>${k?CLIP:`<i class="tape"></i>`}<div class="ph">${mtag(m)}</div><i>${esc(d.caps[k]||"")}</i></figure>`).join("")}</div>
       ${extra.length?`<div class="contact drag pop" ${pop()}>${extra.map(m=>`<span>${mtag(m)}</span>`).join("")}</div>`:""}
       <div class="row"><div class="slip drag pop" ${pop()}><b>чек дня № ${h.doy}</b>
         <div><span>песня</span><span>${esc(d.song.name)}</span></div><div><span>темп</span><span>${d.music.bpm} уд/мин</span></div><div><span>энергия</span><span>${bars}</span></div>
         <div><span>бумага</span><span>${L.pname}</span></div><div><span>фото</span><span>${d.media.length}</span></div><div><span>слов</span><span>${words(d.text).length}</span></div><div><span>кадров</span><span>${plan.shots.length}</span></div></div>
       <button class="ticket drag pop" ${pop()} data-film><span class="play"></span><span><small>фильм дня · ${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}</small><em>${esc(d.title)}</em></span></button></div>
-      ${stick}${dsvg(doodlesOf(d.text)[1],"d2")}${d.own?`<button class="rip" data-del="${d.id}">вырвать страницу ✂</button>`:""}<span class="pno">стр. ${h.doy*2}</span>`;
+      ${stick}${K==="olive"?`<img class="flower drag pop" alt="" draggable="false" src="tex/flower.webp">`:""}${dsvg(doodlesOf(d.text)[1],"d2")}${d.own?`<button class="rip" data-del="${d.id}">вырвать страницу ✂</button>`:""}<span class="pno">стр. ${h.doy*2}</span>`;
   }
   return el;
 }
@@ -619,16 +665,38 @@ $("n-media").onchange=async()=>{const fs=[...$("n-media").files].slice(0,12);
   if(dt){$("n-date").value=dt;$("n-datenote").textContent="дату взяла из фото — поправь, если не та"}
   else if(fs.length)$("n-datenote").textContent="в фото нет даты съёмки (так бывает после Telegram и WhatsApp) — проверь дату сама"};
 $("n-song").onchange=()=>{const f=$("n-song").files[0];$("n-scount").textContent=f?f.name:"";if(f&&!$("n-sname").value)$("n-sname").value=f.name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ")};
+/* песня по названию: открытый каталог iTunes отдаёт 30-секундный отрывок */
+let PICK=null,FOUND=[];const prev=new Audio();
+async function findSong(){const q=$("n-q").value.trim(),box=$("n-res");if(!q)return;box.innerHTML='<small class="hintl">ищу…</small>';
+  try{let r=[];for(const c of["","&country=ru"]){const j=await(await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=song&limit=5${c}`)).json();r=(j.results||[]).filter(x=>x.previewUrl);if(r.length)break}
+    FOUND=r;box.innerHTML=r.length?r.map((x,i)=>`<div class="sr" data-row="${i}"><img src="${esc(x.artworkUrl60||"")}" alt=""><span><b>${esc(x.trackName)}</b>${esc(x.artistName)}</span><button type="button" data-play="${i}">▶</button><button type="button" data-pick="${i}">выбрать</button></div>`).join(""):'<small class="hintl">ничего не нашлось — попробуй написать иначе или выбери файл</small>'}
+  catch(e){box.innerHTML='<small class="hintl">поиск не ответил — проверь интернет или выбери файл</small>'}}
+$("n-find").onclick=findSong;$("n-q").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();findSong()}});
+$("n-res").addEventListener("click",async e=>{const pl=e.target.closest("[data-play]"),pk=e.target.closest("[data-pick]");
+  if(pl){const x=FOUND[+pl.dataset.play];if(!prev.paused&&prev.src===x.previewUrl){prev.pause();pl.textContent="▶"}else{$("n-res").querySelectorAll("[data-play]").forEach(b=>b.textContent="▶");prev.src=x.previewUrl;prev.play().catch(()=>{});pl.textContent="■"}}
+  if(pk){const x=FOUND[+pk.dataset.pick];pk.textContent="…";try{const blob=await(await fetch(x.previewUrl)).blob();PICK={blob,name:`${x.trackName} — ${x.artistName}`};prev.pause();
+      $("n-res").querySelectorAll(".sr").forEach(r=>r.classList.remove("sel"));pk.closest(".sr").classList.add("sel");$("n-res").querySelectorAll("[data-pick]").forEach(b=>b.textContent="выбрать");pk.textContent="выбрано ✓"}
+    catch(err){pk.textContent="не скачалась"}}});
+/* диктовка: браузер сам превращает речь в текст */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let recog=null;
+if(!SR){$("n-mic").hidden=true;$("n-michint").textContent="рассказать голосом можно в Chrome или Safari"}
+else $("n-mic").onclick=()=>{const btn=$("n-mic"),ta=$("n-text");if(recog){recog.stop();return}
+  const base=ta.value.trim();let fin="";recog=new SR();recog.lang="ru-RU";recog.continuous=true;recog.interimResults=true;
+  recog.onresult=e=>{let live="";for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript.trim();if(!t)continue;if(e.results[i].isFinal)fin+=t[0].toUpperCase()+t.slice(1)+(/[.!?…]$/.test(t)?" ":". ");else live+=t+" "}
+    ta.value=(base?base+" ":"")+fin+live};
+  recog.onerror=e=>{$("n-michint").textContent=e.error==="not-allowed"?"браузер не пустил к микрофону — разреши доступ в адресной строке":"не расслышала — попробуй ещё раз"};
+  recog.onend=()=>{recog=null;btn.classList.remove("on");btn.textContent="🎙 рассказать голосом";ta.value=ta.value.trim()};
+  try{recog.start();btn.classList.add("on");btn.textContent="■ я слушаю — нажми, когда закончишь";$("n-michint").textContent="говори обычными фразами, после паузы поставлю точку"}catch(err){recog=null}};
 $("n-form").onsubmit=async e=>{e.preventDefault();const st=$("n-status"),btn=$("n-go");
-  const files=[...$("n-media").files].slice(0,12),song=$("n-song").files[0],text=$("n-text").value.trim(),date=$("n-date").value;
-  if(!files.length||!song||!text||!date){st.textContent="нужны все три: строчки о дне, хотя бы одно фото и песня";return}
+  const files=[...$("n-media").files].slice(0,12),song=PICK?PICK.blob:$("n-song").files[0],text=$("n-text").value.trim(),date=$("n-date").value;
+  if(!files.length||!song||!text||!date){st.textContent="нужны все три: рассказ о дне, хотя бы одно фото и песня (найди её и нажми «выбрать»)";return}
   btn.disabled=true;st.textContent="слушаю песню и вклеиваю страницу…";
   try{const ok=[];for(const f of files){if(f.type.startsWith("video")){ok.push(f);continue}const u=URL.createObjectURL(f);try{await loadImg(u);ok.push(f)}catch(err){}URL.revokeObjectURL(u)}
     if(!ok.length)throw new Error("не получилось открыть фото. Если это HEIC с айфона, сохрани их как JPEG");
-    const rec={id:"d"+Date.now(),date,text,files:ok,song:{name:$("n-sname").value.trim()||"песня дня",blob:song}},day=await hydrate(fromStored(rec));
+    const rec={id:"d"+Date.now(),date,text,files:ok,song:{name:PICK?PICK.name:($("n-sname").value.trim()||"песня дня"),blob:song}},day=await hydrate(fromStored(rec));
     if(!day.music.buf)throw new Error("не получилось прочитать песню — попробуй файл mp3");
     await DB.put(rec);DAYS.push(day);sortDays();YEAR=null;openDay(DAYS.indexOf(day));
-    $("n-form").reset();$("n-thumbs").innerHTML="";$("n-mcount").textContent=$("n-scount").textContent=$("n-datenote").textContent="";$("n-date").value=today();
+    $("n-form").reset();PICK=null;$("n-res").innerHTML="";$("n-thumbs").innerHTML="";$("n-mcount").textContent=$("n-scount").textContent=$("n-datenote").textContent="";$("n-date").value=today();
     st.textContent=ok.length<files.length?`страница готова. ${files.length-ok.length} фото не открылись (возможно, HEIC)`:"";
   }catch(err){st.textContent=err.message}
   btn.disabled=false};
