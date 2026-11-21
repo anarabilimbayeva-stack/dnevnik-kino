@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Дневник-кино</title>
+<title>Тот самый день</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <meta name="theme-color" content="#2a1a0e">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Дневник">
+<meta name="apple-mobile-web-app-title" content="Тот самый день">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bad+Script&family=Caveat:wght@500;700&family=Neucha&family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Oswald:wght@700&family=PT+Mono&family=Playfair+Display:ital,wght@0,900;1,900&family=Rubik+Mono+One&display=swap">
@@ -412,19 +412,30 @@ button.c.dim{opacity:.16;filter:grayscale(1)}
 .fc-in{background:#d8c49d url(tex/kraft.jpg) center/cover;display:grid;place-content:center;text-align:center;padding:14%;color:#3a2a1c;font-family:var(--note);font-size:clamp(20px,5vw,27px);line-height:1.2;box-shadow:inset 0 0 0 1000px rgba(244,232,205,.5),inset 12px 0 22px -10px rgba(0,0,0,.5)}
 .fc-in b{font-weight:400;color:var(--red);font-size:1.5em;display:block}
 .ft{position:absolute;left:19%;right:6%;top:9%;display:grid;gap:.12em;justify-items:start}
-.ft{top:11%}.ft .rs{font-size:calc(var(--w)*.098);flex-wrap:nowrap}.ft .rs+.rs{font-size:calc(var(--w)*.158);margin-left:5%;transform:rotate(-3deg)}
+.ft{top:11%}.ft .rs{font-size:calc(var(--w)*.074);flex-wrap:nowrap}.ft .rs+.rs{font-size:calc(var(--w)*.158);margin-left:5%;transform:rotate(-3deg)}
 .fsub{position:absolute;left:20%;top:40.5%;font-family:var(--note);font-size:clamp(18px,calc(var(--w)*.062),26px);line-height:1;transform:rotate(-4deg);color:#2a1d14;border-bottom:2px solid var(--red);padding-bottom:3px}
 .ffilm{position:absolute;left:8%;right:-3%;top:50%;height:21%;background:#14110e;transform:rotate(3deg);display:flex;gap:2.5%;padding:5.2% 3%;box-shadow:0 5px 9px rgba(0,0,0,.5)}
 .ffilm::before,.ffilm::after{content:"";position:absolute;left:0;right:0;height:13%;background:repeating-linear-gradient(90deg,transparent 0 7px,#e9dcc0 7px 15px,transparent 15px 22px)}
 .ffilm::before{top:7%}.ffilm::after{bottom:7%}
 .ffilm img{flex:1;min-width:0;height:100%;object-fit:cover;filter:sepia(.35) saturate(1.15) contrast(1.05)}
 .ftape{position:absolute;right:-5%;top:47%;width:27%;transform:rotate(-38deg)}
-.fname{position:absolute;left:19%;bottom:8%;width:52%;background:#f4ecd8 var(--fiber);background-size:140px;background-blend-mode:multiply;padding:8px 12px 12px;transform:rotate(-2deg);box-shadow:1px 2px 3px rgba(0,0,0,.45);font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#5d4a3d}
+.fname{position:absolute;left:21%;bottom:7%;width:52%;background:#f4ecd8 var(--fiber);background-size:140px;background-blend-mode:multiply;padding:8px 12px 12px;transform:rotate(-2deg);box-shadow:1px 2px 3px rgba(0,0,0,.45);font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#5d4a3d}
 .fname{width:40%}.fname b{display:block;font-weight:400;font-family:var(--hand);font-size:22px;letter-spacing:0;text-transform:none;color:#2a1d14;-webkit-text-stroke:.3px currentColor;margin-top:2px}.fname input{display:block;width:100%;border:0;border-bottom:1.5px solid #2a1d14;background:transparent;font-family:var(--hand);font-size:21px;color:#2a1d14;outline:0;padding:2px 0 0;-webkit-text-stroke:.3px currentColor}
 .fname input::placeholder{color:#a08a78;-webkit-text-stroke:0}
-.fstamp{position:absolute;right:5%;bottom:5%;width:25%;color:var(--red);transform:rotate(14deg);opacity:.85}
+.fstamp{position:absolute;right:33%;bottom:3%;width:21%;color:var(--red);transform:rotate(14deg);opacity:.85}
 .fstamp text{font-family:var(--mono);fill:currentColor;letter-spacing:.16em}
-.fs1{position:absolute;right:4%;top:1.5%;width:15%;transform:rotate(14deg)}.fs2{position:absolute;left:21%;bottom:27%;width:9%;transform:rotate(-20deg)}
+.fs1{position:absolute;right:4%;top:1.5%;width:15%;transform:rotate(14deg)}.fs2{position:absolute;left:61%;bottom:25%;width:8%;transform:rotate(-20deg)}
+.fring{position:absolute;left:44%;top:70%;width:34%;aspect-ratio:1;background:url(tex/ring.jpg) center/contain no-repeat;mix-blend-mode:multiply;opacity:.7;transform:rotate(40deg)}
+.fwashi{position:absolute;left:-7%;top:6%;width:32%;transform:rotate(-32deg);filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+.fnote{position:absolute;right:2%;top:33.5%;width:22%;aspect-ratio:1;background:url(tex/sticky.webp) center/contain no-repeat;display:grid;place-items:center;transform:rotate(7deg);filter:drop-shadow(1px 3px 2px rgba(0,0,0,.4))}
+.fnote span{font-family:var(--note);font-size:calc(var(--w)*.033);line-height:1.08;color:#2a2210;text-align:center;transform:rotate(-2deg) translateY(4%)}
+.fpol{position:absolute;right:3%;bottom:4%;width:28%;margin:0;background:#fbf7ee;padding:3% 3% 0;transform:rotate(6deg);box-shadow:0 6px 10px rgba(0,0,0,.5)}
+.fpol>img:not(.fclip){display:block;width:100%;aspect-ratio:1;object-fit:cover;object-position:50% 32%;filter:sepia(.25) saturate(1.15) contrast(1.06)}
+.fpol figcaption{font-family:var(--note);font-size:calc(var(--w)*.04);text-align:center;color:#3b2a24;padding:5% 0 7%;line-height:1}
+.fclip{position:absolute;top:-22%;left:10%;width:22%;z-index:2;filter:drop-shadow(1px 2px 1px rgba(0,0,0,.5))}
+.fflower{position:absolute;left:1.5%;bottom:1%;height:31%;transform:rotate(-9deg);filter:drop-shadow(1px 2px 1px rgba(0,0,0,.35))}
+.fticket{position:absolute;left:14%;top:44.5%;width:26%;transform:rotate(-11deg);filter:drop-shadow(1px 2px 2px rgba(0,0,0,.4));display:none}
+.fdood{position:absolute;right:31%;top:7%;width:9%;color:#7c2413;transform:rotate(12deg);opacity:.85}
 .fhint{margin:0;font-family:var(--note);font-size:24px;color:rgba(242,230,208,.92);text-align:center;transition:opacity .3s;animation:fh 1.4s ease-in-out infinite alternate}
 .fhint small{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-top:6px}
 .front.open .fhint{opacity:0;animation:none}
@@ -902,7 +913,7 @@ function pageEl(d,side){
       rain:`<i class="deco blot"></i>`}[K];
     el.innerHTML=`${deco}<i class="ring" style="left:${40+r()*30}%;top:${56+r()*18}%;transform:rotate(${r()*360|0}deg)"></i>
       ${star(3+r()*4,88+r()*4,26,-18,G())}${star(11+r()*3,91,15,20,G())}
-      <svg class="stamp pop" ${pop()} viewBox="0 0 120 120" fill="none" stroke="currentColor"><circle cx="60" cy="60" r="55" stroke-width="3"/><circle cx="60" cy="60" r="38" stroke-width="1.5"/><path id="arc${d.seed}" d="M60 60m-45 0a45 45 0 1 1 90 0a45 45 0 1 1-90 0" stroke="none"/><text font-size="9.5" stroke="none"><textPath href="#arc${d.seed}">ДНЕВНИК-КИНО ★ ДЕНЬ ${h.doy} ИЗ 365 ★ ${h.y} ★</textPath></text><text x="60" y="58" text-anchor="middle" font-size="19" stroke="none" style="letter-spacing:.04em">${h.dd}</text><text x="60" y="74" text-anchor="middle" font-size="8" stroke="none">${L.word.toUpperCase()}</text><path d="M26 86h68M30 34h60" stroke-width="1"/></svg>
+      <svg class="stamp pop" ${pop()} viewBox="0 0 120 120" fill="none" stroke="currentColor"><circle cx="60" cy="60" r="55" stroke-width="3"/><circle cx="60" cy="60" r="38" stroke-width="1.5"/><path id="arc${d.seed}" d="M60 60m-45 0a45 45 0 1 1 90 0a45 45 0 1 1-90 0" stroke="none"/><text font-size="9.5" stroke="none"><textPath href="#arc${d.seed}">ТОТ САМЫЙ ДЕНЬ ★ ${h.doy} ИЗ 365 ★ ${h.y} ★</textPath></text><text x="60" y="58" text-anchor="middle" font-size="19" stroke="none" style="letter-spacing:.04em">${h.dd}</text><text x="60" y="74" text-anchor="middle" font-size="8" stroke="none">${L.word.toUpperCase()}</text><path d="M26 86h68M30 34h60" stroke-width="1"/></svg>
       <div class="date pop" ${pop()}>${ransom(h.big,d.seed,L.jit,.55)}</div><div class="wd">${h.small}</div>
       <h1 class="title pop" ${pop()} data-folder title="открыть папку дня"><span>${esc(d.title)}</span></h1>
       <button class="tlabel pop" ${pop()} data-type="${d.id}" title="${TYPES[d.type].hint}">${tsvg(d.type)}<b>${TYPES[d.type].name}</b><i>${d.own?(d.typeAuto?"так? нажми и поправь":"поменять"):"все такие дни"}</i></button>
@@ -1265,10 +1276,14 @@ function buildFront(){
   $("fbook").innerHTML=`<div class="fbase k-${last.look.key}" style="--paper:${last.look.paper}"></div>`+
     Array.from({length:N},(_,k)=>{const d=pool[k%pool.length];return`<div class="fleaf" style="--z:${((N-k)*.6).toFixed(1)}px">${face(d,"ff")}${face(pool[(k+1)%pool.length],"fb")}</div>`}).reverse().join("")+
     `<div class="fcover" id="fcover" role="button" tabindex="0" aria-label="Открыть дневник" style="--z:${((N+2)*.6).toFixed(1)}px"><i class="fc-out">
-      <div class="ft">${ransom("дневник",41,6,.55)}${ransom("кино",42,8,.75)}</div>
-      <div class="fsub">тетрадь памятных дней</div>
+      <div class="ft">${ransom("тот самый",41,6,.55)}${ransom("день",42,8,.75)}</div>
+      <div class="fsub">дневник-кино</div>
       <img class="fs1" alt="" src="tex/stargold.webp"><img class="fs2" alt="" src="tex/starblack.webp">
+      <i class="fring"></i><img class="fwashi" alt="" src="tex/washi.webp">
+      <div class="fnote"><span>песня<br>+ фото<br>+ пара слов<br>= кино</span></div>
       <div class="ffilm">${pics.map(u=>`<img alt="" src="${u}">`).join("")}</div><img class="ftape" alt="" src="tex/tape.webp">
+      ${pics.length?`<figure class="fpol"><img class="fclip" alt="" src="tex/clip.webp"><img alt="" src="${pics[pics.length-1]}"><figcaption>тот самый</figcaption></figure>`:""}
+      <img class="fflower" alt="" src="tex/flower.webp"><img class="fticket" alt="" src="tex/ticket.webp"><svg class="fdood" viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M22 44V16l20-5v28"/><ellipse cx="16" cy="45" rx="6.5" ry="4.5"/><ellipse cx="36" cy="40" rx="6.5" ry="4.5"/></svg>
       <div class="fname">внутри<b>${n} ${dayWord(n)}</b></div>
       <svg class="fstamp" viewBox="0 0 120 120" fill="none" stroke="currentColor"><circle cx="60" cy="60" r="55" stroke-width="3"/><circle cx="60" cy="60" r="37" stroke-width="1.5"/><path id="farc" d="M60 60m-46 0a46 46 0 1 1 92 0a46 46 0 1 1 -92 0"/><text font-size="9.5" stroke="none"><textPath href="#farc">памятные дни · песня · фото · фильм ·</textPath></text><text x="60" y="66" text-anchor="middle" font-size="17" stroke="none">${yr}</text></svg>
     </i><i class="fc-in"><span>в этой тетради<b>${n} ${dayWord(n)}</b>у каждого своя песня</span></i></div>`;
@@ -1413,7 +1428,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=18;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=19;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
@@ -1450,7 +1465,7 @@ async function shrink(f){if(!f.type.startsWith("image"))return f;try{const bm=aw
 function sendMode(){location.replace("send.html?t="+encodeURIComponent(SEND)+"&k="+encodeURIComponent(location.hash.slice(1)))}
 
 /* ---------- старт ---------- */
-$("logo").innerHTML=ransom("дневник-кино",11,6,.5);$("n-head").innerHTML=ransom("новый день",23,6,.6);$("hbig").innerHTML=ransom("сейчас непросто",31,5,.5);$("mbig").innerHTML=ransom("письма себе",37,5,.55);lockBtn();
+$("logo").innerHTML=ransom("тот самый день",11,6,.5);$("n-head").innerHTML=ransom("новый день",23,6,.6);$("hbig").innerHTML=ransom("сейчас непросто",31,5,.5);$("mbig").innerHTML=ransom("письма себе",37,5,.55);lockBtn();
 let li=0;const ltxt="проявляем плёнку",lt=setInterval(()=>{if(li%3===0)$("loadnum").textContent=3-(li/3|0)%3;$("loadtxt").innerHTML=[...ltxt].map((c,k)=>`<b class="s${k===li%ltxt.length?1+li%5:0}" style="--r:${k===li%ltxt.length?-6:0}deg">${c}</b>`).join("");li++},260);
 (async()=>{
   if(SEND){clearInterval(lt);sendMode();return}

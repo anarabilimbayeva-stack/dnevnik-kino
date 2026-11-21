@@ -1,6 +1,6 @@
 {
- "name": "Дневник-кино",
- "short_name": "Дневник",
+ "name": "Тот самый день",
+ "short_name": "Тот день",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
