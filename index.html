@@ -1287,7 +1287,7 @@ const aesKey=raw=>crypto.subtle.importKey("raw",raw,"AES-GCM",false,["encrypt","
 async function seal(key,meta,buf){const m=new TextEncoder().encode(JSON.stringify(meta)),p=new Uint8Array(4+m.length+buf.byteLength);new DataView(p.buffer).setUint32(0,m.length);p.set(m,4);p.set(new Uint8Array(buf),4+m.length);
   const iv=crypto.getRandomValues(new Uint8Array(12)),c=new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv},key,p)),o=new Uint8Array(12+c.length);o.set(iv);o.set(c,12);return o}
 async function unseal(key,u){const p=new Uint8Array(await crypto.subtle.decrypt({name:"AES-GCM",iv:u.slice(0,12)},key,u.slice(12))),n=new DataView(p.buffer).getUint32(0);return{meta:JSON.parse(new TextDecoder().decode(p.slice(4,4+n))),data:p.slice(4+n)}}
-let qrES=null;
+let qrES=null;const qrParts=new Map();
 function addMedia(files,exif){const dt=new DataTransfer();[...$("n-media").files,...files].slice(0,12).forEach(f=>dt.items.add(f));$("n-media").files=dt.files;$("n-media").dispatchEvent(new Event("change"));
   if(exif)setTimeout(()=>{$("n-date").value=exif;$("n-datenote").textContent="дату взяла из фото — поправь, если не та"},400)}
 async function qrOpen(){const box=$("mail"),close=()=>{try{qrES&&qrES.close()}catch(e){}qrES=null;closeMail()};let got=0;
@@ -1299,7 +1299,9 @@ async function qrOpen(){const box=$("mail"),close=()=>{try{qrES&&qrES.close()}ca
     qrES.onerror=()=>{if($("qr-msg")&&!got)$("qr-msg").textContent="Соединение прерывается, пробую снова…"};
     qrES.onmessage=async e=>{let m;try{m=JSON.parse(e.data)}catch(err){return}if(m.event!=="message")return;
       if(!m.attachment){if($("qr-msg"))$("qr-msg").textContent="Телефон подключился. Выбирай фото на телефоне.";sfx("ding",1);return}
-      try{const u=new Uint8Array(await(await fetch(m.attachment.url)).arrayBuffer()),{meta,data}=await unseal(key,u);addMedia([new File([data],meta.name,{type:meta.mime})],meta.exif);got++;
+      try{const u=new Uint8Array(await(await fetch(m.attachment.url)).arrayBuffer()),{meta,data}=await unseal(key,u);
+        if(meta.parts>1){const P=qrParts.get(meta.fid)||[];P[meta.part]=data;qrParts.set(meta.fid,P);const have=P.filter(Boolean).length;if(have<meta.parts){if($("qr-msg"))$("qr-msg").textContent=`Приходит видео: часть ${have} из ${meta.parts}…`;return}qrParts.delete(meta.fid);addMedia([new File(P,meta.name,{type:meta.mime})],meta.exif)}
+        else addMedia([new File([data],meta.name,{type:meta.mime})],meta.exif);got++;
         if($("qr-n"))$("qr-n").textContent=`получено: ${got}`;if($("qr-msg"))$("qr-msg").textContent="Фото приходят. Можно выбрать ещё.";sfx("shutter")}catch(err){if($("qr-msg"))$("qr-msg").textContent="Одно фото не дошло — отправь его ещё раз."}}}
   catch(e){$("qr-msg").textContent="Не получилось открыть код: нет интернета."}}
 $("n-qr").onclick=qrOpen;
