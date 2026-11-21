@@ -563,8 +563,8 @@ button.c{position:relative}
           <label class="lab" for="n-date">какой это был день</label>
           <input type="date" id="n-date"><small class="hintl" id="n-datenote"></small>
           <div class="qs nq" id="n-qs">
-            <div class="qrow"><i>погода <small>— по желанию</small></i><span data-q="weather"><button type="button" data-v="sun">☀ солнце</button><button type="button" data-v="clouds">☁ пасмурно</button><button type="button" data-v="rain">☂ дождь</button><button type="button" data-v="snow">❄ снег</button><button type="button" data-v="wind">ветер</button><button type="button" data-v="fog">туман</button></span></div>
-            <div class="qrow"><i>часть дня <small>— по желанию</small></i><span data-q="time"><button type="button" data-v="morning">утро</button><button type="button" data-v="day">день</button><button type="button" data-v="evening">вечер</button><button type="button" data-v="night">ночь</button></span></div>
+            <div class="qrow"><i>какая была погода? <small>— по желанию</small></i><span data-q="weather"><button type="button" data-v="sun">☀ солнце</button><button type="button" data-v="clouds">☁ пасмурно</button><button type="button" data-v="rain">☂ дождь</button><button type="button" data-v="snow">❄ снег</button><button type="button" data-v="wind">ветер</button><button type="button" data-v="fog">туман</button></span></div>
+            <div class="qrow"><i>когда было лучше всего? <small>— по желанию</small></i><span data-q="time"><button type="button" data-v="morning">утро</button><button type="button" data-v="day">день</button><button type="button" data-v="evening">вечер</button><button type="button" data-v="night">ночь</button></span></div>
           </div>
         </div>
         <div>
@@ -719,7 +719,7 @@ const scrap=x=>`<button class="scrap" data-open="${x.id}" style="--p:${x.look.pa
 /* «воздух дня»: необязательные ответы прямо на странице готового дня; меняешь — меняются фильм и название */
 let ASKS={};try{ASKS=JSON.parse(localStorage.getItem("kino-ask")||"{}")}catch(e){}
 const QDEF=[["weather","погода",[["sun","☀ солнце"],["clouds","☁ пасмурно"],["rain","☂ дождь"],["snow","❄ снег"],["wind","ветер"],["fog","туман"]],"своё: жара, гроза…"],
-  ["time","часть дня",[["morning","утро"],["day","день"],["evening","вечер"],["night","ночь"]],null],
+  ["time","лучшее время",[["morning","утро"],["day","день"],["evening","вечер"],["night","ночь"]],null],
   ["pace","как шёл день",[["slow","медленно"],["mid","как обычно"],["fast","суматошно"]],"своё"],
   ["place","где",[["дома","дома"],["на улице","на улице"],["в школе","в школе"],["в дороге","в дороге"],["на природе","на природе"],["в гостях","в гостях"]],"своё: у бабушки…"]];
 function askHtml(d){const A=d.ask||{},n=Object.values(A).filter(Boolean).length;
@@ -1413,7 +1413,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=17;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=18;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
