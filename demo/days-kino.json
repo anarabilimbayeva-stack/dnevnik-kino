@@ -13,8 +13,10 @@
   ],
   "song": {
    "file": "calm.mp3",
-   "name": "Тёплый вечер",
-   "artist": "демо-мелодия"
+   "itunes": 725816432,
+   "name": "Autumn Leaves — Frank Sinatra",
+   "genre": "Поп, джаз",
+   "year": "1957"
   },
   "type": "pled",
   "good": "долго говорили с мамой обо всём"
@@ -33,8 +35,10 @@
   ],
   "song": {
    "file": "joy.mp3",
-   "name": "Летний ритм",
-   "artist": "демо-мелодия"
+   "itunes": 1440807030,
+   "name": "Good Time — Owl City & Carly Rae Jepsen",
+   "genre": "Поп",
+   "year": "2012"
   },
   "type": "iskry",
   "good": "смеялись весь день и танцевали",
@@ -58,8 +62,10 @@
   ],
   "song": {
    "file": "tension.mp3",
-   "name": "Дедлайн",
-   "artist": "демо-мелодия"
+   "itunes": 1499378607,
+   "name": "Blinding Lights — The Weeknd",
+   "genre": "R&B / соул",
+   "year": "2019"
   },
   "type": "uragan",
   "good": "успела доделать проект"
@@ -78,8 +84,10 @@
   ],
   "song": {
    "file": "sad.mp3",
-   "name": "Капли",
-   "artist": "демо-мелодия"
+   "itunes": 1450695872,
+   "name": "when the party's over — Billie Eilish",
+   "genre": "Альтернатива",
+   "year": "2018"
   },
   "type": "tuchi",
   "good": "вспомнила наше лето — оно было",
@@ -97,8 +105,10 @@
   ],
   "song": {
    "file": "tension.mp3",
-   "name": "Гроза",
-   "artist": "демо-мелодия"
+   "itunes": 1713846092,
+   "name": "Bad Blood (Taylor's Version) — Taylor Swift",
+   "genre": "Поп",
+   "year": "2023"
   },
   "type": "kolyuchki",
   "good": "не наговорила лишнего",
@@ -116,8 +126,10 @@
   ],
   "song": {
    "file": "calm.mp3",
-   "name": "Тёплый вечер",
-   "artist": "демо-мелодия"
+   "itunes": 576655102,
+   "name": "Count on Me — Bruno Mars",
+   "genre": "Поп",
+   "year": "2010"
   },
   "type": "pled",
   "good": "созвонились с подругой, как раньше",

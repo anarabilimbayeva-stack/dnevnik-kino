@@ -470,7 +470,7 @@ button.c{position:relative}
 .title{cursor:pointer}
 .slip .sw{display:inline-flex;gap:3px}.slip .sw i{width:13px;height:13px;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
 .say{display:inline-flex;align-items:center;gap:10px;margin:14px 0 0;border:1.5px dashed currentColor;background:none;color:var(--ink);font-family:var(--note);font-size:19px;padding:5px 12px 6px;transform:rotate(-.6deg)}
-.say i{font-style:normal;font-size:15px;opacity:.8}.say.on{background:var(--ph,var(--acc));color:#15110e;border-style:solid}
+.says{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.says .say{margin:0}.say.rec{font-size:16px;opacity:.85}.say.rec.on{opacity:1}.say i:empty{display:none}.say i{font-style:normal;font-size:15px;opacity:.8}.say.on{background:var(--ph,var(--acc));color:#15110e;border-style:solid}
 .why{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-family:var(--note);font-size:18px;line-height:1.2;max-width:620px}
 .why dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;padding-top:4px;color:#7a4a2a}
 .why dd{margin:0}.why dd b{font-weight:400;color:var(--red)}.why .sw{display:inline-flex;gap:4px;vertical-align:-2px;margin:0 4px}.why .sw i{width:16px;height:16px;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.3)}
@@ -625,26 +625,27 @@ async function analyzeSong(url){
   const ab=await new Promise((res,rej)=>{const p=new C(1,2,44100).decodeAudioData(buf,res,rej);if(p&&p.then)p.then(res,rej)});
   const sr=ab.sampleRate,ch=ab.getChannelData(0),hop=512,fr=1024,env=[];let rs=0,z=0;
   for(let i=0;i+fr<ch.length&&env.length<3600;i+=hop){let e=0,zz=0;for(let j=0;j<fr;j++){const v=ch[i+j];e+=v*v;if(j&&(v>=0)!==(ch[i+j-1]>=0))zz++}e=Math.sqrt(e/fr);env.push(e);rs+=e;z+=zz/fr}
-  const on=env.map((v,i)=>i?Math.max(0,v-env[i-1]):0),fps=sr/hop;let best=0,bpm=100;
-  for(let b=55;b<=180;b+=.5){const lag=fps*60/b,l0=Math.floor(lag),f=lag-l0;let s=0;for(let i=0;i+l0+1<on.length;i++)s+=on[i]*(on[i+l0]*(1-f)+on[i+l0+1]*f);s*=1+.15*Math.exp(-Math.pow((b-110)/50,2));if(s>best){best=s;bpm=b}}
-  const rms=rs/env.length,perc=on.reduce((a,b)=>a+b,0)/on.length/(rms+1e-9);
-  if(perc<.05&&bpm>100)bpm/=2;
-  const loud=clamp((20*Math.log10(rms+1e-9)+32)/24),hits=clamp((perc-.02)/.08);
+  /* энергия песни: громкость + яркость звука + плотность (насколько ровно она звучит). Проверено на настоящих песнях. */
+  const rms=rs/env.length,zc=z/env.length,sd=Math.sqrt(env.reduce((a,v)=>a+(v-rms)*(v-rms),0)/env.length)/(rms+1e-9);
+  const loud=clamp((20*Math.log10(rms+1e-9)+26)/17),tone=clamp((zc-.015)/.07),dens=clamp((.9-sd)/.65),energy=+(.35*loud+.4*tone+.25*dens).toFixed(2);
+  /* темп: ищем повтор ударов, а диапазон поиска зависит от энергии — так тихая песня не «удваивается», а громкая не «половинится» */
+  const on=env.map((v,i)=>i?Math.max(0,v-env[i-1]):0),fps=sr/hop,lo=energy>.7?92:energy<.4?55:70,hi=energy>.7?180:energy<.4?110:140;let best=0,bpm=100;
+  for(let b=lo;b<=hi;b+=.5){const lag=fps*60/b,l0=Math.floor(lag),f=lag-l0;let q=0;for(let i=0;i+l0+1<on.length;i++)q+=on[i]*(on[i+l0]*(1-f)+on[i+l0+1]*f);if(q>best){best=q;bpm=b}}
   const N=90,step=env.length/N,mx=Math.max(...env)||1,wave=[];
   for(let i=0;i<N;i++){let m=0;for(let j=Math.floor(i*step);j<(i+1)*step;j++)m=Math.max(m,env[j]||0);wave.push(m/mx)}
-  return{bpm:Math.round(bpm),energy:+(hits*.75+loud*.25).toFixed(2),bright:clamp((z/env.length)/.12),duration:ab.duration,wave,buf:ab};
+  return{bpm:Math.round(bpm),energy,tone:+tone.toFixed(2),bright:clamp(zc/.12),duration:ab.duration,wave,buf:ab};
 }
 /* музыка → оформление: бумага дня, наклон фото, пляска букв, длина кадра и склейки в фильме */
 const PAPERS={
-  night:{paper:"#191411",ink:"#f2e6d0",acc:"#f2c53d",hue:255,word:"быстрый",pname:"чёрная"},
+  night:{paper:"#191411",ink:"#f2e6d0",acc:"#f2c53d",hue:255,word:"громкий",pname:"чёрная"},
   fire: {paper:"#cf4428",ink:"#fdf0dc",acc:"#f6d04a",hue:14, word:"яркий",pname:"красная"},
   olive:{paper:"#979a76",ink:"#1d1a14",acc:"#b8321b",hue:38, word:"тёплый",pname:"оливковая"},
   rain: {paper:"#566a82",ink:"#f3ebdd",acc:"#f2c53d",hue:212,word:"тихий",pname:"сизая"}};
 function look(m){
   const fast=clamp((m.bpm-70)/80),e=m.energy;
-  const key=e>.55?(m.bpm>135?"night":"fire"):(m.bpm<70?"rain":"olive"),P=PAPERS[key];
+  const tn=m.tone??.4,key=e>.7?(tn<.65?"night":"fire"):(tn<.22?"rain":"olive"),P=PAPERS[key];
   const beat=60/m.bpm,beats=Math.max(2,Math.round((3.3-fast*1.1)/beat));
-  return{...P,key,tilt:(2+e*6+fast*2).toFixed(1)+"deg",jit:3+e*9,beat,shot:beats*beat,fade:e>.55?.12:+(1.1-e*1.2).toFixed(2),zoom:+(0.05+e*.08).toFixed(3)};
+  return{...P,key,tilt:(2+e*6+fast*2).toFixed(1)+"deg",jit:3+e*9,beat,shot:beats*beat,fade:e>.7?.12:+(1.1-e*1.2).toFixed(2),zoom:+(0.05+e*.08).toFixed(3)};
 }
 
 /* ---------- типы дней: как день ощущался. Сайт только предлагает, выбирает человек ---------- */
@@ -737,13 +738,30 @@ async function photoLook(raw,L){const m=raw.media.find(x=>!x.video);if(!m)return
       light:(lm<.34?"тёмные":lm>.6?"светлые":"с мягким светом")+", "+(wm>.6?"тёплые":wm<.3?"холодные":"спокойные по цвету")}}catch(e){return null}}
 /* ---------- голос озвучки выбирается по песне дня ---------- */
 function voiceOf(d){const K=d.look.key,fast=clamp((d.music.bpm-70)/80);return{rate:+(0.78+fast*.42).toFixed(2),pitch:{rain:.8,olive:.95,fire:1.2,night:1.05}[K],vol:{rain:.7,olive:.85,fire:1,night:1}[K],word:{rain:"тихий и медленный",olive:"тёплый и спокойный",fire:"живой и звонкий",night:"быстрый и собранный"}[K]}}
-function sayDay(btn){const S=window.speechSynthesis;if(!S){btn.querySelector("i").textContent="в этом браузере нет озвучки";return}if(S.speaking){S.cancel();btn.classList.remove("on");return}
-  stopSong();const d=DAYS[cur],v=voiceOf(d),u=new SpeechSynthesisUtterance(d.text);u.lang="ru-RU";const ru=S.getVoices().filter(x=>/^ru/i.test(x.lang));if(ru.length)u.voice=ru[0];
-  u.rate=v.rate;u.pitch=v.pitch;u.volume=v.vol;btn.classList.add("on");u.onend=u.onerror=()=>btn.classList.remove("on");S.speak(u)}
+const VOICES=new Map(),vplay=new Audio();let vrec=null;
+function bestVoice(){const ru=speechSynthesis.getVoices().filter(x=>/^ru/i.test(x.lang)),score=v=>(/enhanced|premium|улучш|natural|neural|online/i.test(v.name)?4:0)+(/google|microsoft|siri/i.test(v.name)?2:0)+(v.localService?0:1);return ru.sort((a,b)=>score(b)-score(a))[0]||null}
+/* читает по фразам: пауза между ними, вопрос и восклицание выше, последняя фраза ниже и медленнее */
+function sayDay(btn){const d=DAYS[cur],off=()=>btn.classList.remove("on");
+  if(btn.classList.contains("on")){try{speechSynthesis.cancel()}catch(e){}vplay.pause();SAYID++;off();return}
+  stopSong();const mine=VOICES.get(d.id);
+  if(mine){vplay.src=URL.createObjectURL(mine);vplay.onended=off;vplay.play().catch(off);btn.classList.add("on");return}
+  const S=window.speechSynthesis;if(!S){btn.querySelector("i").textContent="в этом браузере нет озвучки";return}
+  const v=voiceOf(d),voice=bestVoice(),parts=(d.text.match(/[^.!?…]+[.!?…]*/g)||[d.text]).map(x=>x.trim()).filter(Boolean),my=++SAYID,gap=Math.round(520-clamp((d.music.bpm-70)/80)*300);btn.classList.add("on");
+  const next=k=>{if(my!==SAYID)return;if(k>=parts.length){off();return}const t=parts[k],u=new SpeechSynthesisUtterance(t),last=k===parts.length-1,ex=/!/.test(t),qu=/\?/.test(t);
+    u.lang="ru-RU";if(voice)u.voice=voice;u.volume=v.vol;u.rate=clamp(v.rate*(ex?1.06:1)*(last?.93:1)*(k%2?1.02:.98),.6,1.4);u.pitch=clamp(v.pitch+(ex?.14:qu?.18:0)+(last?-.1:0)+(k%2?.04:-.03),.5,1.6);
+    u.onend=()=>setTimeout(()=>next(k+1),gap+(/…/.test(t)?250:0));u.onerror=off;S.speak(u)};S.cancel();next(0)}
+let SAYID=0;
+async function recVoice(btn){const d=DAYS[cur];
+  if(vrec){vrec.stop();return}
+  if(VOICES.has(d.id)){if(confirm("Убрать запись твоего голоса для этого дня?")){VOICES.delete(d.id);await DB.del("voice:"+d.id);render(cur)}return}
+  try{const st=await navigator.mediaDevices.getUserMedia({audio:true}),ch=[];vrec=new MediaRecorder(st);stopSong();
+    vrec.ondataavailable=e=>ch.push(e.data);vrec.onstop=async()=>{st.getTracks().forEach(t=>t.stop());const blob=new Blob(ch,{type:vrec.mimeType||"audio/webm"});vrec=null;VOICES.set(d.id,blob);await DB.put({id:"voice:"+d.id,blob});sfx("ding",1);render(cur)};
+    vrec.start();btn.classList.add("on");btn.firstChild.textContent="■ стоп, я дочитала";setTimeout(()=>{if(vrec)vrec.stop()},120000)}
+  catch(e){btn.querySelector("i").textContent="нет доступа к микрофону"}}
 try{speechSynthesis.getVoices()}catch(e){}
 /* ---------- почему день выглядит так ---------- */
 function whyRows(d){const L=d.look,m=d.music,v=voiceOf(d),kw=[...new Set((d.text.match(/[A-Za-zА-Яа-яЁё-]+/g)||[]).filter(w=>{const l=w.toLowerCase().replace(/ё/g,"е");return KEY.some(k=>l.startsWith(k)&&l.length<k.length+4)}).map(w=>w.toLowerCase()))].slice(0,6);
-  const R=[["песня",`${m.bpm} ударов в минуту, энергия ${Math.round(m.energy*100)}%`,`${L.pname} бумага и «${L.word}» день; буквы названия наклонены на ${parseFloat(L.tilt)}°; кадр фильма длится ${L.shot.toFixed(1)} с`]];
+  const R=[["песня",`${m.bpm} ударов в минуту, энергия ${Math.round(m.energy*100)}%, звук ${(m.tone??.4)<.22?"приглушённый":(m.tone??.4)>.6?"яркий":"мягкий"}`,`${L.pname} бумага и «${L.word}» день; буквы названия наклонены на ${parseFloat(L.tilt)}°; кадр фильма длится ${L.shot.toFixed(1)} с`]];
   if(d.song.genre||d.song.year)R.push(["о песне",[d.song.genre,d.song.year].filter(Boolean).join(", "),"записано в чек дня"]);
   if(d.photo)R.push(["фото",`${d.media.length} шт., ${d.photo.light}`,"главный цвет снимка стал цветом обведённых слов и волны песни",d.photo.pal]);
   R.push(["слова",kw.length?kw.map(w=>"«"+w+"»").join(", "):"ключевых слов не нашлось",kw.length?"из них собрано название папки, они обведены в тексте, по ним нарисованы значки на полях":"название собрано из времени года и суток"]);
@@ -779,6 +797,7 @@ async function folderZip(d){const enc=new TextEncoder(),F=[],dir=folderName(d)+"
   if(d.song.link)add("песня-ссылка.txt",enc.encode(d.song.name+"\n"+d.song.link+"\n"));
   try{add("воспоминание.png",new Uint8Array(await(await poster(d)).arrayBuffer()))}catch(e){}
   add("почему-так.txt",enc.encode(whyRows(d).map(r=>`${r[0]}: ${r[1]} → ${r[2]}`).join("\n")+"\n"));
+  if(VOICES.has(d.id))add("голос."+(/mp4|m4a|aac/.test(VOICES.get(d.id).type)?"m4a":"webm"),new Uint8Array(await VOICES.get(d.id).arrayBuffer()));
   const v=voiceOf(d);add("голос.txt",enc.encode(`Голос озвучки: ${v.word}.\nСкорость ${v.rate}, высота ${v.pitch}, громкость ${v.vol}.\nОзвучка звучит на сайте по кнопке «послушать запись».\n`));
   if(l&&l.open<=today())add("письмо-себе.txt",enc.encode(`Написано ${fullDate(l.written)}, открыто ${fullDate(l.open)}\n\n${l.text}\n`));
   return zipBlob(F)}
@@ -823,7 +842,7 @@ function pageEl(d,side){
       <button class="tlabel pop" ${pop()} data-type="${d.id}" title="${TYPES[d.type].hint}">${tsvg(d.type)}<b>${TYPES[d.type].name}</b><i>${d.own?(d.typeAuto?"так? нажми и поправь":"поменять"):"все такие дни"}</i></button>
       <div class="twrap pop" ${pop()}><i class="tb-tape"></i><div class="tbox" style="clip-path:${K==="rain"?torn(d.seed,"tb"):K==="olive"?torn(d.seed,"r"):"none"}"><p class="text">${dsvg(dd[0])}${txt}</p></div></div>
       ${d.good?`<p class="pline pop" ${pop()}><b>✓ получилось:</b> ${esc(d.good)}</p>`:""}${d.kind?`<p class="pline pop" ${pop()}><b>♡ себе:</b> ${esc(d.kind)}</p>`:""}
-      <button class="say pop" ${pop()} data-say>🔊 послушать запись<i>голос: ${voiceOf(d).word}</i></button>
+      <span class="says pop" ${pop()}><button class="say" data-say>🔊 послушать запись<i>${VOICES.has(d.id)?"твой голос":"голос: "+voiceOf(d).word}</i></button><button class="say rec" data-rec>${VOICES.has(d.id)?"✕ убрать мой голос":"🎙 прочитать своим голосом"}<i></i></button></span>
       <div class="song pop" ${pop()}><svg viewBox="0 0 300 56" preserveAspectRatio="none"><path pathLength="1" d="${pts}"/></svg><div class="lbl">♪ ${esc(d.song.name)}<i>${d.music.bpm} уд/мин · ${L.word} день</i></div></div>
       <span class="pno">стр. ${h.doy*2-1}</span>`;
   }else{
@@ -874,7 +893,7 @@ function renderYear(){
   $("tfilter").innerHTML=`<button data-t="" class="${YT?"":"on"}">все дни</button>`+TKEYS.map(t=>`<button data-t="${t}" class="${YT===t?"on":""}">${tsvg(t)}${TYPES[t].name}</button>`).join("");
   const fastest=[...inY].sort((a,b)=>b.music.bpm-a.music.bpm)[0];
   $("ystat").textContent=`записано дней: ${inY.length}. самый быстрый день — ${human(fastest.date).big}. нажми на клочок, чтобы открыть день.`;
-  const LEG={fire:["красная","яркая, громкая песня"],night:["чёрная","быстрая песня"],olive:["оливковая","тёплая, спокойная песня"],rain:["сизая","тихая, медленная песня"]};
+  const LEG={fire:["красная","громкая, звонкая песня"],night:["чёрная","громкая песня с тёмным, плотным звуком"],olive:["оливковая","спокойная песня с мягким звуком"],rain:["сизая","тихая, приглушённая песня"]};
   $("ylegend").innerHTML=`<b>цвет клочка — какой была песня дня</b>`+Object.keys(LEG).map(k=>{const c=inY.filter(d=>d.look.key===k).length;return`<span><i style="--p:${PAPERS[k].paper}"></i>${LEG[k][0]} — ${LEG[k][1]}<small>${c?"×"+c:"пока нет"}</small></span>`}).join("")+`<em>цвет выбирает звук песни, а настроение дня выбираешь ты сама — оно ниже, значками</em>`;
   const mailOn=new Map(),wait=[];DAYS.forEach((d,i)=>{const l=letterOf(d);if(l){mailOn.set(l.open,i);if(l.open>today())wait.push(l.open)}});wait.sort();
   if(wait.length)$("ystat").textContent+=` писем ждёт своего дня: ${wait.length}, ближайшее откроется ${fullDate(wait[0])}.`;
@@ -1002,9 +1021,9 @@ const DB={db:null,mem:new Map(),
   async del(id){this.mem.delete(id);if(!this.db)return;try{await new Promise((res,rej)=>{const tx=this.db.transaction("days","readwrite");tx.objectStore("days").delete(id);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}catch(e){}}
 };
 const CAPS={"demo-1":["с мамой","какао"],"demo-2":["волны!","мороженое"],"demo-3":["2:00","огни"],"demo-4":["капли","чай"],"demo-5":["никого","музыка"],"demo-6":["плед","чай"]};
-const TAIL={быстрый:"на высокой скорости",яркий:"полный смеха",тёплый:"в тёплом свете",тихий:"в тихом ритме"};
+const TAIL={громкий:"на полной громкости",яркий:"полный смеха",тёплый:"в тёплом свете",тихий:"в тихом ритме"};
 const hash=s=>{let h=7;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)%100000+1};
-const fromDemo=d=>({letter0:d.letter||null,id:d.id,date:d.date,text:d.text,type:d.type,good:d.good||"",kind:d.kind||"",media:d.photos.map(p=>({url:"demo/"+p,video:false})),song:{name:d.song.name,url:"demo/"+d.song.file,genre:d.song.genre||"",year:d.song.year||"",link:""}});
+const fromDemo=d=>({letter0:d.letter||null,id:d.id,date:d.date,text:d.text,type:d.type,good:d.good||"",kind:d.kind||"",media:d.photos.map(p=>({url:"demo/"+p,video:false})),song:{name:d.song.url?d.song.name:(d.song.itunes?"мелодия (песня не загрузилась)":d.song.name),url:d.song.url||"demo/"+d.song.file,genre:d.song.genre||"",year:d.song.year||"",link:d.song.link||""}});
 const fromStored=r=>({id:r.id,date:r.date,text:r.text,own:true,film:!!r.film,mood:r.mood!==false,type:r.type,good:r.good||"",kind:r.kind||"",media:r.files.map(f=>({url:URL.createObjectURL(f),video:(f.type||"").startsWith("video")})),song:{name:r.song.name,url:URL.createObjectURL(r.song.blob),genre:r.song.genre||"",year:r.song.year||"",link:r.song.link||""}});
 async function hydrate(raw){
   let music;try{music=await analyzeSong(raw.song.url)}catch(e){music={bpm:96,energy:.4,bright:.5,duration:30,wave:Array.from({length:90},(_,k)=>.4+.3*Math.sin(k/4))}}
@@ -1150,7 +1169,7 @@ const SFX={
 const sfx=(n,...a)=>{if(!MUTE)SFX[n](...a)};
 const bop=el=>{el.classList.remove("bop");el.getBoundingClientRect();el.classList.add("bop");setTimeout(()=>el.classList.remove("bop"),360)};
 const psong=new Audio();let psEl=null;
-function stopSong(){try{speechSynthesis.cancel()}catch(e){}psong.pause();if(psEl){psEl.classList.remove("on");psEl=null}}
+function stopSong(){try{SAYID++;speechSynthesis.cancel();vplay.pause();if(vrec)vrec.stop()}catch(e){}psong.pause();if(psEl){psEl.classList.remove("on");psEl=null}}
 psong.onended=stopSong;
 const sndBtn=()=>{$("nav-snd").textContent=MUTE?"🔕":"🔔";$("nav-snd").title=MUTE?"звуки нажатий выключены":"звуки нажатий включены"};
 $("nav-snd").onclick=()=>{MUTE=!MUTE;try{localStorage.setItem("kino-mute",MUTE?"1":"0")}catch(e){}sndBtn();sfx("ding",2)};sndBtn();
@@ -1158,6 +1177,7 @@ $("book").addEventListener("click",e=>{
   if(performance.now()-dragged<250)return;const T=e.target,q=c=>T.closest(c);let el;
   if(el=q(".song")){const on=el.classList.contains("on");stopSong();if(!on){psong.src=DAYS[cur].song.url;psong.play().catch(()=>{});el.classList.add("on");psEl=el}bop(el);return}
   if(el=q("[data-say]")){sayDay(el);return}
+  if(el=q("[data-rec]")){recVoice(el);return}
   if(el=q("[data-folder]")){sfx("paper");openFolder(DAYS[cur]);return}
   if(q("button,a"))return;
   if(el=q(".pol,.contact")){sfx("shutter");bop(el)}
@@ -1208,7 +1228,12 @@ $("logo").innerHTML=ransom("дневник-кино",11,6,.5);$("n-head").innerH
 let li=0;const ltxt="загрузка",lt=setInterval(()=>{$("loadtxt").innerHTML=[...ltxt].map((c,k)=>`<b class="s${k===li%ltxt.length?1+li%5:0}" style="--r:${k===li%ltxt.length?-6:0}deg">${c}</b>`).join("");li++},260);
 (async()=>{
   await DB.open();
-  const demo=(await (await fetch("demo/days-kino.json",{cache:"no-cache"})).json()).map(fromDemo),own=(await DB.all()).map(fromStored);
+  const dj=await (await fetch("demo/days-kino.json",{cache:"no-cache"})).json();
+  /* песни демо-дней — официальные 30-секундные фрагменты из iTunes; сами песни в проекте не хранятся */
+  try{const ids=[...new Set(dj.map(x=>x.song.itunes).filter(Boolean))],ac=new AbortController(),tm=setTimeout(()=>ac.abort(),7000),j=await(await fetch("https://itunes.apple.com/lookup?id="+ids.join(","),{signal:ac.signal})).json();clearTimeout(tm);
+    const by=new Map((j.results||[]).map(r=>[r.trackId,r]));dj.forEach(x=>{const r=by.get(x.song.itunes);if(r&&r.previewUrl){x.song.url=r.previewUrl;x.song.link=r.trackViewUrl||""}})}catch(e){}
+  const demo=dj.map(fromDemo),own=(await DB.all()).filter(r=>!String(r.id).startsWith("voice:")).map(fromStored);
+  for(const r of await DB.all())if(String(r.id).startsWith("voice:"))VOICES.set(r.id.slice(6),r.blob);
   DAYS=await Promise.all([...demo,...own].map(hydrate));sortDays();
   render(DAYS.length-1);renderYear();showFront();if(getPin())openLock("ask");clearInterval(lt);$("loading").classList.add("off");
 })();
