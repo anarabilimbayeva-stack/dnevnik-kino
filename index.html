@@ -506,6 +506,15 @@ button.c{position:relative}
 @media (max-width:820px){.envmini{position:relative!important;right:auto;bottom:auto;margin-top:14px}}
 .more{margin:22px 0 0;padding-left:34px}.more>summary{cursor:pointer;font-family:var(--note);font-size:25px;color:var(--red);list-style:none}.more>summary::-webkit-details-marker{display:none}.more>summary small{font-size:17px;color:#5d4a3d}.more[open]>summary{margin-bottom:6px}.more .srow{padding-left:0}.more .chk{padding-left:0}
 @media (max-width:820px){.more{padding-left:0}}
+.askb{flex-basis:100%;max-width:none!important}.askb>summary{cursor:pointer;list-style:none;font-family:var(--note);font-size:21px;line-height:1.2}.askb>summary::-webkit-details-marker{display:none}.askb>summary small{font-size:15px;opacity:.7;margin-left:6px}.askb[open]>summary{margin-bottom:10px}
+.askb .qrow{grid-template-columns:120px 1fr;align-items:center}.askb .qrow>i{font-size:18px}@media (max-width:820px){.askb .qrow{grid-template-columns:1fr}}
+/* письма себе: отдельная вкладка */
+.mailv{background:#cbb28c url(tex/kraft.jpg) center/cover;color:#2a1d14;padding:34px 40px 40px;box-shadow:0 40px 60px -26px rgba(0,0,0,.9);transform:rotate(-.4deg)}
+.mailv .big{font-size:44px}.mailv>p{font-family:var(--note);font-size:23px;line-height:1.25;max-width:720px;margin:12px 0 22px}
+.mailv h3{font-family:var(--note);font-weight:400;font-size:26px;color:#7c2413;margin:30px 0 14px}
+.mlist{display:flex;gap:26px 30px;flex-wrap:wrap;align-items:flex-start}.mcard{display:grid;gap:8px;justify-items:start;max-width:220px;font-family:var(--note);font-size:18px;line-height:1.2}
+.mcard .lnk{border:0;background:none;padding:0;font:inherit;font-size:15px;text-decoration:underline;color:#5d4a3d}
+@media (max-width:820px){.mailv{padding:26px 18px}.mailv .big{font-size:30px}}
 </style>
 </head>
 <body>
@@ -521,7 +530,7 @@ button.c{position:relative}
 <div class="loading" id="loading"><div class="leader"><i class="sweep"></i><i class="cross"></i><b id="loadnum">3</b></div><span class="rs" id="loadtxt"></span><i class="lgrain"></i></div>
 <header>
   <div class="logo" id="logo"></div>
-  <nav class="nav"><button id="nav-book" aria-current="page">тетрадь</button><button id="nav-year">год</button><button id="nav-new">＋ новый день</button><button id="nav-hard">♡ мне непросто</button><button id="nav-snd" aria-label="Звуки нажатий">🔔</button><button id="nav-lock" aria-label="Замочек">🔓</button></nav>
+  <nav class="nav"><button id="nav-book" aria-current="page">тетрадь</button><button id="nav-year">год</button><button id="nav-new">＋ новый день</button><button id="nav-mail">✉ письма себе</button><button id="nav-hard">♡ мне непросто</button><button id="nav-snd" aria-label="Звуки нажатий">🔔</button><button id="nav-lock" aria-label="Замочек">🔓</button></nav>
 </header>
 <div class="wrap">
   <div id="view-book">
@@ -563,16 +572,8 @@ button.c{position:relative}
           <details class="sfile"><summary>или выбрать свой файл mp3</summary><label class="pick"><input type="file" id="n-song" accept="audio/*">выбрать файл</label><input type="text" id="n-sname" placeholder="как называется песня"></details>
         </div>
       </div>
-      <details class="more" id="n-more"><summary>＋ добавить деталей <small>— погода, каким был день, что получилось. По желанию: можно сразу вклеить</small></summary>
+      <details class="more" id="n-more"><summary>＋ добавить деталей <small>— каким был день и что получилось. По желанию</small></summary>
       <div class="srow">
-        <span class="lab">воздух дня <small>— одним нажатием; по этим ответам сайт соберёт фильм и страницу</small></span>
-        <div class="qs" id="n-qs">
-          <div class="qrow"><i>какая была погода?</i><span data-q="weather"><button type="button" data-v="sun">☀ солнце</button><button type="button" data-v="clouds">☁ пасмурно</button><button type="button" data-v="rain">☂ дождь</button><button type="button" data-v="snow">❄ снег</button><button type="button" data-v="wind">ветер</button><button type="button" data-v="fog">туман</button><input type="text" data-own placeholder="свой вариант: жара, гроза…"></span></div>
-          <div class="qrow"><i>какая часть дня запомнилась?</i><span data-q="time"><button type="button" data-v="morning">утро</button><button type="button" data-v="day">день</button><button type="button" data-v="evening">вечер</button><button type="button" data-v="night">ночь</button></span></div>
-          <div class="qrow"><i>как шёл день?</i><span data-q="pace"><button type="button" data-v="slow">медленно, тихо</button><button type="button" data-v="mid">как обычно</button><button type="button" data-v="fast">быстро, суматошно</button><input type="text" data-own placeholder="свой вариант"></span></div>
-          <div class="qrow"><i>где ты была больше всего?</i><span data-q="place"><button type="button" data-v="дома">дома</button><button type="button" data-v="на улице">на улице</button><button type="button" data-v="в школе">в школе</button><button type="button" data-v="в дороге">в дороге</button><button type="button" data-v="на природе">на природе</button><button type="button" data-v="в гостях">в гостях</button><input type="text" data-own placeholder="свой вариант: у бабушки, в кафе…"></span></div>
-          <div class="qrow"><i>запах, звук или вкус, который остался от дня</i><input type="text" id="n-sense" placeholder="например: запах мандаринов, шум дождя, вкус какао"></div>
-        </div>
         <span class="lab">каким был день</span>
         <div class="tpickf" id="n-types"></div><small class="hintl" id="n-thint">выбери сама. Не выберешь — сайт предложит по словам и песне, а ты поправишь на странице дня</small>
         <label class="lab" for="n-good">что сегодня получилось или было хорошего <small>— одна строка, даже если день был трудный</small></label>
@@ -586,6 +587,7 @@ button.c{position:relative}
       <p class="hintl">Дни хранятся только в этом браузере на этом устройстве. Письмо себе в будущее можно написать потом, на странице дня.</p>
     </form>
   </div>
+  <div id="view-mail" hidden><section class="mailv"><div class="big" id="mbig"></div><div id="mailbody"></div></section></div>
   <div id="view-hard" hidden>
     <section class="hard"><i class="pin" style="left:9%;transform:rotate(-4deg)"></i><i class="pin" style="right:10%;transform:rotate(5deg)"></i>
       <div class="big" id="hbig"></div><div id="hardbody"></div></section>
@@ -708,7 +710,20 @@ const plural=(n,a,b,c)=>n%10===1&&n%100!==11?a:[2,3,4].includes(n%10)&&![12,13,1
 function afterOf(d){if(!TYPES[d.type].hard)return null;const n=DAYS.find(x=>x.date>d.date&&TYPES[x.type].light);return n?{day:n,gap:dnum(n.date)-dnum(d.date)}:null}
 function likeOf(d){return DAYS.filter(x=>x!==d&&x.type===d.type).sort((a,b)=>Math.abs(dnum(a.date)-dnum(d.date))-Math.abs(dnum(b.date)-dnum(d.date))).slice(0,5)}
 const scrap=x=>`<button class="scrap" data-open="${x.id}" style="--p:${x.look.paper};--i:${x.look.ink}">${tsvg(x.type)}<b>${human(x.date).big}</b><span>${esc(x.title)}</span></button>`;
-function underHtml(d){const T=TYPES[d.type],a=afterOf(d),like=likeOf(d);let h=envHtml(d)+whyHtml(d);
+/* «воздух дня»: необязательные ответы прямо на странице готового дня; меняешь — меняются фильм и название */
+let ASKS={};try{ASKS=JSON.parse(localStorage.getItem("kino-ask")||"{}")}catch(e){}
+const QDEF=[["weather","погода",[["sun","☀ солнце"],["clouds","☁ пасмурно"],["rain","☂ дождь"],["snow","❄ снег"],["wind","ветер"],["fog","туман"]],"своё: жара, гроза…"],
+  ["time","часть дня",[["morning","утро"],["day","день"],["evening","вечер"],["night","ночь"]],null],
+  ["pace","как шёл день",[["slow","медленно"],["mid","как обычно"],["fast","суматошно"]],"своё"],
+  ["place","где",[["дома","дома"],["на улице","на улице"],["в школе","в школе"],["в дороге","в дороге"],["на природе","на природе"],["в гостях","в гостях"]],"своё: у бабушки…"]];
+function askHtml(d){const A=d.ask||{},n=Object.values(A).filter(Boolean).length;
+  return`<details class="ublock askb"${ASKOPEN?" open":""}><summary><i class="ulabel">воздух дня</i>${n?"ответов: "+n+" — поменять":"хочешь точнее? ответь одним нажатием — фильм и название подстроятся"} <small>необязательно</small></summary><div class="qs">${QDEF.map(([q,lab,opts,own])=>{const v=A[q],known=opts.some(o=>o[0]===v);
+    return`<div class="qrow"><i>${lab}</i><span data-q="${q}">${opts.map(o=>`<button type="button" data-v="${o[0]}" class="${v===o[0]?"on":""}">${o[1]}</button>`).join("")}${own?`<input type="text" data-own placeholder="${own}" value="${v&&!known?esc(v):""}">`:""}</span></div>`}).join("")}
+    <div class="qrow"><i>запах, звук или вкус дня</i><span data-q="sense"><input type="text" data-own placeholder="запах мандаринов, шум дождя, вкус какао" value="${esc(A.sense||"")}"></span></div></div></details>`}
+let ASKOPEN=false;
+function setAsk(q,v){const d=DAYS[cur];d.ask={...(d.ask||{})};if(v)d.ask[q]=v;else delete d.ask[q];ASKS[d.id]=d.ask;try{localStorage.setItem("kino-ask",JSON.stringify(ASKS))}catch(e){}
+  d.title=makeTitle(d.text,d.date,TAIL[d.look.word],d.ask);ASKOPEN=true;const y=scrollY;render(cur);ASKOPEN=false;scrollTo(0,y)}
+function underHtml(d){const T=TYPES[d.type],a=afterOf(d),like=likeOf(d);let h=askHtml(d)+envHtml(d)+whyHtml(d);
   if(T.hard)h+=`<div class="ublock"><i class="ulabel">что было потом</i>${a?`<p>Через ${a.gap} ${plural(a.gap,"день","дня","дней")} был день «${TYPES[a.day.type].name}».</p><div class="scraps">${scrap(a.day)}</div>`:`<p>После этого дня светлый ещё не записан. Запиши его, когда он придёт.</p>`}</div>`;
   if(like.length)h+=`<div class="ublock"><i class="ulabel">дни как этот — «${T.name}»</i><div class="scraps">${like.map(scrap).join("")}</div></div>`;
   return h}
@@ -925,7 +940,7 @@ function go(i){
   leaf.style.transform=`rotateY(${fw?-180:180}deg)`;
   setTimeout(()=>{cover.remove();leaf.remove();busy=false},920);
 }
-function show(v){if(typeof stopSong==="function")stopSong();for(const k of["book","year","new","hard"]){$("view-"+k).hidden=k!==v;k===v?$("nav-"+k).setAttribute("aria-current","page"):$("nav-"+k).removeAttribute("aria-current")}$("peek").hidden=true;hsong.pause();if(v==="year")renderYear();if(v==="hard")renderHard();scrollTo({top:0})}
+function show(v){if(typeof stopSong==="function")stopSong();for(const k of["book","year","new","hard","mail"]){$("view-"+k).hidden=k!==v;k===v?$("nav-"+k).setAttribute("aria-current","page"):$("nav-"+k).removeAttribute("aria-current")}$("peek").hidden=true;hsong.pause();if(v==="year")renderYear();if(v==="hard")renderHard();if(v==="mail")renderMail();scrollTo({top:0})}
 const sortDays=()=>DAYS.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
 
 /* ---------- год: календарь, где каждый записанный день — клочок своей бумаги ---------- */
@@ -1120,7 +1135,7 @@ const fromDemo=d=>({ask:d.ask||{},letter0:d.letter||null,id:d.id,date:d.date,tex
 const fromStored=r=>({ask:r.ask||{},id:r.id,date:r.date,text:r.text,own:true,film:!!r.film,mood:r.mood!==false,type:r.type,good:r.good||"",kind:r.kind||"",media:r.files.map(f=>({url:URL.createObjectURL(f),video:(f.type||"").startsWith("video")})),song:{name:r.song.name,url:URL.createObjectURL(r.song.blob),genre:r.song.genre||"",year:r.song.year||"",link:r.song.link||""}});
 async function hydrate(raw){
   let music;try{music=raw.song.pre?{...raw.song.pre}:await analyzeSong(raw.song.url)}catch(e){music={bpm:96,energy:.4,bright:.5,duration:30,wave:Array.from({length:90},(_,k)=>.4+.3*Math.sin(k/4))}}
-  const L=look(music),photo=await photoLook(raw,L);return{...raw,photo,seed:hash(raw.id),music,look:L,title:makeTitle(raw.text,raw.date,TAIL[L.word],raw.ask),caps:CAPS[raw.id]||[human(raw.date).dd,raw.song.name],type:TYPES[raw.type]?raw.type:suggestType(raw.text,L.key),typeAuto:!TYPES[raw.type]};
+  const L=look(music),photo=await photoLook(raw,L);return{...raw,photo,seed:hash(raw.id),music,look:L,ask:{...(raw.ask||{}),...(ASKS[raw.id]||{})},title:makeTitle(raw.text,raw.date,TAIL[L.word],{...(raw.ask||{}),...(ASKS[raw.id]||{})}),caps:CAPS[raw.id]||[human(raw.date).dd,raw.song.name],type:TYPES[raw.type]?raw.type:suggestType(raw.text,L.key),typeAuto:!TYPES[raw.type]};
 }
 async function setFilm(id,v){const d=DAYS.find(x=>x.id===id);if(!d)return;d.film=v;const r=(await DB.all()).find(x=>x.id===id);if(r){r.film=v;await DB.put(r)}render(cur)}
 async function removeDay(id){await DB.del(id);DAYS=DAYS.filter(d=>d.id!==id);render(Math.min(cur,DAYS.length-1));renderYear()}
@@ -1195,7 +1210,7 @@ function micBar(ta){if(!ta||ta.nextElementSibling&&ta.nextElementSibling.classLi
 
 /* диктовка: браузер сам превращает речь в текст; после остановки текст причёсывается */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let recog=null;
-micBar($("n-good"));micBar($("n-kind"));micBar($("n-sense"));
+micBar($("n-good"));micBar($("n-kind"));
 if(!SR){$("n-mic").hidden=true;$("n-michint").textContent="рассказать голосом можно в Chrome или Safari"}
 else $("n-mic").onclick=()=>{const btn=$("n-mic"),ta=$("n-text");if(recog){recog.stop();return}
   let base=ta.value.trim(),fin=[];recog=new SR();recog.lang="ru-RU";recog.continuous=true;recog.interimResults=true;
@@ -1208,9 +1223,6 @@ else $("n-mic").onclick=()=>{const btn=$("n-mic"),ta=$("n-text");if(recog){recog
   recog.onend=()=>{recog=null;try{nrec&&nrec.stop()}catch(e){}btn.classList.remove("on");btn.textContent="🎙 рассказать голосом";ta.value=tidy(ta.value);renderChips();$("n-michint").textContent="готово: расставила точки и запятые. Лишнюю фразу убери крестиком ниже"};
   try{recog.start();nrecStart();btn.classList.add("on");btn.textContent="■ я слушаю — нажми, когда закончишь";$("n-michint").textContent="говори обычными фразами с паузами. Ошиблась — скажи «сотри», и последняя фраза исчезнет"}catch(err){recog=null}};
 let NTYPE=null,NQ={};
-$("n-qs").addEventListener("click",e=>{const b=e.target.closest("button[data-v]");if(!b)return;const q=b.parentNode.dataset.q,on=NQ[q]===b.dataset.v;if(on)delete NQ[q];else NQ[q]=b.dataset.v;b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",!on&&x===b));const o=b.parentNode.querySelector("[data-own]");if(o)o.value="";sfx("pop")});
-/* свой вариант ответа: заменяет выбранную кнопку */
-$("n-qs").addEventListener("input",e=>{const o=e.target.closest("[data-own]");if(!o)return;const q=o.parentNode.dataset.q,v=o.value.trim();o.parentNode.querySelectorAll("button").forEach(x=>x.classList.remove("on"));if(v)NQ[q]=v;else delete NQ[q]});
 function drawTypes(){const sug=NTYPE?null:wordType($("n-text").value);$("n-types").innerHTML=TKEYS.map(t=>`<button type="button" data-nt="${t}" class="${t===NTYPE?"on":t===sug?"sug":""}" title="${TYPES[t].hint}">${tsvg(t)}${TYPES[t].name}</button>`).join("");
   $("n-kindbox").hidden=!(NTYPE&&TYPES[NTYPE].hard);$("n-thint").textContent=NTYPE?`${TYPES[NTYPE].name}: ${TYPES[NTYPE].hint}`:sug?`по словам похоже на «${TYPES[sug].name}» — так? нажми на тот, который правда подходит`:"выбери сама. Не выберешь — сайт предложит по словам и песне, а ты поправишь на странице дня"}
 $("n-types").addEventListener("click",e=>{const b=e.target.closest("[data-nt]");if(!b)return;NTYPE=NTYPE===b.dataset.nt?null:b.dataset.nt;drawTypes()});
@@ -1222,10 +1234,10 @@ $("n-form").onsubmit=async e=>{e.preventDefault();const st=$("n-status"),btn=$("
   btn.disabled=true;st.textContent="слушаю песню и вклеиваю страницу…";
   try{const ok=[];for(const f of files){if(f.type.startsWith("video")){ok.push(f);continue}const u=URL.createObjectURL(f);try{await loadImg(u);ok.push(f)}catch(err){}URL.revokeObjectURL(u)}
     if(!ok.length)throw new Error("не получилось открыть фото. Если это HEIC с айфона, сохрани их как JPEG");
-    const rec={id:"d"+Date.now(),ask:{...NQ,sense:$("n-sense").value.trim()},date,text,film:$("n-film").checked,mood:$("n-mood").checked,type:NTYPE||undefined,good:$("n-good").value.trim(),kind:NTYPE&&TYPES[NTYPE].hard?$("n-kind").value.trim():"",files:ok,song:{name:PICK?PICK.name:($("n-sname").value.trim()||"песня дня"),blob:song,genre:PICK?PICK.genre:"",year:PICK?PICK.year:"",link:PICK?PICK.link:""}},day=await hydrate(fromStored(rec));if(NVOICE.length){VOICES.set(rec.id,NVOICE);await DB.put({id:"voice:"+rec.id,blobs:NVOICE});NVOICE=[];$("n-voicenote").textContent=""}
+    const rec={id:"d"+Date.now(),ask:{},date,text,film:$("n-film").checked,mood:$("n-mood").checked,type:NTYPE||undefined,good:$("n-good").value.trim(),kind:NTYPE&&TYPES[NTYPE].hard?$("n-kind").value.trim():"",files:ok,song:{name:PICK?PICK.name:($("n-sname").value.trim()||"песня дня"),blob:song,genre:PICK?PICK.genre:"",year:PICK?PICK.year:"",link:PICK?PICK.link:""}},day=await hydrate(fromStored(rec));if(NVOICE.length){VOICES.set(rec.id,NVOICE);await DB.put({id:"voice:"+rec.id,blobs:NVOICE});NVOICE=[];$("n-voicenote").textContent=""}
     if(!day.music.buf)throw new Error("не получилось прочитать песню — попробуй файл mp3");
     await DB.put(rec);DAYS.push(day);sortDays();YEAR=null;openDay(DAYS.indexOf(day));
-    $("n-more").open=false;$("n-form").reset();PICK=null;NTYPE=null;NQ={};$("n-qs").querySelectorAll(".on").forEach(x=>x.classList.remove("on"));drawTypes();$("n-mood").checked=true;$("n-res").innerHTML="";$("n-thumbs").innerHTML="";$("n-mcount").textContent=$("n-scount").textContent=$("n-datenote").textContent="";$("n-date").value=today();
+    $("n-more").open=false;$("n-form").reset();PICK=null;NTYPE=null;drawTypes();$("n-mood").checked=true;$("n-res").innerHTML="";$("n-thumbs").innerHTML="";$("n-mcount").textContent=$("n-scount").textContent=$("n-datenote").textContent="";$("n-date").value=today();
     st.textContent=ok.length<files.length?`страница готова. ${files.length-ok.length} фото не открылись (возможно, HEIC)`:"";
   }catch(err){st.textContent=err.message}
   btn.disabled=false};
@@ -1354,9 +1366,25 @@ function envHtml(d){const l=letterOf(d);
   const left=dnum(l.open)-dnum(today());
   if(left>0)return`<div class="ublock envb"><i class="ulabel">письмо в будущее</i><button class="env sealed" data-mail="sealed" aria-label="Запечатанное письмо"><i>♡</i><small>кому: мне<br>открыть: ${human(l.open).big} ${human(l.open).y}</small></button><div class="envt"><p>Запечатано до ${fullDate(l.open)}.</p><span>Осталось ${left} ${plural(left,"день","дня","дней")}. Раньше оно не откроется.</span><button class="lnk" data-mail="tear">порвать письмо</button></div></div>`;
   return`<div class="ublock envb"><i class="ulabel">письмо в будущее</i><button class="env ${l.read?"":"ready"}" data-mail="read" aria-label="Открыть письмо"><i>${l.read?"♡":"✉"}</i><small>кому: мне<br>из дня: ${human(l.written).big}</small></button><div class="envt"><p>${l.read?"Письмо из этого дня.":"Письмо пришло!"}</p><span>${l.read?"Ты его уже читала. Можно перечитать.":"Ты написала его "+fullDate(l.written)+". Нажми на конверт."}</span></div></div>`}
+/* вкладка «письма себе»: написать, посмотреть запечатанные, открыть пришедшие. Письмо можно привязать к дню или написать просто так */
+function allLetters(){const out=[];DAYS.forEach(d=>{const l=letterOf(d);if(l)out.push({d,l})});Object.keys(LETTERS).filter(k=>k.startsWith("free:")&&LETTERS[k]).forEach(k=>out.push({d:{id:k,date:LETTERS[k].written,title:"письмо без дня",free:true},l:LETTERS[k]}));return out.sort((a,b)=>a.l.open<b.l.open?-1:1)}
+function renderMail(){const all=allLetters(),td=today(),ready=all.filter(x=>x.l.open<=td&&!x.l.read),sealed=all.filter(x=>x.l.open>td),read=all.filter(x=>x.l.open<=td&&x.l.read);
+  const card=(x,st)=>{const left=dnum(x.l.open)-dnum(td);return`<div class="mcard"><button class="env ${st==="ready"?"ready":st==="sealed"?"sealed":""}" data-ml="${st}" data-id="${x.d.id}"><i>${st==="ready"?"✉":"♡"}</i><small>кому: мне<br>${st==="sealed"?"открыть: "+fullDate(x.l.open):"из дня: "+human(x.l.written).big}</small></button>
+    <span>${st==="sealed"?`Запечатано. Осталось ${left} ${plural(left,"день","дня","дней")}.`:st==="ready"?"Пришло! Нажми на конверт.":"Прочитано. Можно перечитать."}</span>${x.d.free?"":`<button class="lnk" data-go="${x.d.id}">открыть день ${human(x.d.date).big}</button>`}${st==="sealed"?`<button class="lnk" data-tear="${x.d.id}">порвать</button>`:""}</div>`};
+  $("mailbody").innerHTML=`<p>Напиши себе письмо. Тетрадь запечатает его и не отдаст раньше срока: через месяц, полгода или год.</p>
+    <button class="gobtn" id="m-new">✉ написать письмо себе</button>
+    ${ready.length?`<h3>пришли</h3><div class="mlist">${ready.map(x=>card(x,"ready")).join("")}</div>`:""}
+    ${sealed.length?`<h3>ждут своего дня</h3><div class="mlist">${sealed.map(x=>card(x,"sealed")).join("")}</div>`:""}
+    ${read.length?`<h3>прочитанные</h3><div class="mlist">${read.map(x=>card(x,"read")).join("")}</div>`:""}
+    ${all.length?"":`<p>Пока писем нет. Первое можно написать прямо сейчас.</p>`}`}
+$("view-mail").addEventListener("click",e=>{const T=e.target,find=id=>allLetters().find(x=>x.d.id===id);let b;
+  if(T.id==="m-new"){mailWrite({id:"free:"+Date.now(),date:today(),title:"письмо без дня",free:true});return}
+  if(b=T.closest("[data-ml]")){const x=find(b.dataset.id);if(!x)return;if(b.dataset.ml==="sealed"){sfx("stamp");bop(b)}else mailRead(x.d);return}
+  if(b=T.closest("[data-go]")){const i=DAYS.findIndex(d=>d.id===b.dataset.go);if(i>=0)openDay(i);return}
+  if((b=T.closest("[data-tear]"))&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[b.dataset.tear]=null;saveLetters();sfx("paper");renderMail()}});
 function closeMail(){$("mail").hidden=true;$("mail").innerHTML=""}
 function mailWrite(d){const box=$("mail"),add=(m)=>{const x=new Date();x.setMonth(x.getMonth()+m);return iso(x)};let when=add(12);
-  box.innerHTML=`<div class="ml-in"><b>письмо себе в будущее</b><p>День: ${fullDate(d.date)}. Что ты хочешь сказать себе потом?</p><textarea id="ml-t" rows="6" maxlength="1500" placeholder="Привет, это я. Сегодня…"></textarea>
+  box.innerHTML=`<div class="ml-in"><b>письмо себе в будущее</b><p>${d.free?"Письмо без привязки к дню.":"День: "+fullDate(d.date)+"."} Что ты хочешь сказать себе потом?</p><textarea id="ml-t" rows="6" maxlength="1500" placeholder="Привет, это я. Сегодня…"></textarea>
     <div class="ml-when">открыть через:<button data-m="1">месяц</button><button data-m="6">полгода</button><button data-m="12" class="on">год</button><input type="date" id="ml-d" min="${add(0)}" value="${when}" aria-label="Свой срок"></div>
     <span id="ml-msg"></span><button class="gobtn" id="ml-go">запечатать</button><button class="lnk" data-close>не сейчас</button></div>`;
   box.hidden=false;micBar($("ml-t"));$("ml-t").focus();
@@ -1364,19 +1392,20 @@ function mailWrite(d){const box=$("mail"),add=(m)=>{const x=new Date();x.setMont
     if(m){when=add(+m.dataset.m);$("ml-d").value=when;box.querySelectorAll("[data-m]").forEach(b=>b.classList.toggle("on",b===m));sfx("tab");return}
     if(e.target.id==="ml-go"){const t=$("ml-t").value.trim();when=$("ml-d").value||when;
       if(!t){$("ml-msg").textContent="письмо пока пустое";return}if(when<=today()){$("ml-msg").textContent="срок должен быть позже сегодняшнего дня";return}
-      LETTERS[d.id]={text:t,written:today(),open:when};saveLetters();closeMail();sfx("paper");setTimeout(()=>sfx("stamp"),260);render(cur);renderYear();return}
+      LETTERS[d.id]={text:t,written:today(),open:when};saveLetters();closeMail();sfx("paper");setTimeout(()=>sfx("stamp"),260);render(cur);renderYear();if(!$("view-mail").hidden)renderMail();return}
     if(e.target===box||e.target.closest("[data-close]"))closeMail()};
   $("ml-d").oninput=()=>box.querySelectorAll("[data-m]").forEach(b=>b.classList.remove("on"))}
 function mailRead(d){const l=letterOf(d),box=$("mail"),first=!l.read;
-  box.innerHTML=`<div class="ml-in letter"><small>написано ${fullDate(l.written)} · день «${esc(d.title)}»</small><p class="ml-text">${esc(l.text)}</p><small>открыто ${fullDate(today())}</small><button class="lnk" data-close>сложить обратно в конверт</button></div>`;
+  box.innerHTML=`<div class="ml-in letter"><small>написано ${fullDate(l.written)}${d.free?"":" · день «"+esc(d.title)+"»"}</small><p class="ml-text">${esc(l.text)}</p><small>открыто ${fullDate(today())}</small><button class="lnk" data-close>сложить обратно в конверт</button></div>`;
   box.hidden=false;sfx("paper");if(first){[0,2,4].forEach((k,j)=>setTimeout(()=>sfx("ding",k),200+j*170));LETTERS[d.id]={...l,read:true};saveLetters()}
-  box.onclick=e=>{if(e.target===box||e.target.closest("[data-close]")){closeMail();if(first){render(cur);renderYear()}}}}
-$("under").addEventListener("click",e=>{const b=e.target.closest("[data-mail]");if(!b)return;const d=DAYS[cur],k=b.dataset.mail;
+  box.onclick=e=>{if(e.target===box||e.target.closest("[data-close]")){closeMail();if(first){render(cur);renderYear()}if(!$("view-mail").hidden)renderMail()}}}
+$("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[data-v]");if(qb){const q=qb.parentNode.dataset.q,on=qb.classList.contains("on");sfx("pop");setAsk(q,on?null:qb.dataset.v);return}
+  const b=e.target.closest("[data-mail]");if(!b)return;const d=DAYS[cur],k=b.dataset.mail;
   if(k==="write")mailWrite(d);else if(k==="read")mailRead(d);else if(k==="sealed"){sfx("stamp");bop(b)}
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=14;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=15;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
@@ -1413,7 +1442,7 @@ async function shrink(f){if(!f.type.startsWith("image"))return f;try{const bm=aw
 function sendMode(){location.replace("send.html?t="+encodeURIComponent(SEND)+"&k="+encodeURIComponent(location.hash.slice(1)))}
 
 /* ---------- старт ---------- */
-$("logo").innerHTML=ransom("дневник-кино",11,6,.5);$("n-head").innerHTML=ransom("новый день",23,6,.6);$("hbig").innerHTML=ransom("сейчас непросто",31,5,.5);lockBtn();
+$("logo").innerHTML=ransom("дневник-кино",11,6,.5);$("n-head").innerHTML=ransom("новый день",23,6,.6);$("hbig").innerHTML=ransom("сейчас непросто",31,5,.5);$("mbig").innerHTML=ransom("письма себе",37,5,.55);lockBtn();
 let li=0;const ltxt="проявляем плёнку",lt=setInterval(()=>{if(li%3===0)$("loadnum").textContent=3-(li/3|0)%3;$("loadtxt").innerHTML=[...ltxt].map((c,k)=>`<b class="s${k===li%ltxt.length?1+li%5:0}" style="--r:${k===li%ltxt.length?-6:0}deg">${c}</b>`).join("");li++},260);
 (async()=>{
   if(SEND){clearInterval(lt);sendMode();return}
@@ -1437,7 +1466,8 @@ $("book").addEventListener("click",e=>{if(performance.now()-dragged<250)return;i
 $("prev").onclick=()=>go(cur-1);$("next").onclick=()=>go(cur+1);
 $("under").addEventListener("click",e=>{const o=e.target.closest("[data-open]");if(o){const i=DAYS.findIndex(d=>d.id===o.dataset.open);if(i>=0){go(i);scrollTo({top:0,behavior:"smooth"})}}});
 $("tfilter").addEventListener("click",e=>{const b=e.target.closest("[data-t]");if(b){YT=b.dataset.t||null;renderYear()}});
-$("nav-hard").onclick=()=>show("hard");
+$("nav-hard").onclick=()=>show("hard");$("nav-mail").onclick=()=>show("mail");
+$("under").addEventListener("change",e=>{const o=e.target.closest(".askb [data-own]");if(o)setAsk(o.parentNode.dataset.q,o.value.trim())});
 $("nav-book").onclick=()=>show("book");$("nav-year").onclick=$("toyear").onclick=()=>show("year");$("nav-new").onclick=()=>show("new");
 $("view-year").addEventListener("click",e=>{const b=e.target.closest("[data-i]");if(b)openDay(+b.dataset.i)});
 const peek=$("peek");
