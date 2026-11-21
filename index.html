@@ -497,7 +497,8 @@ button.c{position:relative}
 .hsay{flex-wrap:wrap}.hsay .micbar{flex-basis:100%;order:3}
 #n-undo{margin-left:6px}.hintl .lnk{border:0;background:none;padding:0;text-decoration:underline;font:inherit;color:inherit}
 .qs{display:grid;gap:10px;margin:4px 0 6px}.qrow{display:grid;gap:5px}.qrow>i{font-style:normal;font-family:var(--note);font-size:20px;color:#3a2a1c}
-.qrow span{display:flex;gap:6px;flex-wrap:wrap}.qrow button{border:1.5px dashed #8a6f5c;background:rgba(255,255,255,.5);font-family:var(--note);font-size:19px;padding:4px 12px 5px;color:#2a1d14}.qrow button.on{background:#f6d04a;border-style:solid;border-color:#2a1d14}
+.qrow span{display:flex;gap:6px;flex-wrap:wrap}.qrow button{border:1.5px dashed #8a6f5c;background:rgba(255,255,255,.5);font-family:var(--note);font-size:19px;padding:4px 12px 5px;color:#2a1d14}.qrow input[data-own]{border:0;border-bottom:1.5px dashed #8a6f5c;background:transparent;font-family:var(--note);font-size:19px;padding:3px 4px;min-width:190px;flex:1;max-width:320px;color:#2a1d14;outline:0}
+.qrow button.on{background:#f6d04a;border-style:solid;border-color:#2a1d14}
 </style>
 </head>
 <body>
@@ -558,10 +559,10 @@ button.c{position:relative}
       <div class="srow">
         <span class="lab">4. воздух дня <small>— ответь одним нажатием; по этим ответам сайт соберёт фильм и страницу. Можно пропустить</small></span>
         <div class="qs" id="n-qs">
-          <div class="qrow"><i>какая была погода?</i><span data-q="weather"><button type="button" data-v="sun">☀ солнце</button><button type="button" data-v="clouds">☁ пасмурно</button><button type="button" data-v="rain">☂ дождь</button><button type="button" data-v="snow">❄ снег</button><button type="button" data-v="wind">ветер</button><button type="button" data-v="fog">туман</button></span></div>
+          <div class="qrow"><i>какая была погода?</i><span data-q="weather"><button type="button" data-v="sun">☀ солнце</button><button type="button" data-v="clouds">☁ пасмурно</button><button type="button" data-v="rain">☂ дождь</button><button type="button" data-v="snow">❄ снег</button><button type="button" data-v="wind">ветер</button><button type="button" data-v="fog">туман</button><input type="text" data-own placeholder="свой вариант: жара, гроза…"></span></div>
           <div class="qrow"><i>какая часть дня запомнилась?</i><span data-q="time"><button type="button" data-v="morning">утро</button><button type="button" data-v="day">день</button><button type="button" data-v="evening">вечер</button><button type="button" data-v="night">ночь</button></span></div>
-          <div class="qrow"><i>как шёл день?</i><span data-q="pace"><button type="button" data-v="slow">медленно, тихо</button><button type="button" data-v="mid">как обычно</button><button type="button" data-v="fast">быстро, суматошно</button></span></div>
-          <div class="qrow"><i>где ты была больше всего?</i><span data-q="place"><button type="button" data-v="дома">дома</button><button type="button" data-v="на улице">на улице</button><button type="button" data-v="в школе">в школе</button><button type="button" data-v="в дороге">в дороге</button><button type="button" data-v="на природе">на природе</button><button type="button" data-v="в гостях">в гостях</button></span></div>
+          <div class="qrow"><i>как шёл день?</i><span data-q="pace"><button type="button" data-v="slow">медленно, тихо</button><button type="button" data-v="mid">как обычно</button><button type="button" data-v="fast">быстро, суматошно</button><input type="text" data-own placeholder="свой вариант"></span></div>
+          <div class="qrow"><i>где ты была больше всего?</i><span data-q="place"><button type="button" data-v="дома">дома</button><button type="button" data-v="на улице">на улице</button><button type="button" data-v="в школе">в школе</button><button type="button" data-v="в дороге">в дороге</button><button type="button" data-v="на природе">на природе</button><button type="button" data-v="в гостях">в гостях</button><input type="text" data-own placeholder="свой вариант: у бабушки, в кафе…"></span></div>
           <div class="qrow"><i>запах, звук или вкус, который остался от дня</i><input type="text" id="n-sense" placeholder="например: запах мандаринов, шум дождя, вкус какао"></div>
         </div>
         <span class="lab">5. каким был день</span>
@@ -797,7 +798,7 @@ function whyRows(d){const L=d.look,m=d.music,v=voiceOf(d),kw=[...new Set((d.text
   if(d.song.genre||d.song.year)R.push(["о песне",[d.song.genre,d.song.year].filter(Boolean).join(", "),"записано в чек дня"]);
   if(d.photo)R.push(["фото",`${d.media.length} шт., ${d.photo.light}`,"главный цвет снимка стал цветом обведённых слов и волны песни",d.photo.pal]);
   R.push(["слова",kw.length?kw.map(w=>"«"+w+"»").join(", "):"ключевых слов не нашлось",kw.length?"из них собрано название папки, они обведены в тексте, по ним нарисованы значки на полях":"название собрано из времени года и суток"]);
-  const A=d.ask||{},an=[A.weather&&{sun:"солнце",clouds:"пасмурно",rain:"дождь",snow:"снег",wind:"ветер",fog:"туман"}[A.weather],A.time&&{morning:"утро",day:"день",evening:"вечер",night:"ночь"}[A.time],A.pace&&{slow:"медленный день",mid:"обычный темп",fast:"суматошный день"}[A.pace],A.place].filter(Boolean);
+  const A=d.ask||{},an=[A.weather&&({sun:"солнце",clouds:"пасмурно",rain:"дождь",snow:"снег",wind:"ветер",fog:"туман"}[A.weather]||A.weather),A.time&&{morning:"утро",day:"день",evening:"вечер",night:"ночь"}[A.time],A.pace&&({slow:"медленный день",mid:"обычный темп",fast:"суматошный день"}[A.pace]||A.pace),A.place].filter(Boolean);
   if(an.length)R.push(["ответы",an.join(", "),"погода задаёт эффект в фильме, часть дня — оттенок кадров и слово в названии, темп — длину кадров"]);
   R.push(["фильм",FXNAME[fxOf(d)],A.weather?"эффект взят из ответа про погоду":"эффект выбран по словам записи, а если подходящих слов нет — по звуку песни"]);
   R.push(["голос",v.word,`скорость ${v.rate}, высота ${v.pitch}: его задаёт темп песни`]);
@@ -964,7 +965,7 @@ function moodFor(d){
 function filmCaps(d){const w=words(d.text),c=[],add=v=>{if(v&&!c.includes(v))c.push(v)},th=find(THINGS,w);
   add(find(PLACES,w));add(find(WITH,w));if(th)add(th.replace(/^и /,""));add(find(EVENTS,w));if((d.ask||{}).sense)add(d.ask.sense);add("♪ "+d.song.name.split(" — ")[0]);if(d.good)add("получилось: "+d.good);add("день «"+TYPES[d.type].name+"»");return c}
 function filmPlan(d){
-  const L={...d.look,shot:d.look.shot*({slow:1.3,fast:.78}[(d.ask||{}).pace]||1)},caps=filmCaps(d),sent0=sentences(d.text),sent=sent0.length>=caps.length?sent0:sent0.concat(new Array(caps.length-sent0.length).fill(" ")),media=d.media.concat(moodFor(d)),m=media.length,per=sent.length>5?1:(L.shot<2.6?3:2);
+  const L={...d.look,shot:d.look.shot*(p=>({slow:1.3,fast:.78}[p]||(/медлен|тих|спокой|лен/.test(p||"")?1.3:/быстр|сумат|бег|спеш/.test(p||"")?.78:1)))((d.ask||{}).pace)},caps=filmCaps(d),sent0=sentences(d.text),sent=sent0.length>=caps.length?sent0:sent0.concat(new Array(caps.length-sent0.length).fill(" ")),media=d.media.concat(moodFor(d)),m=media.length,per=sent.length>5?1:(L.shot<2.6?3:2);
   const shots=[{card:true,media:d.media[0],f:FR[0],mv:"in",dur:Math.max(L.shot,2.8)}],subs=[];let k=m>1?1:0,at=shots[0].dur;const used=new Array(m).fill(0);used[0]=1;
   sent.forEach((s0,si)=>{const s=caps[si]||"";const start=at;let subFrom=at;
     if(s&&m<4&&(per>1||si%2===0)){const dur=Math.max(L.shot*.8,Math.min(3.2,1.5+s.length*.05));shots.push({paper:true,text:s,media:{url:"paper"},f:FR[0],mv:si%2?"left":"right",dur});at+=dur;subFrom=at}
@@ -1006,7 +1007,9 @@ function drawShot(x,F,s,tt,alpha){
 }
 /* эффект фильма по настроению дня: сначала смотрим слова записи (дождь, снег, листья, море, звёзды), иначе — бумагу, которую выбрала песня */
 function fxOf(d){const w=words(d.text),has=(...k)=>w.some(x=>k.some(q=>x.startsWith(q))),wt=(d.ask||{}).weather;
-  if(wt)return{sun:"bokeh",clouds:"haze",rain:"rain",snow:"snow",wind:"leaves",fog:"fog"}[wt];
+  if(wt){const m={sun:"bokeh",clouds:"haze",rain:"rain",snow:"snow",wind:"leaves",fog:"fog"}[wt];if(m)return m;
+    /* свой вариант погоды: ищем в нём знакомые слова */
+    const t=wt.toLowerCase();if(/дожд|ливен|гроз|морос/.test(t))return"rain";if(/снег|метел|вьюг|мороз/.test(t))return"snow";if(/туман/.test(t))return"fog";if(/ветер|ветр/.test(t))return"leaves";if(/жар|солн|ясн|тепл/.test(t))return"bokeh";if(/пасмурн|облач|туч|сер/.test(t))return"haze"}
   if(has("дожд","ливен","капл"))return"rain";if(has("снег","снеж","метел"))return"snow";if(has("лист"))return"leaves";if(has("мор","волн","пляж","озер"))return"sparkle";if(has("звезд","звёзд"))return"stars";if(has("туман"))return"fog";
   return{fire:"bokeh",night:"lights",olive:"dust",rain:"haze"}[d.look.key]}
 const FXNAME={fog:"туман",haze:"мягкая дымка",rain:"дождь",snow:"снег",leaves:"падающие листья",sparkle:"блики на воде",stars:"звёзды",bokeh:"тёплые огни",lights:"огни города",dust:"пылинки в луче"};
@@ -1196,7 +1199,9 @@ else $("n-mic").onclick=()=>{const btn=$("n-mic"),ta=$("n-text");if(recog){recog
   recog.onend=()=>{recog=null;try{nrec&&nrec.stop()}catch(e){}btn.classList.remove("on");btn.textContent="🎙 рассказать голосом";ta.value=tidy(ta.value);renderChips();$("n-michint").textContent="готово: расставила точки и запятые. Лишнюю фразу убери крестиком ниже"};
   try{recog.start();nrecStart();btn.classList.add("on");btn.textContent="■ я слушаю — нажми, когда закончишь";$("n-michint").textContent="говори обычными фразами с паузами. Ошиблась — скажи «сотри», и последняя фраза исчезнет"}catch(err){recog=null}};
 let NTYPE=null,NQ={};
-$("n-qs").addEventListener("click",e=>{const b=e.target.closest("button[data-v]");if(!b)return;const q=b.parentNode.dataset.q,on=NQ[q]===b.dataset.v;if(on)delete NQ[q];else NQ[q]=b.dataset.v;b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",!on&&x===b));sfx("pop")});
+$("n-qs").addEventListener("click",e=>{const b=e.target.closest("button[data-v]");if(!b)return;const q=b.parentNode.dataset.q,on=NQ[q]===b.dataset.v;if(on)delete NQ[q];else NQ[q]=b.dataset.v;b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",!on&&x===b));const o=b.parentNode.querySelector("[data-own]");if(o)o.value="";sfx("pop")});
+/* свой вариант ответа: заменяет выбранную кнопку */
+$("n-qs").addEventListener("input",e=>{const o=e.target.closest("[data-own]");if(!o)return;const q=o.parentNode.dataset.q,v=o.value.trim();o.parentNode.querySelectorAll("button").forEach(x=>x.classList.remove("on"));if(v)NQ[q]=v;else delete NQ[q]});
 function drawTypes(){const sug=NTYPE?null:wordType($("n-text").value);$("n-types").innerHTML=TKEYS.map(t=>`<button type="button" data-nt="${t}" class="${t===NTYPE?"on":t===sug?"sug":""}" title="${TYPES[t].hint}">${tsvg(t)}${TYPES[t].name}</button>`).join("");
   $("n-kindbox").hidden=!(NTYPE&&TYPES[NTYPE].hard);$("n-thint").textContent=NTYPE?`${TYPES[NTYPE].name}: ${TYPES[NTYPE].hint}`:sug?`по словам похоже на «${TYPES[sug].name}» — так? нажми на тот, который правда подходит`:"выбери сама. Не выберешь — сайт предложит по словам и песне, а ты поправишь на странице дня"}
 $("n-types").addEventListener("click",e=>{const b=e.target.closest("[data-nt]");if(!b)return;NTYPE=NTYPE===b.dataset.nt?null:b.dataset.nt;drawTypes()});
@@ -1361,7 +1366,7 @@ $("under").addEventListener("click",e=>{const b=e.target.closest("[data-mail]");
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=9;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=10;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
