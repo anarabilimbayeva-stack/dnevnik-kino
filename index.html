@@ -984,7 +984,7 @@ function whyRows(d){const L=d.look,m=d.music,v=voiceOf(d),kws=[...new Set((d.tex
   const A=d.ask||{},an=[A.weather&&({sun:"солнце",clouds:"пасмурно",rain:"дождь",snow:"снег",wind:"ветер",fog:"туман"}[A.weather]||A.weather),A.time&&{morning:"утро",day:"день",evening:"вечер",night:"ночь"}[A.time],A.pace&&({slow:"медленный день",mid:"обычный темп",fast:"суматошный день"}[A.pace]||A.pace),A.place].filter(Boolean);
   if(an.length)R.push(["ответы",an.join(", "),"погода задаёт эффект в фильме, часть дня — оттенок кадров и слово в названии, темп — длину кадров"]);
   {const gk=gkind(d);R.push(["вещь",`стиль песни — ${GNAME[gk][0]}`,`на правой странице лежит ${GNAME[gk][1]}`])}
-  {const st=danceOf(d),g=(d.song.genre||"").trim();R.push(["танец",`${g?g+", ":""}${m.bpm} ударов в минуту`,`песня разбирается заранее: сайт находит её сильные акценты (самые мощные удары бочки и малого). На акцент фото мягко откликается, каждый раз по-новому: расходится на части, «выдыхает» кругом, сердцем или звездой, идёт круговой волной — в манере «${DANCE[st].name}»${danceAmp(d)<1?" (в этот день — едва заметно)":""}; между акцентами фото стоит спокойно; кадры меняются ровно на удар, перед первым — счёт «5, 6, 7, 8»`])}
+  {const st=danceOf(d),g=(d.song.genre||"").trim();R.push(["танец",`${g?g+", ":""}${m.bpm} ударов в минуту`,`песня разбирается заранее: сайт находит удары барабанов и акценты голоса. На голос фото «выдыхает» кругом, сердцем, звездой или круговой волной; на удар барабана расходится на части и сходится — в манере «${DANCE[st].name}»${danceAmp(d)<1?" (в этот день — мягче)":""}; между акцентами фото стоит спокойно; кадры меняются ровно на удар, перед первым — счёт «5, 6, 7, 8»`])}
   if(d.board)R.push(["раскадровка","составлена нейросетью по рассказу и по тому, что на кадрах","кадры идут в порядке рассказа, а каждое главное слово появляется на тех кадрах, о которых оно"]);
   if(direct(d))R.push(["монтаж",`день назван «${TYPES[d.type].name}»`,direct(d).how]);
   R.push(["фильм",FXNAME[fxOf(d)],A.weather?"эффект взят из ответа про погоду":"эффект выбран по словам записи, а если подходящих слов нет — по звуку песни"]);
@@ -1395,8 +1395,8 @@ function tilesFor(F,i){F.tl=F.tl||{};if(F.tl[i])return F.tl[i];const r=rng(F.d.s
 function soundMap(ab,grid){try{const sr=ab.sampleRate,ch=ab.getChannelData(0),N=1024,hop=256,n=Math.max(0,Math.floor((ch.length-N)/hop)),H=N/2,fps=sr/hop,lead=(N/2)/sr,win=new Float32Array(N),re=new Float32Array(N),im=new Float32Array(N),prev=new Float32Array(H),rev=new Uint16Array(N),cs=new Float32Array(H),sn=new Float32Array(H);
   for(let k=0;k<N;k++){win[k]=.5-.5*Math.cos(2*Math.PI*k/(N-1));let r=0;for(let b=0;b<10;b++)r|=((k>>b)&1)<<(9-b);rev[k]=r}
   for(let k=0;k<H;k++){cs[k]=Math.cos(2*Math.PI*k/N);sn[k]=-Math.sin(2*Math.PI*k/N)}
-  const bin=f=>Math.max(1,Math.min(H-1,Math.round(f/(sr/N)))),B={kick:[bin(40),bin(130)],clap:[bin(1500),bin(5000)],hat:[bin(7000),bin(12000)],bass:[bin(60),bin(250)],voc:[bin(300),bin(1200)],mel:[bin(1200),bin(5000)]};
-  const fl={kick:new Float32Array(n),clap:new Float32Array(n),hat:new Float32Array(n)},en={bass:new Float32Array(n),voc:new Float32Array(n),mel:new Float32Array(n)},mag=new Float32Array(H);
+  const bin=f=>Math.max(1,Math.min(H-1,Math.round(f/(sr/N)))),B={kick:[bin(40),bin(130)],clap:[bin(1500),bin(5000)],hat:[bin(7000),bin(12000)],vox:[bin(250),bin(3400)],bass:[bin(60),bin(250)],voc:[bin(300),bin(1200)],mel:[bin(1200),bin(5000)]};
+  const fl={kick:new Float32Array(n),clap:new Float32Array(n),hat:new Float32Array(n),vox:new Float32Array(n)},en={bass:new Float32Array(n),voc:new Float32Array(n),mel:new Float32Array(n)},mag=new Float32Array(H);
   for(let f=0;f<n;f++){const o=f*hop;for(let k=0;k<N;k++){re[rev[k]]=ch[o+k]*win[k];im[rev[k]]=0}
     for(let size=2;size<=N;size<<=1){const half=size>>1,step=N/size;for(let st=0;st<N;st+=size)for(let k=0;k<half;k++){const c=cs[k*step],d=sn[k*step],a=st+k,b=a+half,tr=re[b]*c-im[b]*d,ti=re[b]*d+im[b]*c;re[b]=re[a]-tr;im[b]=im[a]-ti;re[a]+=tr;im[a]+=ti}}
     for(let k=1;k<H;k++)mag[k]=Math.log(1+40*Math.sqrt(re[k]*re[k]+im[k]*im[k])/N*8);
@@ -1413,6 +1413,8 @@ function soundMap(ab,grid){try{const sr=ab.sampleRate,ch=ab.getChannelData(0),N=
   /* удар засчитывается, только если он стоит на сетке песни (доля, «и» или шестнадцатая): так движение всегда в бит */
   const onGrid=arr=>grid?arr.filter(a=>{const q=grid.P/4,ph=(((a.t-grid.ph)/q)%1+1)%1;return Math.min(ph,1-ph)*q<.045}):arr;
   const M={fps,lead,n,kick:onGrid(peaks(fl.kick,.22,.62)),clap:onGrid(peaks(fl.clap,.2,.45)),hat:onGrid(peaks(fl.hat,.1,.4)),bass:level(en.bass),voc:level(en.voc),mel:level(en.mel)};
+  /* голос: всплески в полосе голоса там, где в ней сейчас действительно громко (без нейросети — приближение) */
+  M.vox=peaks(fl.vox,.28,.5).filter(a=>{const i=Math.max(0,Math.min(n-1,Math.round((a.t-lead)*fps)));return M.voc[i]>.45});
   /* если какого-то удара в песне почти нет, его место занимает сетка: бочка — на долях, клэп — через долю, хэт — между долями */
   if(grid){const P=grid.P,D=ab.duration,fill=(key,st,off)=>{if(M[key].length>=D/3)return;M[key]=[];for(let t=grid.ph+off;t<D;t+=st)M[key].push({t,s:.6})};fill("kick",P,0);fill("clap",2*P,P);fill("hat",P,P/2)}
   /* сильные акценты: самые мощные удары бочки и клэпа, не чаще чем примерно на шесть долей из десяти */
@@ -1424,15 +1426,18 @@ function soundMap(ab,grid){try{const sr=ab.sampleRate,ch=ab.getChannelData(0),N=
    Всё сделано бережно для глаз: движение плавное и небольшое, без вспышек и чёрных просветов (в просветах — то же фото, чуть темнее),
    акценты редкие — не чаще одного на долю. Если на устройстве включено «уменьшение движения», фото не двигается совсем */
 const CUTS={bounce:[6,0,7,5,8,2,6,4],hit:[8,1,6,3,7,5,8,2],wave:[9,7,4,6,2,8,9,0]};
+/* голос и барабаны двигают фото по-разному: на голос фото «выдыхает» — круг, сердце, звезда, круговая волна, мягкий наезд;
+   на удар барабана расходится на части. Порядок внутри набора зависит от стиля танца */
+const VOXCUTS={bounce:[6,7,9,8,5],hit:[8,6,7,9,5],wave:[9,7,6,8,5]},DRUMCUTS={bounce:[0,4,2,0,3],hit:[1,3,2,1,4],wave:[4,2,0,4,1]};
 const CALM=matchMedia("(prefers-reduced-motion:reduce)");
 function hitNow(F,t,s){const M=F.map;if(!M||!M.soft||CALM.matches)return null;const tv=t-(F.lat||0)+.02;let h=null,k=-1;for(let q=0;q<M.soft.length;q++){const a=M.soft[q];if(a.t>tv)break;if(a.t>=s.at+.05){h=a;k=q}}
-  if(!h)return null;const tau=tv-h.t;if(tau>.9)return null;const e=(tau<.07?.5-.5*Math.cos(Math.PI*tau/.07):Math.exp(-(tau-.07)/.26))*(.55+.45*h.s)*(F.amp||1);return e>.02?{e,k}:null}
+  if(!h)return null;const tau=tv-h.t;if(tau>.9)return null;const v=h.v;const e=(tau<.07?.5-.5*Math.cos(Math.PI*tau/.07):Math.exp(-(tau-.07)/.26))*(.55+.45*h.s)*(F.amp||1);return e>.02?{e,k,v}:null}
 function lensPath(x,kind,R){x.beginPath();
   if(kind===6)x.arc(0,0,R,0,Math.PI*2);
   else if(kind===7){const a=R*1.05,b=R;x.moveTo(0,b);x.bezierCurveTo(-a*1.5,b*.1,-a*.95,-b*1.15,0,-b*.38);x.bezierCurveTo(a*.95,-b*1.15,a*1.5,b*.1,0,b)}
   else{for(let k=0;k<10;k++){const r=k%2?R*.5:R*1.12,an=-Math.PI/2+k*Math.PI/5;x[k?"lineTo":"moveTo"](Math.cos(an)*r,Math.sin(an)*r)}x.closePath()}}
 function slices(x,F,s,tt,alpha,hit){const o=F.off||(F.off=Object.assign(document.createElement("canvas"),{width:CW,height:CH})),ox=o.getContext("2d");ox.fillStyle="#0b0705";ox.fillRect(0,0,CW,CH);drawShot(ox,F,s,tt,1);
-  const e=hit.e,pat=(CUTS[F.dance]||CUTS.bounce)[hit.k%8],sg=hit.k%2?1:-1,D=CH*.058*e,put=(sx,sy,sw,sh,dx,dy)=>x.drawImage(o,sx,sy,sw,sh,sx+dx,sy+dy,sw,sh);
+  const e=hit.e,pat=hit.v===1?(VOXCUTS[F.dance]||VOXCUTS.bounce)[hit.k%5]:hit.v===0?(DRUMCUTS[F.dance]||DRUMCUTS.bounce)[hit.k%5]:(CUTS[F.dance]||CUTS.bounce)[hit.k%8],sg=hit.k%2?1:-1,D=CH*.058*e,put=(sx,sy,sw,sh,dx,dy)=>x.drawImage(o,sx,sy,sw,sh,sx+dx,sy+dy,sw,sh);
   x.globalAlpha=alpha;x.drawImage(o,0,0);
   if(pat<=4){x.fillStyle=`rgba(11,7,5,${(.45*Math.min(1,e*1.5)).toFixed(3)})`;x.fillRect(0,0,CW,CH)}
   if(pat===0){const w=CW/3;for(let k=0;k<3;k++)put(k*w,0,w,CH,0,(k===1?-1:1)*sg*D)}
@@ -1520,11 +1525,14 @@ async function openFilm(record){stopSong();
       const g=d.music.grid,nn=d.song.nn&&d.song.nn.hits;if(g&&nn&&nn.length>6){const near=o=>nn.filter(h=>{const ph=(((h[0]-g.ph-o)/g.P)%1+1)%1;return Math.min(ph,1-ph)*g.P<.05}).length;if(near(g.P/2)>near(0)*1.3)g.ph=(g.ph+g.P/2)%g.P}}
     if(d.music.grid){if(!d.music.map){d.music.map=soundMap(d.music.buf,d.music.grid);
       /* для встроенных дней акценты заранее найдены нейросетью: она отделила барабаны от остальной музыки, и удары взяты из чистой дорожки барабанов */
-      if(d.music.map&&d.song.nn&&d.song.nn.hits){d.music.map.hits=d.song.nn.hits.map(h=>({t:h[0],s:h[1]}));d.music.map.byNN=true}
-      /* для глаз: оставляем самые сильные акценты — не чаще одного на долю и примерно на семь долей из десяти */
-      if(d.music.map){const M=d.music.map,P=d.music.grid.P,want=Math.round(d.music.buf.duration/P*.7),soft=[];for(const a of[...M.hits].sort((p,q)=>q.s-p.s)){if(soft.length>=want)break;if(soft.some(h=>Math.abs(h.t-a.t)<P*.9))continue;soft.push(a)}
-        /* если сильных ударов мало, добираем доли сетки, чтобы за фильм набиралось не меньше дюжины откликов */
-        {const g=d.music.grid;for(let t=g.ph;t<d.music.buf.duration&&soft.length<want;t+=2*P)if(!soft.some(h=>Math.abs(h.t-t)<P*.9))soft.push({t,s:.5})}M.soft=soft.sort((p,q)=>p.t-q.t)}}F.map=d.music.map;F.grid=d.music.grid;F.dance=danceOf(d);F.amp=danceAmp(d);plan=F.plan=filmPlan(d,ALLM.filter(m=>F.els.has(m.url)),F.grid)}}
+      if(d.music.map&&d.song.nn&&d.song.nn.hits){d.music.map.hits=d.song.nn.hits.map(h=>({t:h[0],s:h[1]}));d.music.map.byNN=true;if(d.song.nn.vox)d.music.map.vox=d.song.nn.vox.map(h=>({t:h[0],s:h[1]}))}
+      /* на что откликается фото: удары барабанов и акценты голоса, вперемешку. Для глаз — не чаще одного на долю, примерно на семь долей из десяти;
+         голос и барабаны берутся примерно поровну, сначала самые сильные */
+      if(d.music.map){const M=d.music.map,P=d.music.grid.P,want=Math.round(d.music.buf.duration/P*.7),soft=[],free=t=>!soft.some(h=>Math.abs(h.t-t)<P*.9);
+        const dr=[...M.hits].sort((p,q)=>q.s-p.s).map(a=>({...a,v:0})),vx=[...(M.vox||[])].sort((p,q)=>q.s-p.s).map(a=>({...a,v:1}));
+        for(let k=0;soft.length<want&&(dr.length||vx.length);k++){const src=(k%2===0?vx:dr).length?(k%2===0?vx:dr):(k%2===0?dr:vx);let a;while((a=src.shift())&&!free(a.t));if(a)soft.push(a)}
+        {const g=d.music.grid;for(let t=g.ph;t<d.music.buf.duration&&soft.length<want;t+=2*P)if(free(t))soft.push({t,s:.5,v:0})}
+        M.soft=soft.sort((p,q)=>p.t-q.t)}}F.map=d.music.map;F.grid=d.music.grid;F.dance=danceOf(d);F.amp=danceAmp(d);plan=F.plan=filmPlan(d,ALLM.filter(m=>F.els.has(m.url)),F.grid)}}
   if(d.music.buf){try{const a=actx();a.resume();const src=a.createBufferSource(),g=a.createGain(),now=a.currentTime;src.buffer=d.music.buf;src.loop=false;F.a=a;F.at0=now;F.lat=record?0:Math.min(.25,a.outputLatency||a.baseLatency||0);
     g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(.9,now+1.8);g.gain.setValueAtTime(.9,now+Math.max(1.9,plan.total-1.6));g.gain.linearRampToValueAtTime(0,now+plan.total+.2);
     src.connect(g);g.connect(a.destination);try{F.an=a.createAnalyser();F.an.fftSize=512;F.an.smoothingTimeConstant=.5;F.fd=new Uint8Array(256);src.connect(F.an)}catch(e){}if(record){F.dest=a.createMediaStreamDestination();g.connect(F.dest)}src.start();F.src=src}catch(e){}}
@@ -1864,7 +1872,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=69;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=70;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
