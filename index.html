@@ -648,7 +648,7 @@ header{z-index:8!important}
 <div class="loading" id="loading"><div class="leader"><i class="sweep"></i><i class="cross"></i><b id="loadnum">3</b></div><span class="rs" id="loadtxt"></span><i class="lgrain"></i></div>
 <header>
   <div class="logo" id="logo"></div>
-  <nav class="nav"><button id="nav-book" aria-current="page">тетрадь</button><button id="nav-year">год</button><button id="nav-new">＋ новый день</button><button id="nav-more" aria-haspopup="true" aria-expanded="false">ещё ▾</button><span class="navico"><button id="nav-snd" aria-label="Звуки нажатий">🔔</button><button id="nav-lock" aria-label="Замочек">🔓</button></span><div class="navpop" id="navpop" hidden><button id="nav-mail">✉ письма себе</button><button id="nav-hard">♡ мне непросто</button></div></nav>
+  <nav class="nav"><button id="nav-book" aria-current="page">тетрадь</button><button id="nav-year">год</button><button id="nav-new">＋ новый день</button><button id="nav-more" aria-haspopup="true" aria-expanded="false">ещё ▾</button><span class="navico"><button id="nav-snd" aria-label="Звуки нажатий">🔔</button><button id="nav-lock" aria-label="Замочек">🔓</button></span><div class="navpop" id="navpop" hidden><button id="nav-mail">✉ письма себе</button><button id="nav-hard">♡ мне непросто</button><button id="nav-widget" onclick="location.href='widget.html'">▣ виджет на телефон</button></div></nav>
 </header>
 <div class="wrap">
   <div id="view-book">
@@ -1639,7 +1639,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=39;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=40;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
