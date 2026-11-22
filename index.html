@@ -1639,7 +1639,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=41;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=42;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
@@ -1670,6 +1670,27 @@ async function qrOpen(){const box=$("mail"),close=()=>{try{qrES&&qrES.close()}ca
         if($("qr-n"))$("qr-n").textContent=`получено: ${got}`;if($("qr-msg"))$("qr-msg").textContent="Фото приходят. Можно выбрать ещё.";sfx("shutter")}catch(err){if($("qr-msg"))$("qr-msg").textContent="Одно фото не дошло — отправь его ещё раз."}}}
   catch(e){$("qr-msg").textContent="Не получилось открыть код: нет интернета."}}
 $("n-qr").onclick=qrOpen;
+/* день из Telegram-бота: ссылка ?bot=тема.ключ. Бот шифрует текст, фото и песню и кладёт их в сервис пересылки,
+   сайт забирает их, расшифровывает и ставит в форму «новый день». Дальше всё делает сайт, как обычно. */
+(async()=>{const B=new URLSearchParams(location.search).get("bot");if(!B)return;const[topic,k]=B.split(".");if(!topic||!k)return;
+  const say=t=>{const el=$("n-status");if(el)el.textContent=t};
+  await new Promise(r=>setTimeout(r,3200));try{openFront()}catch(e){}try{$("nav-new").click()}catch(e){}
+  say("забираю день из Telegram…");
+  try{const key=await aesKey(ub64(k)),txt=await(await fetch(RELAYS.o+topic+"/json?poll=1&since=all")).text();
+    const ms=txt.split("\n").map(l=>{try{return JSON.parse(l)}catch(e){return null}}).filter(m=>m&&m.event==="message"&&m.attachment);
+    if(!ms.length){say("Ссылка из бота устарела: она работает один час. Собери день в боте ещё раз.");return}
+    const files=[];let draft=null;
+    for(const m of ms){try{const u=new Uint8Array(await(await fetch(m.attachment.url)).arrayBuffer()),{meta,data}=await unseal(key,u);
+      if(meta.kind==="draft")draft=JSON.parse(new TextDecoder().decode(data));else files.push([meta.n||0,new File([data],meta.name,{type:meta.mime})])}catch(e){}}
+    if(draft){if(draft.text){$("n-text").value=draft.text;$("n-text").dispatchEvent(new Event("input",{bubbles:true}))}
+      if(draft.date)$("n-date").value=draft.date;
+      const x=draft.song;if(x&&x.previewUrl){try{$("n-q").value=x.trackName+" "+x.artistName;const blob=await(await fetch(x.previewUrl)).blob();
+        PICK={blob,name:`${x.trackName} — ${x.artistName}`,genre:x.genre||"",year:x.year||"",link:x.link||""};FOUND=[x];
+        $("n-res").innerHTML=`<div class="sr sel" data-row="0"><img src="${esc(x.art||"")}" alt=""><span><b>${esc(x.trackName)}</b>${esc(x.artistName)}</span><button type="button" data-play="0">▶</button><button type="button" data-pick="0">выбрано ✓</button></div>`}catch(e){}}}
+    if(files.length)addMedia(files.sort((a,b)=>a[0]-b[0]).map(f=>f[1]));
+    say(`День пришёл из Telegram: текст${files.length?", фото: "+files.length:""}${draft&&draft.song?", песня":""}. Проверь и нажми «вклеить в тетрадь».`);
+    history.replaceState(null,"",location.pathname)}
+  catch(e){say("Не получилось забрать день из Telegram: проверь интернет и открой ссылку из бота ещё раз.")}})();
 /* сторона телефона: страница открыта по коду и показывает только выбор фото */
 async function shrink(f){if(!f.type.startsWith("image"))return f;try{const bm=await createImageBitmap(f,{imageOrientation:"from-image"}),k=Math.min(1,1800/Math.max(bm.width,bm.height)),c=document.createElement("canvas");c.width=bm.width*k|0;c.height=bm.height*k|0;c.getContext("2d").drawImage(bm,0,0,c.width,c.height);
   return await new Promise(r=>c.toBlob(b=>r(b||f),"image/jpeg",.86))}catch(e){return f}}
