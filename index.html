@@ -984,7 +984,7 @@ function whyRows(d){const L=d.look,m=d.music,v=voiceOf(d),kws=[...new Set((d.tex
   const A=d.ask||{},an=[A.weather&&({sun:"солнце",clouds:"пасмурно",rain:"дождь",snow:"снег",wind:"ветер",fog:"туман"}[A.weather]||A.weather),A.time&&{morning:"утро",day:"день",evening:"вечер",night:"ночь"}[A.time],A.pace&&({slow:"медленный день",mid:"обычный темп",fast:"суматошный день"}[A.pace]||A.pace),A.place].filter(Boolean);
   if(an.length)R.push(["ответы",an.join(", "),"погода задаёт эффект в фильме, часть дня — оттенок кадров и слово в названии, темп — длину кадров"]);
   {const gk=gkind(d);R.push(["вещь",`стиль песни — ${GNAME[gk][0]}`,`на правой странице лежит ${GNAME[gk][1]}`])}
-  {const st=danceOf(d),g=(d.song.genre||"").trim();R.push(["танец",`${g?g+", ":""}${m.bpm} ударов в минуту`,`стиль движения — ${DANCE[st].name}: кадры ${DANCE[st].how}${danceAmp(d)<1?" (в этот день — едва заметно)":""}; кадры меняются ровно на удар, перед первым — счёт «5, 6, 7, 8»`])}
+  {const st=danceOf(d),g=(d.song.genre||"").trim();R.push(["танец",`${g?g+", ":""}${m.bpm} ударов в минуту`,`стиль движения — ${DANCE[st].name}: кадры ${DANCE[st].how}${danceAmp(d)<1?" (в этот день — едва заметно)":""}; кадры меняются ровно на удар, перед первым — счёт «5, 6, 7, 8»; на смене новый кадр собирается из кусочков, которые танцуют под звук: большие слушают бас, мелкие — верх`])}
   if(direct(d))R.push(["монтаж",`день назван «${TYPES[d.type].name}»`,direct(d).how]);
   R.push(["фильм",FXNAME[fxOf(d)],A.weather?"эффект взят из ответа про погоду":"эффект выбран по словам записи, а если подходящих слов нет — по звуку песни"]);
   if(VOICES.has(d.id))R.push(["голос","свой, записан при рассказе","скорость чтения чуть подстраивается под темп песни: у быстрых дней живее, у тихих спокойнее"]);
@@ -1235,7 +1235,7 @@ function danceMove(x,F,t){const g=F.grid;if(!g)return;const tb=(t-(F.lat||0)-g.p
    pace — длина кадра, fade — склейка (длинный наплыв или встык), zoom — движение камеры, grade — цвет,
    tri — кадры по три или по одному, pol — вертикальные фото как полароиды на бумаге дня */
 const DIRECT={
-  iskry:{pace:.85,fade:.12,zoom:1.3,grade:"saturate(1.28) brightness(1.04)",tri:true,tr:"slide",how:"яркий коллаж: кадры по три, сочные цвета, новый кадр въезжает сбоку"},
+  iskry:{pace:.85,fade:.12,zoom:1.3,grade:"saturate(1.28) brightness(1.04)",tri:true,tr:"pieces",how:"яркий коллаж: кадры по три, сочные цвета, короткие склейки"},
   pled:{pace:1.25,fade:1.1,zoom:.7,grade:"sepia(.2) saturate(.95) brightness(1.02)",tri:true,tr:"develop",how:"кадры проявляются, как фото на плёнке, тёплый оттенок, по три, как в семейном альбоме"},
   tishina:{pace:1.6,fade:1.4,zoom:.45,grade:"saturate(.8) brightness(1.03)",tri:false,pol:true,tr:"develop",how:"по одному кадру, долго и почти неподвижно; фото лежат полароидами и медленно проявляются"},
   uragan:{pace:.62,fade:.05,zoom:1.7,grade:"contrast(1.15) saturate(1.1)",tri:true,tr:"flash",how:"короткие кадры встык со вспышкой, резкий наезд камеры, без пауз"},
@@ -1346,12 +1346,26 @@ function drawFx(x,F,t){const k=F.fx,R=F.fxr,beat=.5+.5*Math.sin(t*Math.PI*2/F.L.
       else{const g=x.createRadialGradient(X,Y,0,X,Y,rad);g.addColorStop(0,`rgba(${col},${al.toFixed(3)})`);g.addColorStop(.6,`rgba(${col},${(al*.55).toFixed(3)})`);g.addColorStop(1,`rgba(${col},0)`);x.globalAlpha=1;x.fillStyle=g;x.fillRect(X-rad,Y-rad,rad*2,rad*2)}}
     if(k==="lights"){x.globalCompositeOperation="source-over";x.globalAlpha=.1;x.fillStyle="#000";for(let Y=(t*40)%4;Y<CH;Y+=4)x.fillRect(0,Y,CW,1)}}
   x.restore()}
+/* переход «кусочки»: новый кадр собирается из кусков разного размера. Куски двигаются под звук, как эквалайзер:
+   большие слушают бас, средние — середину, мелкие — верх; манера движения — как у танца песни (кач, точка, волна) */
+function tilesFor(F,i){F.tl=F.tl||{};if(F.tl[i])return F.tl[i];const r=rng(F.d.seed+i*131),out=[];
+  (function split(x,y,w,h,dep){const big=w*h>CW*CH*.12;if(dep>5||(!big&&dep>1&&r()<.34)||w<90||h<70){out.push({x,y,w,h,a:r(),b:r(),c:r()});return}
+    const k=.32+r()*.36;if(w/h>1.25||(w/h>.8&&r()<.5)){split(x,y,w*k,h,dep+1);split(x+w*k,y,w*(1-k),h,dep+1)}else{split(x,y,w,h*k,dep+1);split(x,y+h*k,w,h*(1-k),dep+1)}})(0,0,CW,CH,0);
+  const mx=Math.max(...out.map(q=>q.w*q.h));out.forEach(q=>q.band=q.w*q.h>mx*.5?0:q.w*q.h>mx*.18?1:2);return F.tl[i]=out}
+function shatter(x,F,s,tt,TW,i,t){const o=F.off||(F.off=Object.assign(document.createElement("canvas"),{width:CW,height:CH})),ox=o.getContext("2d");ox.fillStyle="#0b0705";ox.fillRect(0,0,CW,CH);drawShot(ox,F,s,tt,1);
+  const u=clamp(tt/TW),k=1-u*u*(3-2*u),kr=Math.sqrt(k),A=F.amp||1,lv=F.lv||[0,0,0],g=F.grid,bp=g?(((t-(F.lat||0)-g.ph)/g.P)%1+1)%1:0,pulse=Math.exp(-5*bp),st=F.dance||"bounce";
+  for(const q of tilesFor(F,i)){const cx=q.x+q.w/2,cy=q.y+q.h/2,a=(.55*lv[q.band]+.45*pulse)*A,dxn=(cx-CW/2)/CW,dyn=(cy-CH/2)/CH;
+    let dx=dxn*CW*.55*k*(.4+q.a),dy=dyn*CH*.9*k*(.4+q.b),rot=(q.c-.5)*.5*k,sc=1+a*.24*kr;
+    if(st==="bounce")dy-=a*CH*.1*kr;else if(st==="hit"){rot+=(q.a>.5?1:-1)*a*.17*kr;sc+=a*.1*kr}else{dy+=Math.sin(t*5+cx/CW*7)*CH*.055*A*kr;dx+=Math.cos(t*5+cy/CH*5)*CW*.013*A*kr}
+    x.save();x.globalAlpha=clamp(1.35-k*.9);x.translate(cx+dx,cy+dy);x.rotate(rot);x.scale(sc,sc);x.shadowColor="rgba(0,0,0,.55)";x.shadowBlur=18*k;x.drawImage(o,q.x,q.y,q.w,q.h,-q.w/2,-q.h/2,q.w,q.h);x.restore()}}
 function frame(x,F,t){
+  if(F.an){F.an.getByteFrequencyData(F.fd);const av=(a,b)=>{let z=0;for(let k=a;k<b;k++)z+=F.fd[k];return z/(b-a)/255};F.lv=[av(1,5),av(5,30),av(30,110)].map((v,j)=>Math.max(v,(F.lv?F.lv[j]:0)*.8))}
   const{plan,L,d,h}=F,e=d.music.energy,sh=plan.shots;let i=sh.findIndex(s=>t<s.at+s.dur);if(i<0)i=sh.length-1;const s=sh[i],tt=t-s.at,fn=Math.floor(t*12);
   x.save();x.globalCompositeOperation="source-over";x.fillStyle="#0b0705";x.fillRect(0,0,CW,CH);x.translate(((fn*7)%3-1)*.5,((fn*5)%3-1)*.5);danceMove(x,F,t);
   /* смена кадров зависит от типа дня: въезд сбоку, проявление или вспышка */
   const TR=L.D&&L.D.tr,dv=TR==="develop"?clamp(tt/1.4):1,dv2=dv*dv*(3-2*dv);F.dev=1;
-  if(i>0&&TR==="slide"&&tt<.32){const p=sh[i-1],k=1-Math.pow(1-tt/.32,3);drawShot(x,F,p,t-p.at,1);x.save();x.translate((1-k)*CW*(i%2?1:-1),0);drawShot(x,F,s,tt,1);x.restore()}
+  const TW=F.grid?Math.min(1.3,2*F.grid.P):.8;
+  if(i>0&&tt<TW){const p=sh[i-1];drawShot(x,F,p,t-p.at,1);F.dev=dv2;shatter(x,F,s,tt,TW,i,t);F.dev=1}
   else if(i>0&&tt<L.fade){const p=sh[i-1];drawShot(x,F,p,t-p.at,1);F.dev=dv2;drawShot(x,F,s,tt,clamp(tt/L.fade));F.dev=1}else{F.dev=dv2;drawShot(x,F,s,tt,1);F.dev=1}
   if(i>0&&TR==="flash"&&tt<.16){x.globalAlpha=(1-tt/.16)*.6;x.fillStyle=d.type==="kolyuchki"?"#c73e24":"#fff6e0";x.fillRect(0,0,CW,CH);x.globalAlpha=1}
   x.restore();
@@ -1414,7 +1428,7 @@ async function openFilm(record){stopSong();
     if(d.music.grid){F.grid=d.music.grid;F.dance=danceOf(d);F.amp=danceAmp(d);plan=F.plan=filmPlan(d,ALLM.filter(m=>F.els.has(m.url)),F.grid)}}
   if(d.music.buf){try{const a=actx();a.resume();const src=a.createBufferSource(),g=a.createGain(),now=a.currentTime;src.buffer=d.music.buf;src.loop=false;F.a=a;F.at0=now;F.lat=record?0:Math.min(.25,a.outputLatency||a.baseLatency||0);
     g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(.9,now+1.8);g.gain.setValueAtTime(.9,now+Math.max(1.9,plan.total-1.6));g.gain.linearRampToValueAtTime(0,now+plan.total+.2);
-    src.connect(g);g.connect(a.destination);if(record){F.dest=a.createMediaStreamDestination();g.connect(F.dest)}src.start();F.src=src}catch(e){}}
+    src.connect(g);g.connect(a.destination);try{F.an=a.createAnalyser();F.an.fftSize=512;F.an.smoothingTimeConstant=.5;F.fd=new Uint8Array(256);src.connect(F.an)}catch(e){}if(record){F.dest=a.createMediaStreamDestination();g.connect(F.dest)}src.start();F.src=src}catch(e){}}
   if(record){try{const stream=new MediaStream([...cv.captureStream(30).getVideoTracks(),...(F.dest?F.dest.stream.getAudioTracks():[])]);
       const type=["video/mp4;codecs=avc1,mp4a.40.2","video/mp4","video/webm;codecs=vp9,opus","video/webm"].find(t=>window.MediaRecorder&&MediaRecorder.isTypeSupported(t));
       const rec=new MediaRecorder(stream,type?{mimeType:type,videoBitsPerSecond:6e6}:undefined),chunks=[];rec.ondataavailable=ev=>ev.data.size&&chunks.push(ev.data);
@@ -1751,7 +1765,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=56;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=57;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
