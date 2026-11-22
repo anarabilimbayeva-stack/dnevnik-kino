@@ -1467,8 +1467,12 @@ async function openFilm(record){stopSong();
   /* в фильм идут только те кадры, что загрузились; план строится заново уже с настоящими пропорциями */
   plan=F.plan=filmPlan(d,ALLM.filter(m=>F.els.has(m.url)));
   if(!d.music.buf){try{d.music.buf=(await analyzeSong(d.song.url)).buf}catch(e){}if(!F.alive)return}
-  if(d.music.buf){if(!d.music.grid)d.music.grid=beatGrid(d.music.buf);
-    if(d.music.grid){if(!d.music.map)d.music.map=soundMap(d.music.buf,d.music.grid);F.map=d.music.map;F.grid=d.music.grid;F.dance=danceOf(d);F.amp=danceAmp(d);plan=F.plan=filmPlan(d,ALLM.filter(m=>F.els.has(m.url)),F.grid)}}
+  if(d.music.buf){if(!d.music.grid){d.music.grid=beatGrid(d.music.buf);
+      /* сверка с нейросетью: если удары барабанов стоят не на долях сетки, а между ними, сетка сдвигается на полдоли */
+      const g=d.music.grid,nn=d.song.nn&&d.song.nn.hits;if(g&&nn&&nn.length>6){const near=o=>nn.filter(h=>{const ph=(((h[0]-g.ph-o)/g.P)%1+1)%1;return Math.min(ph,1-ph)*g.P<.05}).length;if(near(g.P/2)>near(0)*1.3)g.ph=(g.ph+g.P/2)%g.P}}
+    if(d.music.grid){if(!d.music.map){d.music.map=soundMap(d.music.buf,d.music.grid);
+      /* для встроенных дней акценты заранее найдены нейросетью: она отделила барабаны от остальной музыки, и удары взяты из чистой дорожки барабанов */
+      if(d.music.map&&d.song.nn&&d.song.nn.hits){d.music.map.hits=d.song.nn.hits.map(h=>({t:h[0],s:h[1]}));d.music.map.byNN=true}}F.map=d.music.map;F.grid=d.music.grid;F.dance=danceOf(d);F.amp=danceAmp(d);plan=F.plan=filmPlan(d,ALLM.filter(m=>F.els.has(m.url)),F.grid)}}
   if(d.music.buf){try{const a=actx();a.resume();const src=a.createBufferSource(),g=a.createGain(),now=a.currentTime;src.buffer=d.music.buf;src.loop=false;F.a=a;F.at0=now;F.lat=record?0:Math.min(.25,a.outputLatency||a.baseLatency||0);
     g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(.9,now+1.8);g.gain.setValueAtTime(.9,now+Math.max(1.9,plan.total-1.6));g.gain.linearRampToValueAtTime(0,now+plan.total+.2);
     src.connect(g);g.connect(a.destination);try{F.an=a.createAnalyser();F.an.fftSize=512;F.an.smoothingTimeConstant=.5;F.fd=new Uint8Array(256);src.connect(F.an)}catch(e){}if(record){F.dest=a.createMediaStreamDestination();g.connect(F.dest)}src.start();F.src=src}catch(e){}}
@@ -1498,7 +1502,7 @@ const DB={db:null,mem:new Map(),
 const CAPS={"demo-1":["с мамой","какао"],"demo-2":["волны!","мороженое"],"demo-3":["2:00","огни"],"demo-4":["капли","чай"],"demo-5":["никого","музыка"],"demo-6":["плед","чай"],"real-1":["Пекин","18 июня"],"real-2":["прогулка","20 июля"],"real-3":["зал","22 ноября"]};
 const TAIL={громкий:"на полной громкости",яркий:"полный смеха",тёплый:"в тёплом свете",тихий:"в тихом ритме"};
 const hash=s=>{let h=7;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)%100000+1};
-const fromDemo=d=>({moods:d.moods||null,noRepeat:d.noRepeat||null,ask:d.ask||{},letter0:d.letter||null,id:d.id,date:d.date,text:d.text,type:d.type,good:d.good||"",kind:d.kind||"",media:d.photos.map(p=>({url:"demo/"+p,video:/\.(mp4|webm|mov)$/i.test(p)})),song:{pre:d.song.url?d.song.music:null,name:d.song.url?d.song.name:(d.song.itunes?"мелодия (песня не загрузилась)":d.song.name),url:d.song.url||"demo/"+d.song.file,genre:d.song.genre||"",year:d.song.year||"",link:d.song.link||""}});
+const fromDemo=d=>({moods:d.moods||null,noRepeat:d.noRepeat||null,ask:d.ask||{},letter0:d.letter||null,id:d.id,date:d.date,text:d.text,type:d.type,good:d.good||"",kind:d.kind||"",media:d.photos.map(p=>({url:"demo/"+p,video:/\.(mp4|webm|mov)$/i.test(p)})),song:{nn:d.song.url?d.song.nn||null:null,pre:d.song.url?d.song.music:null,name:d.song.url?d.song.name:(d.song.itunes?"мелодия (песня не загрузилась)":d.song.name),url:d.song.url||"demo/"+d.song.file,genre:d.song.genre||"",year:d.song.year||"",link:d.song.link||""}});
 const fromStored=r=>({ask:r.ask||{},id:r.id,date:r.date,text:r.text,own:true,film:!!r.film,mood:r.mood!==false,type:r.type,good:r.good||"",kind:r.kind||"",media:r.files.map(f=>({url:URL.createObjectURL(f),video:(f.type||"").startsWith("video")})),song:{name:r.song.name,url:URL.createObjectURL(r.song.blob),genre:r.song.genre||"",year:r.song.year||"",link:r.song.link||""}});
 /* проверка кадров: чёрные и нечитаемые фото и видео в день не попадают */
 function mediaOk(m){return new Promise(res=>{let done=false;const fin=(ok,poster,q,ar,t0)=>{if(!done){done=true;res({ok,poster,q:q||0,ar,t0:t0||0})}},
@@ -1808,7 +1812,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=60;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=61;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
