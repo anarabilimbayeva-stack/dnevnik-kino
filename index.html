@@ -822,9 +822,12 @@ const PAPERS={
   fire: {paper:"#cf4428",ink:"#fdf0dc",acc:"#f6d04a",hue:14, word:"яркий",pname:"красная"},
   olive:{paper:"#979a76",ink:"#1d1a14",acc:"#b8321b",hue:38, word:"тёплый",pname:"оливковая"},
   rain: {paper:"#566a82",ink:"#f3ebdd",acc:"#f2c53d",hue:212,word:"тихий",pname:"сизая"}};
-function look(m){
+/* бумагу выбирает звук песни. Но если человек сам назвал день спокойным («Как дома», «На паузе»),
+   а песня громкая, последнее слово за человеком: бумага остаётся спокойной, ритм и наклон букв — от песни */
+const CALMT={pled:1,tishina:1};
+function look(m,type){
   const fast=clamp((m.bpm-70)/80),e=m.energy;
-  const tn=m.tone??.4,key=e>.7?(tn<.65?"night":"fire"):(tn<.22?"rain":"olive"),P=PAPERS[key];
+  const tn=m.tone??.4,loud=e>.7?(tn<.65?"night":"fire"):null,soft=!!(loud&&CALMT[type]),key=loud&&!soft?loud:(tn<.22?"rain":"olive"),P={...PAPERS[key],soft:soft?PAPERS[loud].pname:""};
   const beat=60/m.bpm,beats=Math.max(2,Math.round((3.3-fast*1.1)/beat));
   return{...P,key,tilt:(2+e*6+fast*2).toFixed(1)+"deg",jit:3+e*9,beat,shot:beats*beat,fade:e>.7?.12:+(1.1-e*1.2).toFixed(2),zoom:+(0.05+e*.08).toFixed(3)};
 }
@@ -867,7 +870,7 @@ function underHtml(d){const T=TYPES[d.type],a=afterOf(d),like=likeOf(d);let h=as
   if(T.hard)h+=`<div class="ublock"><i class="ulabel">что было потом</i>${a?`<p>Через ${a.gap} ${plural(a.gap,"день","дня","дней")} был день «${TYPES[a.day.type].name}».</p><div class="scraps">${scrap(a.day)}</div>`:`<p>После этого дня светлый ещё не записан. Запиши его, когда он придёт.</p>`}</div>`;
   if(like.length)h+=`<div class="ublock"><i class="ulabel">дни как этот — «${T.name}»</i><div class="scraps">${like.map(scrap).join("")}</div></div>`;
   return h}
-async function setType(id,t){const d=DAYS.find(x=>x.id===id);if(!d)return;d.type=t;d.typeAuto=false;const r=(await DB.all()).find(x=>x.id===id);if(r){r.type=t;await DB.put(r)}render(cur);renderYear()}
+async function setType(id,t){const d=DAYS.find(x=>x.id===id);if(!d)return;d.type=t;d.typeAuto=false;if(d.music)d.look=look(d.music,t);const r=(await DB.all()).find(x=>x.id===id);if(r){r.type=t;await DB.put(r)}render(cur);renderYear()}
 function openTypePick(id){const d=DAYS.find(x=>x.id===id),box=$("tpick");
   box.innerHTML=`<div class="tp-in"><b>каким был этот день?</b>${TKEYS.map(t=>`<button data-set="${t}" class="${t===d.type?"on":""}">${tsvg(t)}<span>${TYPES[t].name}<small>${TYPES[t].hint}</small></span></button>`).join("")}<button class="tp-x" data-close>закрыть</button></div>`;
   box.hidden=false;box.onclick=e=>{const s=e.target.closest("[data-set]");if(s){box.hidden=true;setType(id,s.dataset.set)}else if(e.target===box||e.target.closest("[data-close]"))box.hidden=true}}
@@ -959,7 +962,7 @@ async function recVoice(btn){const d=DAYS[cur];
 try{speechSynthesis.getVoices()}catch(e){}
 /* ---------- почему день выглядит так ---------- */
 function whyRows(d){const L=d.look,m=d.music,v=voiceOf(d),kws=[...new Set((d.text.match(/[A-Za-zА-Яа-яЁё-]+/g)||[]).filter(w=>{const l=w.toLowerCase().replace(/ё/g,"е");return KEY.some(k=>kw(k,l)&&l.length<k.length+5)}).map(w=>w.toLowerCase()))].slice(0,6);
-  const R=[["песня",`${m.bpm} ударов в минуту, энергия ${Math.round(m.energy*100)}%, звук ${(m.tone??.4)<.22?"приглушённый":(m.tone??.4)>.6?"яркий":"мягкий"}`,`${L.pname} бумага и «${L.word}» день; буквы названия наклонены на ${parseFloat(L.tilt)}°; кадр фильма длится ${L.shot.toFixed(1)} с`]];
+  const R=[["песня",`${m.bpm} ударов в минуту, энергия ${Math.round(m.energy*100)}%, звук ${(m.tone??.4)<.22?"приглушённый":(m.tone??.4)>.6?"яркий":"мягкий"}`,`${L.soft?`песня сама дала бы ${L.soft.replace(/ая$/,"ую")} бумагу, но день назван «${TYPES[d.type].name}» → `:""}${L.pname} бумага и «${L.word}» день; буквы названия наклонены на ${parseFloat(L.tilt)}°; кадр фильма длится ${L.shot.toFixed(1)} с`]];
   if(d.song.genre||d.song.year)R.push(["о песне",[d.song.genre,d.song.year].filter(Boolean).join(", "),"записано в чек дня"]);
   if(d.photo)R.push(["фото",`${d.media.length} шт., ${d.photo.light}`,"главный цвет снимка стал цветом обведённых слов и волны песни",d.photo.pal]);
   R.push(["слова",kws.length?kws.map(w=>"«"+w+"»").join(", "):"ключевых слов не нашлось",kws.length?"из них собрано название папки, они обведены в тексте, по ним нарисованы значки на полях":"название собрано из времени года и суток"]);
@@ -1332,7 +1335,7 @@ const DB={db:null,mem:new Map(),
   async put(d){this.mem.set(d.id,d);if(!this.db)return;try{await new Promise((res,rej)=>{const tx=this.db.transaction("days","readwrite");tx.objectStore("days").put(d);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}catch(e){}},
   async del(id){this.mem.delete(id);if(!this.db)return;try{await new Promise((res,rej)=>{const tx=this.db.transaction("days","readwrite");tx.objectStore("days").delete(id);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}catch(e){}}
 };
-const CAPS={"demo-1":["с мамой","какао"],"demo-2":["волны!","мороженое"],"demo-3":["2:00","огни"],"demo-4":["капли","чай"],"demo-5":["никого","музыка"],"demo-6":["плед","чай"],"real-1":["Пекин","18 июня"]};
+const CAPS={"demo-1":["с мамой","какао"],"demo-2":["волны!","мороженое"],"demo-3":["2:00","огни"],"demo-4":["капли","чай"],"demo-5":["никого","музыка"],"demo-6":["плед","чай"],"real-1":["Пекин","18 июня"],"real-2":["прогулка","20 июля"]};
 const TAIL={громкий:"на полной громкости",яркий:"полный смеха",тёплый:"в тёплом свете",тихий:"в тихом ритме"};
 const hash=s=>{let h=7;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)%100000+1};
 const fromDemo=d=>({ask:d.ask||{},letter0:d.letter||null,id:d.id,date:d.date,text:d.text,type:d.type,good:d.good||"",kind:d.kind||"",media:d.photos.map(p=>({url:"demo/"+p,video:/\.(mp4|webm|mov)$/i.test(p)})),song:{pre:d.song.url?d.song.music:null,name:d.song.url?d.song.name:(d.song.itunes?"мелодия (песня не загрузилась)":d.song.name),url:d.song.url||"demo/"+d.song.file,genre:d.song.genre||"",year:d.song.year||"",link:d.song.link||""}});
@@ -1354,7 +1357,7 @@ function sharp(el){try{const N=72,c=document.createElement("canvas");c.width=c.h
   return e/(N*N)*(mean<.16||mean>.9?.5:1)}catch(e){return 0}}
 async function hydrate(raw){if((raw.own||raw.media.some(m=>m.video))&&raw.media.length){const ok=await Promise.all(raw.media.map(mediaOk)),good0=raw.media.map((m,i)=>ok[i].ok?{...m,poster:ok[i].poster,q:ok[i].q,ar:ok[i].ar||1,t0:ok[i].t0||0}:null).filter(Boolean),top=[...good0].filter(m=>!m.video).sort((a,b)=>b.q-a.q).slice(0,2),good=[...top,...good0.filter(m=>!top.includes(m))];raw={...raw,media:good.length?good:raw.media.slice(0,1),dropped:raw.media.length-good.length}}
   let music;try{music=raw.song.pre?{...raw.song.pre}:await analyzeSong(raw.song.url)}catch(e){music={bpm:96,energy:.4,bright:.5,duration:30,wave:Array.from({length:90},(_,k)=>.4+.3*Math.sin(k/4))}}
-  const L=look(music),photo=await photoLook(raw,L);return{...raw,photo,seed:hash(raw.id),music,look:L,ask:{...(raw.ask||{}),...(ASKS[raw.id]||{})},title:makeTitle(raw.text,raw.date,TAIL[L.word],{...(raw.ask||{}),...(ASKS[raw.id]||{})}),caps:CAPS[raw.id]||[human(raw.date).dd,raw.song.name],type:TYPES[raw.type]?raw.type:suggestType(raw.text,L.key),typeAuto:!TYPES[raw.type]};
+  const L=look(music,TYPES[raw.type]?raw.type:null),photo=await photoLook(raw,L);return{...raw,photo,seed:hash(raw.id),music,look:L,ask:{...(raw.ask||{}),...(ASKS[raw.id]||{})},title:makeTitle(raw.text,raw.date,TAIL[L.word],{...(raw.ask||{}),...(ASKS[raw.id]||{})}),caps:CAPS[raw.id]||[human(raw.date).dd,raw.song.name],type:TYPES[raw.type]?raw.type:suggestType(raw.text,L.key),typeAuto:!TYPES[raw.type]};
 }
 async function setFilm(id,v){const d=DAYS.find(x=>x.id===id);if(!d)return;d.film=v;const r=(await DB.all()).find(x=>x.id===id);if(r){r.film=v;await DB.put(r)}render(cur)}
 async function removeDay(id){await DB.del(id);DAYS=DAYS.filter(d=>d.id!==id);render(Math.min(cur,DAYS.length-1));renderYear()}
@@ -1645,7 +1648,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=44;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=45;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
