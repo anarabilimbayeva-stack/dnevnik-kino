@@ -903,7 +903,8 @@ function bestVoice(){const ru=speechSynthesis.getVoices().filter(x=>/^ru/i.test(
 function sayDay(btn){const d=DAYS[cur],off=()=>btn.classList.remove("on");
   if(btn.classList.contains("on")){try{speechSynthesis.cancel()}catch(e){}vplay.pause();SAYID++;off();return}
   stopSong();const mine=VOICES.get(d.id);
-  if(mine&&mine.length){const my=++SAYID;let k=0;const nx=()=>{if(my!==SAYID)return;if(k>=mine.length){off();return}vplay.src=URL.createObjectURL(mine[k++]);vplay.onended=nx;vplay.play().catch(off)};btn.classList.add("on");nx();return}
+  if(mine&&mine.length){const my=++SAYID;let k=0;const nx=()=>{if(my!==SAYID)return;if(k>=mine.length){off();return}vplay.src=URL.createObjectURL(mine[k++]);vplay.onended=nx;vplay.playbackRate=clamp(.86+voiceOf(d).rate*.14,.95,1.06);vplay.play().catch(off)};btn.classList.add("on");nx();return}
+  return;/* компьютерный голос убран: запись читает только живой голос */
   const S=window.speechSynthesis;if(!S){btn.querySelector("i").textContent="в этом браузере нет озвучки";return}
   const v=voiceOf(d),voice=bestVoice(),parts=(d.text.match(/[^.!?…]+[.!?…]*/g)||[d.text]).map(x=>x.trim()).filter(Boolean),my=++SAYID,gap=Math.round(520-clamp((d.music.bpm-70)/80)*300);btn.classList.add("on");
   const next=k=>{if(my!==SAYID)return;if(k>=parts.length){off();return}const t=parts[k],u=new SpeechSynthesisUtterance(t),last=k===parts.length-1,ex=/!/.test(t),qu=/\?/.test(t);
@@ -927,7 +928,7 @@ function whyRows(d){const L=d.look,m=d.music,v=voiceOf(d),kws=[...new Set((d.tex
   const A=d.ask||{},an=[A.weather&&({sun:"солнце",clouds:"пасмурно",rain:"дождь",snow:"снег",wind:"ветер",fog:"туман"}[A.weather]||A.weather),A.time&&{morning:"утро",day:"день",evening:"вечер",night:"ночь"}[A.time],A.pace&&({slow:"медленный день",mid:"обычный темп",fast:"суматошный день"}[A.pace]||A.pace),A.place].filter(Boolean);
   if(an.length)R.push(["ответы",an.join(", "),"погода задаёт эффект в фильме, часть дня — оттенок кадров и слово в названии, темп — длину кадров"]);
   R.push(["фильм",FXNAME[fxOf(d)],A.weather?"эффект взят из ответа про погоду":"эффект выбран по словам записи, а если подходящих слов нет — по звуку песни"]);
-  R.push(["голос",v.word,`скорость ${v.rate}, высота ${v.pitch}: его задаёт темп песни`]);
+  if(VOICES.has(d.id))R.push(["голос","свой, записан при рассказе","скорость чтения чуть подстраивается под темп песни: у быстрых дней живее, у тихих спокойнее"]);
   R.push(["тип дня","«"+TYPES[d.type].name+"»",d.typeAuto?"подсказан по словам, человек может поправить":"его выбрал человек, а не сайт"]);return R}
 function whyHtml(d){return`<div class="ublock"><i class="ulabel">почему день выглядит так</i><dl class="why">${whyRows(d).map(r=>`<dt>${r[0]}</dt><dd><b>${esc(r[1])}</b>${r[3]?`<span class="sw">${r[3].map(c=>`<i style="background:${c}"></i>`).join("")}</span>`:""} → ${esc(r[2])}</dd>`).join("")}</dl></div>`}
 /* ---------- папка дня: всё, что относится к дню, одним архивом ---------- */
@@ -950,7 +951,7 @@ async function poster(d){const c=document.createElement("canvas");c.width=1080;c
   x.font="30px 'PT Mono'";x.fillText("♪ "+d.song.name+" · "+d.music.bpm+" уд/мин",70,1290);return new Promise(r=>c.toBlob(r,"image/png"))}
 const folderName=d=>`${d.date} ${d.title}`;
 function folderList(d){const ph=d.media.map((m,k)=>[`${m.video?"видео":"фото"}-${k+1}`,m.video?"видео дня":"фото дня"]);
-  return[["запись.txt","текст, дата, название, тип дня"],...ph,["песня","песня дня: "+d.song.name],["воспоминание.png","открытка дня, собранная из фото, названия и песни"],["почему-так.txt","правила: что на что повлияло"],["голос.txt","каким голосом читать запись"]]}
+  return[["запись.txt","текст, дата, название, тип дня"],...ph,["песня","песня дня: "+d.song.name],["воспоминание.png","открытка дня, собранная из фото, названия и песни"],["почему-так.txt","правила: что на что повлияло"],["голос","запись голосом автора, если она есть"]]}
 async function folderZip(d){const enc=new TextEncoder(),F=[],dir=folderName(d)+"/",T=TYPES[d.type],l=letterOf(d),ext=t=>({"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/heic":"heic","video/mp4":"mp4","video/quicktime":"mov","video/webm":"webm","audio/mpeg":"mp3","audio/mp4":"m4a","audio/x-m4a":"m4a","audio/aac":"m4a","audio/wav":"wav","audio/ogg":"ogg"})[t]||"bin";
   const add=(n,data)=>F.push({name:dir+n,data}),get=async u=>{const b=await(await fetch(u)).blob();return{u8:new Uint8Array(await b.arrayBuffer()),type:b.type}};
   add("запись.txt",enc.encode(`${fullDate(d.date)}, ${human(d.date).small.split(" · ")[0]}\nПапка дня: ${d.title}\nТип дня: ${T.name}\nПесня: ${d.song.name}${d.song.genre?" ("+[d.song.genre,d.song.year].filter(Boolean).join(", ")+")":""}\n\n${d.text}\n${d.good?"\nПолучилось: "+d.good:""}${d.kind?"\nСебе: "+d.kind:""}\n`));
@@ -960,7 +961,7 @@ async function folderZip(d){const enc=new TextEncoder(),F=[],dir=folderName(d)+"
   try{add("воспоминание.png",new Uint8Array(await(await poster(d)).arrayBuffer()))}catch(e){}
   add("почему-так.txt",enc.encode(whyRows(d).map(r=>`${r[0]}: ${r[1]} → ${r[2]}`).join("\n")+"\n"));
   if(VOICES.has(d.id)){const vs=VOICES.get(d.id);for(let k=0;k<vs.length;k++)add("голос"+(vs.length>1?"-"+(k+1):"")+"."+(/mp4|m4a|aac/.test(vs[k].type)?"m4a":"webm"),new Uint8Array(await vs[k].arrayBuffer()))}
-  const v=voiceOf(d);add("голос.txt",enc.encode(`Голос озвучки: ${v.word}.\nСкорость ${v.rate}, высота ${v.pitch}, громкость ${v.vol}.\nОзвучка звучит на сайте по кнопке «послушать запись».\n`));
+  if(VOICES.has(d.id))add("голос.txt",enc.encode("Запись читает живой голос автора. Скорость чтения чуть подстраивается под темп песни дня.\n"));
   if(l&&l.open<=today())add("письмо-себе.txt",enc.encode(`Написано ${fullDate(l.written)}, открыто ${fullDate(l.open)}\n\n${l.text}\n`));
   return zipBlob(F)}
 function openFolder(d){const box=$("mail");
@@ -1005,7 +1006,7 @@ function pageEl(d,side){
       <button class="tlabel pop" ${pop()} data-type="${d.id}" title="${TYPES[d.type].hint}">${tsvg(d.type)}<b>${TYPES[d.type].name}</b><i>${d.own?(d.typeAuto?"так? нажми и поправь":"поменять"):"все такие дни"}</i></button>
       <div class="twrap pop" ${pop()}><i class="tb-tape"></i><div class="tbox" style="clip-path:${K==="rain"?torn(d.seed,"tb"):K==="olive"?torn(d.seed,"r"):"none"}"><p class="text">${dsvg(dd[0])}${txt}${LONG?` <button class="more-t" data-moret="${d.id}">…читать дальше</button>`:d.text.length>430?` <button class="more-t" data-moret="${d.id}">свернуть</button>`:""}</p></div></div>
       ${(d.ask||{}).sense?`<p class="pline pop" ${pop()}><b>≈ осталось:</b> ${esc(d.ask.sense)}</p>`:""}${d.good?`<p class="pline pop" ${pop()}><b>✓ получилось:</b> ${esc(d.good)}</p>`:""}${d.kind?`<p class="pline pop" ${pop()}><b>♡ себе:</b> ${esc(d.kind)}</p>`:""}
-      <span class="says pop" ${pop()}><button class="say" data-say>🔊 послушать запись<i>${VOICES.has(d.id)?"твой голос":"голос: "+voiceOf(d).word}</i></button><button class="say rec" data-rec>${VOICES.has(d.id)?"✕ убрать мой голос":"🎙 прочитать своим голосом"}<i></i></button></span>
+      <span class="says pop" ${pop()}>${VOICES.has(d.id)?`<button class="say" data-say>🔊 послушать запись<i>твой голос</i></button><button class="say rec" data-rec>✕ убрать мой голос<i></i></button>`:`<button class="say rec" data-rec>🎙 прочитать запись своим голосом<i></i></button>`}</span>
       <div class="song pop" ${pop()}><svg viewBox="0 0 300 56" preserveAspectRatio="none"><path pathLength="1" d="${pts}"/></svg><div class="lbl">♪ ${esc(d.song.name)}<i>${d.music.bpm} уд/мин · ${L.word} день</i></div></div>
       ${POKED?"":`<div class="poke" aria-hidden="true"><svg viewBox="0 0 80 70" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 64C8 40 22 16 58 10"/><path d="M44 4l15 6-9 13"/></svg><span>псс… ткни в штамп.<br>и в фото. тут всё<br>звучит</span></div>`}
       <span class="pno">стр. ${h.doy*2-1}</span>`;
@@ -1584,7 +1585,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=26;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=27;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
