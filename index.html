@@ -970,6 +970,7 @@ function whyRows(d){const L=d.look,m=d.music,v=voiceOf(d),kws=[...new Set((d.tex
   R.push(["слова",kws.length?kws.map(w=>"«"+w+"»").join(", "):"ключевых слов не нашлось",kws.length?"из них собрано название папки, они обведены в тексте, по ним нарисованы значки на полях":"название собрано из времени года и суток"]);
   const A=d.ask||{},an=[A.weather&&({sun:"солнце",clouds:"пасмурно",rain:"дождь",snow:"снег",wind:"ветер",fog:"туман"}[A.weather]||A.weather),A.time&&{morning:"утро",day:"день",evening:"вечер",night:"ночь"}[A.time],A.pace&&({slow:"медленный день",mid:"обычный темп",fast:"суматошный день"}[A.pace]||A.pace),A.place].filter(Boolean);
   if(an.length)R.push(["ответы",an.join(", "),"погода задаёт эффект в фильме, часть дня — оттенок кадров и слово в названии, темп — длину кадров"]);
+  if(direct(d))R.push(["монтаж",`день назван «${TYPES[d.type].name}»`,direct(d).how]);
   R.push(["фильм",FXNAME[fxOf(d)],A.weather?"эффект взят из ответа про погоду":"эффект выбран по словам записи, а если подходящих слов нет — по звуку песни"]);
   if(VOICES.has(d.id))R.push(["голос","свой, записан при рассказе","скорость чтения чуть подстраивается под темп песни: у быстрых дней живее, у тихих спокойнее"]);
   R.push(["тип дня","«"+TYPES[d.type].name+"»",d.typeAuto?"подсказан по словам, человек может поправить":"его выбрал человек, а не сайт"]);return R}
@@ -1173,14 +1174,26 @@ function filmCaps(d){const w=words(d.text),c=[],add=v=>{if(v&&!c.includes(v))c.p
 /* план фильма: титул → карточка с темами дня → кадры → карточка «получилось» → конец.
    Вертикальные фото и видео собираются по три в один широкий кадр (триптих), горизонтальные идут во весь экран с движением камеры.
    Подписи не накладываются на фото: о чём день, сказано на отдельных бумажных карточках. */
+/* режиссура по типу дня: один и тот же набор фото шесть типов собирают по-разному.
+   pace — длина кадра, fade — склейка (длинный наплыв или встык), zoom — движение камеры, grade — цвет,
+   tri — кадры по три или по одному, pol — вертикальные фото как полароиды на бумаге дня */
+const DIRECT={
+  iskry:{pace:.85,fade:.12,zoom:1.3,grade:"saturate(1.28) brightness(1.04)",tri:true,how:"яркий коллаж: кадры по три, сочные цвета, короткие склейки"},
+  pled:{pace:1.25,fade:1.1,zoom:.7,grade:"sepia(.2) saturate(.95) brightness(1.02)",tri:true,how:"медленные наплывы, тёплый оттенок, кадры по три, как в семейном альбоме"},
+  tishina:{pace:1.6,fade:1.4,zoom:.45,grade:"saturate(.8) brightness(1.03)",tri:false,pol:true,how:"по одному кадру, долго и почти неподвижно, фото лежат полароидами на бумаге"},
+  uragan:{pace:.62,fade:.05,zoom:1.7,grade:"contrast(1.15) saturate(1.1)",tri:true,how:"короткие кадры встык, резкий наезд камеры, без пауз"},
+  tuchi:{pace:1.35,fade:1.2,zoom:.6,grade:"saturate(.45) brightness(.92) contrast(1.05)",tri:false,pol:true,how:"по одному кадру, цвета приглушены, длинные наплывы, фото лежат полароидами на бумаге"},
+  kolyuchki:{pace:.72,fade:.04,zoom:1.5,grade:"contrast(1.3) saturate(1.15) brightness(.95)",tri:false,pol:true,how:"жёсткие склейки без наплывов, высокий контраст, кадры по одному"}};
+const direct=d=>d&&!d.typeAuto&&DIRECT[d.type]||null;
+function filmLook(d){const D=direct(d),L=d.look;return D?{...L,shot:L.shot*D.pace,fade:D.fade,zoom:+(L.zoom*D.zoom).toFixed(3),gradeX:D.grade,D}:{...L,gradeX:""}}
 function filmPlan(d,med){
-  const pace=(p=>({slow:1.3,fast:.78}[p]||(/медлен|тих|спокой|лен/.test(p||"")?1.3:/быстр|сумат|бег|спеш/.test(p||"")?.78:1)))((d.ask||{}).pace),L={...d.look,shot:d.look.shot*pace},caps=filmCaps(d),media=(med||d.media.concat(moodFor(d))).filter(Boolean),m=media.length;
+  const pace=(p=>({slow:1.3,fast:.78}[p]||(/медлен|тих|спокой|лен/.test(p||"")?1.3:/быстр|сумат|бег|спеш/.test(p||"")?.78:1)))((d.ask||{}).pace),FL=filmLook(d),D=FL.D,L={...FL,shot:FL.shot*pace},caps=filmCaps(d),media=(med||d.media.concat(moodFor(d))).filter(Boolean),m=media.length;
   const first=media.find(x=>!x.video)||media[0],themes=caps.filter(c=>!/^♪|^день «|^получилось/.test(c)),shots=[{card:true,media:first,mv:"in",dur:Math.max(L.shot,2.8)}];
   /* отдельных слайдов с одним текстом в фильме нет: слова дня идут подписью поверх кадров */
   const endM0=[...media].reverse().find(x=>!x.video)||media[m-1],body=m>=5?media.filter(x=>x!==first&&x!==endM0):media;
   /* вертикальные кадры — по три, почти квадратные горизонтальные (4:3) — по два: так лица не обрезаются. Широкие идут во весь экран */
   const isP=x=>(x.ar||1)<1.2,isM=x=>(x.ar||1)>=1.2&&(x.ar||1)<1.6,buf=[],buf2=[],seq=[];
-  body.forEach(x=>{if(m>=3&&isP(x)){buf.push(x);if(buf.length===3)seq.push({tri:buf.splice(0,3)})}else if(m>=3&&isM(x)){buf2.push(x);if(buf2.length===2)seq.push({tri:buf2.splice(0,2)})}else seq.push({pan:x})});
+  const TRI=!D||D.tri;body.forEach(x=>{if(TRI&&m>=3&&isP(x)){buf.push(x);if(buf.length===3)seq.push({tri:buf.splice(0,3)})}else if(TRI&&m>=3&&isM(x)){buf2.push(x);if(buf2.length===2)seq.push({tri:buf2.splice(0,2)})}else seq.push({pan:x})});
   if(buf.length===2)seq.push({tri:buf.splice(0,2)});else if(buf.length===1)seq.push({pan:buf[0]});if(buf2.length)seq.push({pan:buf2[0]});
   /* фото мало — проходим по ним ещё раз, другой дорогой камеры */
   const base=seq.length,endM=[...media].reverse().find(x=>!x.video)||media[m-1],pool=media.filter(x=>(x!==endM||m<3)&&!(d.noRepeat||[]).some(n=>(x.url||"").endsWith(n)));for(let k=0;m<5&&seq.length<5&&base&&pool.length;k++)seq.push({pan:pool[(k+1)%pool.length],again:1});
@@ -1195,7 +1208,7 @@ function filmPlan(d,med){
   seq.forEach((q,i)=>{
     if(q.tri){shots.push({tri:q.tri,media:q.tri[0],mv:"in",dur:ph[i]})}
     else{const up=(k+(q.again?1:0))%2===1,tall=(q.pan.ar||1)<1.2,sh={media:q.pan,mv:MOVES[k%MOVES.length],dur:ph[i],p0:tall?(up?.7:.08):(up?.5:.28),p1:tall?(up?.2:.6):(up?.28:.5)};
-      if(m<=5&&!q.pan.video&&pc++%3===1){sh.pol=pc%2?1:-1;sh.cap="";sh.dur=Math.max(sh.dur,2.4)}shots.push(sh);k++}});
+      if(D&&D.pol&&!q.pan.video&&tall){sh.pol=pc++%2?1:-1;sh.cap="";sh.dur=Math.max(sh.dur,2.4)}else if(!(D&&D.pol)&&m<=5&&!q.pan.video&&pc++%3===1){sh.pol=pc%2?1:-1;sh.cap="";sh.dur=Math.max(sh.dur,2.4)}shots.push(sh);k++}});
   shots.push({end:true,media:[...media].reverse().find(x=>!x.video)||media[m-1],mv:"out",dur:Math.max(L.shot,3)});
   let t=0;shots.forEach(q=>{q.at=t;t+=q.dur});
   const bodyS=shots.filter(q=>!q.card&&!q.paper&&!q.end),fs=bodyS[0],subs=fs?[{text:"♪ "+d.song.name,from:fs.at+.4,to:fs.at+Math.min(4.2,fs.dur+1.6)}]:[];
@@ -1216,7 +1229,7 @@ function noiseTiles(){if(NOISE)return NOISE;NOISE=[];for(let n=0;n<6;n++){const 
    Если фото встречается в фильме несколько раз, каждый следующий кадр продолжает путь с того места, где закончился прошлый — так видно всё фото, ничего не обрезано. */
 /* видео, которое ещё не готово показать кадр, заменяется своей картинкой — без чёрных вспышек */
 function elOf(F,m){const el=F.els.get(m.url);if(el&&el.videoWidth!==undefined&&(el.readyState<2||el.seeking||el.currentTime<(m.t0||0)+.02))return F.els.get(m.url+"#p")||el;return el}
-function drawTri(x,F,s,tt,alpha){const L=F.L,K=L.key,n=s.tri.length,gap=K==="rain"?7:10,pw=(CW-gap*(n+1))/n,ph=CH-gap*2,pp=F.els.get("paper"),u0=clamp(tt/(s.dur+.3)),grade=`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(.95)`;
+function drawTri(x,F,s,tt,alpha){const L=F.L,K=L.key,n=s.tri.length,gap=K==="rain"?7:10,pw=(CW-gap*(n+1))/n,ph=CH-gap*2,pp=F.els.get("paper"),u0=clamp(tt/(s.dur+.3)),grade=`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(.95) ${L.gradeX||""}`;
   x.globalAlpha=alpha;if(pp){const k=Math.max(CW/pp.naturalWidth,CH/pp.naturalHeight);x.drawImage(pp,(CW-pp.naturalWidth*k)/2,(CH-pp.naturalHeight*k)/2,pp.naturalWidth*k,pp.naturalHeight*k);x.fillStyle="rgba(0,0,0,.42)";x.fillRect(0,0,CW,CH)}else{x.fillStyle="#0b0705";x.fillRect(0,0,CW,CH)}
   s.tri.forEach((m,k)=>{const el=elOf(F,m);if(!el)return;const w=el.videoWidth||el.naturalWidth,h=el.videoHeight||el.naturalHeight;if(!w)return;
     /* кадры появляются по очереди: у громких дней выезжают, у ночных включаются, у тихих проявляются */
@@ -1228,7 +1241,7 @@ function drawTri(x,F,s,tt,alpha){const L=F.L,K=L.key,n=s.tri.length,gap=K==="rai
 function drawShot(x,F,s,tt,alpha){
   if(s.tri){drawTri(x,F,s,tt,alpha);return}
   const el=elOf(F,s.media);if(!el)return;const w=el.videoWidth||el.naturalWidth,h=el.videoHeight||el.naturalHeight;if(!w)return;
-  const L=F.L,u0=clamp(tt/(s.dur+L.fade+.3)),u=u0*u0*(3-2*u0),grade=s.paper?"none":`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(${s.card||s.end?.58:.95})`;
+  const L=F.L,u0=clamp(tt/(s.dur+L.fade+.3)),u=u0*u0*(3-2*u0),grade=s.paper?"none":`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(${s.card||s.end?.58:.95}) ${L.gradeX||""}`;
   const zz=1+L.zoom*.5*(s.mv==="out"?1-u:u),sc=Math.max(CW/w,CH/h)*1.02*(s.paper?1:zz),dw=w*sc,dh=h*sc,over=Math.max(0,dh-CH),fc=F.focus.get(s.media.url);
   let p;if(s.paper)p=.5;else if(s.card||s.end)p=fc?clamp((fc.cy*dh-CH/2)/(over||1)):.3;else{const a=s.p0??.3,b=s.p1??.3;p=a+(b-a)*u}
   x.globalAlpha=alpha;
@@ -1305,7 +1318,7 @@ function frame(x,F,t){
 function saveFile(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
 let run=null;
 async function openFilm(record){stopSong();
-  closeFilm();const d=DAYS[cur],L=d.look,ALLM=d.media.concat(moodFor(d));let plan=filmPlan(d,ALLM);const F={d,L,plan,h:human(d.date),els:new Map(),bg:new Map(),focus:new Map(),alive:true,fx:fxOf(d),fxr:Array.from({length:60},(_,i)=>{const r=rng(d.seed+i*77);return[r(),r(),r(),r()]})};run=F;
+  closeFilm();const d=DAYS[cur],L=filmLook(d),ALLM=d.media.concat(moodFor(d));let plan=filmPlan(d,ALLM);const F={d,L,plan,h:human(d.date),els:new Map(),bg:new Map(),focus:new Map(),alive:true,fx:fxOf(d),fxr:Array.from({length:60},(_,i)=>{const r=rng(d.seed+i*77);return[r(),r(),r(),r()]})};run=F;
   const film=$("film"),cv=$("cv"),x=cv.getContext("2d");film.classList.add("on");film.classList.toggle("rec",!!record);
   $("fmsg").textContent=record?"идёт запись — досмотри фильм до конца, видео сохранится само":"";$("bar").style.width="0";
   x.fillStyle="#000";x.fillRect(0,0,CW,CH);noiseTiles();
@@ -1657,7 +1670,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=51;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=52;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
