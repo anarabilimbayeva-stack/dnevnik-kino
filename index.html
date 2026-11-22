@@ -649,7 +649,7 @@ header{z-index:8!important}
   </div>
   <div id="view-new" hidden>
     <form class="sheet" id="n-form"><i class="pin" style="left:10%;transform:rotate(-4deg)"></i><i class="pin" style="right:12%;transform:rotate(5deg)"></i>
-      <div class="shead"><span class="rs" id="n-head"></span><p>три вещи — и день превратится в разворот и маленький фильм</p></div>
+      <div class="shead"><span class="rs" id="n-head"></span><p>три вещи — и день превратится в разворот и короткий клип под песню</p></div>
       <div class="scols">
         <div>
           <label class="lab" for="n-text">1. пара строк о дне</label>
@@ -665,12 +665,12 @@ header{z-index:8!important}
         </div>
         <div>
           <span class="lab">2. фото и короткие видео дня</span>
-          <label class="pick"><input type="file" id="n-media" accept="image/*,video/*" multiple>выбрать файлы</label> <button type="button" class="pick" id="n-qr">📱 с телефона по QR</button><small class="hintl" id="n-mcount">чем больше разных кадров, тем живее фильм (лучше 5–8)</small>
+          <label class="pick"><input type="file" id="n-media" accept="image/*,video/*" multiple>выбрать файлы</label> <button type="button" class="pick" id="n-qr">📱 с телефона по QR</button><small class="hintl" id="n-mcount">чем больше разных кадров, тем живее клип (лучше 5–8)</small>
           <div class="thumbs" id="n-thumbs"></div>
           <span class="lab">3. песня дня</span>
           <div class="sfind"><input type="text" id="n-q" placeholder="название и исполнитель"><button type="button" class="pick" id="n-find">найти</button></div>
           <div class="sres" id="n-res"></div>
-          <small class="hintl" id="n-scount">сайт возьмёт отрывок песни (30 секунд): его темп и громкость выберут бумагу, наклон фото и ритм фильма</small>
+          <small class="hintl" id="n-scount">сайт возьмёт отрывок песни (30 секунд): его темп и громкость выберут бумагу, наклон фото и ритм клипа</small>
           <details class="sfile"><summary>или выбрать свой файл mp3</summary><label class="pick"><input type="file" id="n-song" accept="audio/*">выбрать файл</label><input type="text" id="n-sname" placeholder="как называется песня"></details>
         </div>
       </div>
@@ -682,8 +682,8 @@ header{z-index:8!important}
         <input type="text" id="n-good" placeholder="например: дописала проект, обняла бабушку, вкусный чай">
         <div id="n-kindbox" hidden><label class="lab" for="n-kind">что бы ты сказала подруге, если бы у неё был такой день?</label><input type="text" id="n-kind" placeholder="скажи это и себе"></div>
       </div>
-      <label class="chk"><input type="checkbox" id="n-film"> снять фильм об этом дне <small>— можно включить и потом, прямо на странице дня</small></label>
-      <label class="chk c2"><input type="checkbox" id="n-mood" checked> если фото мало, добавить в фильм кадры настроения по тексту <small>— море, дождь, чай, школа…</small></label>
+      <label class="chk"><input type="checkbox" id="n-film"> собрать клип этого дня <small>— можно включить и потом, прямо на странице дня</small></label>
+      <label class="chk c2"><input type="checkbox" id="n-mood" checked> если фото мало, добавить в клип кадры настроения по тексту <small>— море, дождь, чай, школа…</small></label>
       </details>
       <div class="sfoot"><button class="gobtn" id="n-go">вклеить в тетрадь</button><span id="n-status" role="status"></span></div>
       <p class="hintl">Дни хранятся только в этом браузере на этом устройстве. Письмо себе в будущее можно написать потом, на странице дня.</p>
@@ -701,7 +701,7 @@ header{z-index:8!important}
 <div id="mail" hidden></div>
 <div class="lock" id="lock" hidden><form class="lk-in" id="lk-form"><b id="lk-title"></b><p id="lk-text"></p><input id="lk-in" type="password" inputmode="numeric" autocomplete="off" maxlength="8" aria-label="Код"><p id="lk-msg" role="status"></p><button class="pick" id="lk-go"></button><button type="button" class="lnk" id="lk-cancel">не сейчас</button><button type="button" class="lnk" id="lk-forgot">забыла код</button></form></div>
 
-<div class="film" id="film" role="dialog" aria-label="Фильм дня">
+<div class="film" id="film" role="dialog" aria-label="Клип дня">
   <div class="stage"><canvas id="cv" width="1280" height="536"></canvas><div class="bar" id="bar"></div></div>
   <button class="x" id="x">закрыть ✕</button>
   <div class="fctl"><span id="fmsg"></span><button id="again">посмотреть ещё раз</button><button id="rec">сохранить как видео</button></div>
@@ -828,7 +828,7 @@ const QDEF=[["weather","погода",[["sun","☀ солнце"],["clouds","☁
   ["pace","как шёл день",[["slow","медленно"],["mid","как обычно"],["fast","суматошно"]],"своё"],
   ["place","где",[["дома","дома"],["на улице","на улице"],["в школе","в школе"],["в дороге","в дороге"],["на природе","на природе"],["в гостях","в гостях"]],"своё: у бабушки…"]];
 function askHtml(d){const A=d.ask||{},n=Object.values(A).filter(Boolean).length;
-  return`<details class="ublock askb" id="askb"${ASKOPEN||(d.own&&!n)?" open":""}><summary><i class="ulabel">воздух дня</i>${n?"ответов: "+n+" — поменять":"хочешь точнее? ответь одним нажатием — фильм и название подстроятся"} <small>необязательно</small></summary><div class="qs">${QDEF.map(([q,lab,opts,own])=>{const v=A[q],known=opts.some(o=>o[0]===v);
+  return`<details class="ublock askb" id="askb"${ASKOPEN||(d.own&&!n)?" open":""}><summary><i class="ulabel">воздух дня</i>${n?"ответов: "+n+" — поменять":"хочешь точнее? ответь одним нажатием — клип и название подстроятся"} <small>необязательно</small></summary><div class="qs">${QDEF.map(([q,lab,opts,own])=>{const v=A[q],known=opts.some(o=>o[0]===v);
     return`<div class="qrow"><i>${lab}</i><span data-q="${q}">${opts.map(o=>`<button type="button" data-v="${o[0]}" class="${v===o[0]?"on":""}">${o[1]}</button>`).join("")}${own?`<input type="text" data-own placeholder="${own}" value="${v&&!known?esc(v):""}">`:""}</span></div>`}).join("")}
     <div class="qrow"><i>запах, звук или вкус дня</i><span data-q="sense"><input type="text" data-own placeholder="запах мандаринов, шум дождя, вкус какао" value="${esc(A.sense||"")}"></span></div></div></details>`}
 let ASKOPEN=false;
@@ -930,13 +930,13 @@ async function recVoice(btn){const d=DAYS[cur];
 try{speechSynthesis.getVoices()}catch(e){}
 /* ---------- почему день выглядит так ---------- */
 function whyRows(d){const L=d.look,m=d.music,v=voiceOf(d),kws=[...new Set((d.text.match(/[A-Za-zА-Яа-яЁё-]+/g)||[]).filter(w=>{const l=w.toLowerCase().replace(/ё/g,"е");return KEY.some(k=>kw(k,l)&&l.length<k.length+5)}).map(w=>w.toLowerCase()))].slice(0,6);
-  const R=[["песня",`${m.bpm} ударов в минуту, энергия ${Math.round(m.energy*100)}%, звук ${(m.tone??.4)<.22?"приглушённый":(m.tone??.4)>.6?"яркий":"мягкий"}`,`${L.pname} бумага и «${L.word}» день; буквы названия наклонены на ${parseFloat(L.tilt)}°; кадр фильма длится ${L.shot.toFixed(1)} с`]];
+  const R=[["песня",`${m.bpm} ударов в минуту, энергия ${Math.round(m.energy*100)}%, звук ${(m.tone??.4)<.22?"приглушённый":(m.tone??.4)>.6?"яркий":"мягкий"}`,`${L.pname} бумага и «${L.word}» день; буквы названия наклонены на ${parseFloat(L.tilt)}°; кадр клипа длится ${L.shot.toFixed(1)} с`]];
   if(d.song.genre||d.song.year)R.push(["о песне",[d.song.genre,d.song.year].filter(Boolean).join(", "),"записано в чек дня"]);
   if(d.photo)R.push(["фото",`${d.media.length} шт., ${d.photo.light}`,"главный цвет снимка стал цветом обведённых слов и волны песни",d.photo.pal]);
   R.push(["слова",kws.length?kws.map(w=>"«"+w+"»").join(", "):"ключевых слов не нашлось",kws.length?"из них собрано название папки, они обведены в тексте, по ним нарисованы значки на полях":"название собрано из времени года и суток"]);
   const A=d.ask||{},an=[A.weather&&({sun:"солнце",clouds:"пасмурно",rain:"дождь",snow:"снег",wind:"ветер",fog:"туман"}[A.weather]||A.weather),A.time&&{morning:"утро",day:"день",evening:"вечер",night:"ночь"}[A.time],A.pace&&({slow:"медленный день",mid:"обычный темп",fast:"суматошный день"}[A.pace]||A.pace),A.place].filter(Boolean);
-  if(an.length)R.push(["ответы",an.join(", "),"погода задаёт эффект в фильме, часть дня — оттенок кадров и слово в названии, темп — длину кадров"]);
-  R.push(["фильм",FXNAME[fxOf(d)],A.weather?"эффект взят из ответа про погоду":"эффект выбран по словам записи, а если подходящих слов нет — по звуку песни"]);
+  if(an.length)R.push(["ответы",an.join(", "),"погода задаёт эффект в клипе, часть дня — оттенок кадров и слово в названии, темп — длину кадров"]);
+  R.push(["клип",FXNAME[fxOf(d)],A.weather?"эффект взят из ответа про погоду":"эффект выбран по словам записи, а если подходящих слов нет — по звуку песни"]);
   if(VOICES.has(d.id))R.push(["голос","свой, записан при рассказе","скорость чтения чуть подстраивается под темп песни: у быстрых дней живее, у тихих спокойнее"]);
   R.push(["тип дня","«"+TYPES[d.type].name+"»",d.typeAuto?"подсказан по словам, человек может поправить":"его выбрал человек, а не сайт"]);return R}
 function whyHtml(d){return`<div class="ublock"><i class="ulabel">почему день выглядит так</i><dl class="why">${whyRows(d).map(r=>`<dt>${r[0]}</dt><dd><b>${esc(r[1])}</b>${r[3]?`<span class="sw">${r[3].map(c=>`<i style="background:${c}"></i>`).join("")}</span>`:""} → ${esc(r[2])}</dd>`).join("")}</dl></div>`}
@@ -975,7 +975,7 @@ async function folderZip(d){const enc=new TextEncoder(),F=[],dir=folderName(d)+"
   return zipBlob(F)}
 function openFolder(d){const box=$("mail");
   box.innerHTML=`<div class="ml-in"><b>папка дня</b><p>«${esc(d.title)}» · ${fullDate(d.date)}</p><ul class="fold">${folderList(d).map(f=>`<li><span>${esc(f[0])}</span><small>${esc(f[1])}</small></li>`).join("")}</ul>
-    <p>Название папки придумал сайт по словам записи. Фильм дня сохраняется отдельно: кнопка «записать» внутри фильма.</p><span id="ml-msg"></span><button class="gobtn" id="fd-go">скачать папку</button><button class="lnk" data-close>закрыть</button></div>`;
+    <p>Название папки придумал сайт по словам записи. Клип дня сохраняется отдельно: кнопка «записать» внутри клипа.</p><span id="ml-msg"></span><button class="gobtn" id="fd-go">скачать папку</button><button class="lnk" data-close>закрыть</button></div>`;
   box.hidden=false;box.onclick=async e=>{if(e.target.id==="fd-go"){$("ml-msg").textContent="собираю папку…";try{const b=await folderZip(d),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=folderName(d)+".zip";a.click();$("ml-msg").textContent="готово: архив скачан";sfx("print")}catch(err){$("ml-msg").textContent="не получилось собрать папку"}return}
     if(e.target===box||e.target.closest("[data-close]"))closeMail()}}
 
@@ -1032,9 +1032,9 @@ function pageEl(d,side){
       <div class="row"><div class="slip drag pop" ${pop()}><b>чек дня № ${h.doy}</b>
         <div><span>песня</span><span>${esc(d.song.name)}</span></div><div><span>темп</span><span>${d.music.bpm} уд/мин</span></div><div><span>энергия</span><span>${bars}</span></div>${d.song.genre?`<div><span>жанр</span><span>${esc(d.song.genre)}</span></div>`:""}${d.song.year?`<div><span>год песни</span><span>${d.song.year}</span></div>`:""}${d.photo?`<div><span>цвета фото</span><span class="sw">${d.photo.pal.map(c=>`<i style="background:${c}"></i>`).join("")}</span></div>`:""}
         <div><span>бумага</span><span>${L.pname}</span></div><div><span>фото</span><span>${d.media.length}</span></div><div><span>слов</span><span>${words(d.text).length}</span></div><div><span>кадров</span><span>${plan.shots.length}</span></div>${plan.moods?`<div><span>настроения</span><span>+${plan.moods}</span></div>`:""}</div>
-      ${d.film!==false?`<button class="ticket drag pop" ${pop()} data-film><span class="play"></span><span><small>фильм дня · ${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}</small><em>${esc(d.title)}</em></span></button>`:`<button class="ticket nofilm drag pop" ${pop()} data-mkfilm="${d.id}"><span class="play plus"></span><span><small>фильма у этого дня пока нет</small><em>снять фильм</em></span></button>`}</div>
+      ${d.film!==false?`<button class="ticket drag pop" ${pop()} data-film><span class="play"></span><span><small>клип дня · ${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}</small><em>${esc(d.title)}</em></span></button>`:`<button class="ticket nofilm drag pop" ${pop()} data-mkfilm="${d.id}"><span class="play plus"></span><span><small>клипа у этого дня пока нет</small><em>собрать клип</em></span></button>`}</div>
       ${rest.length?`<div class="wall">${rest.map((m,k)=>`<figure class="pol mini drag pop" ${pop()} style="--rr:${((k*37)%9)-4}deg">${k%3===0?`<i class="tape"></i>`:""}<div class="ph">${mtag(m)}</div></figure>`).join("")}</div>`:""}
-      ${stick}${K==="olive"?`<img class="flower drag pop" alt="" draggable="false" src="tex/flower.webp">`:""}${dsvg(doodlesOf(d.text)[1],"d2")}${d.own?`<button class="rip" data-del="${d.id}">вырвать страницу ✂</button>`:""}${d.own&&d.film?`<button class="unfilm" data-unfilm="${d.id}">убрать фильм</button>`:""}${(()=>{const l=letterOf(d),st=!l?"new":l.open>today()?"sealed":l.read?"read":"ready";return`<button class="envmini ${st}" data-mailbtn="${st}"><b>✉</b>${{new:"письмо себе в будущее",sealed:"запечатано до "+(l?human(l.open).big+" "+human(l.open).y:""),ready:"письмо пришло!",read:"письмо из этого дня"}[st]}</button>`})()}<button class="envmini tune" data-tune><b>☁</b>погода и воздух дня ↓</button><span class="pno">стр. ${h.doy*2}</span>`;
+      ${stick}${K==="olive"?`<img class="flower drag pop" alt="" draggable="false" src="tex/flower.webp">`:""}${dsvg(doodlesOf(d.text)[1],"d2")}${d.own?`<button class="rip" data-del="${d.id}">вырвать страницу ✂</button>`:""}${d.own&&d.film?`<button class="unfilm" data-unfilm="${d.id}">убрать клип</button>`:""}${(()=>{const l=letterOf(d),st=!l?"new":l.open>today()?"sealed":l.read?"read":"ready";return`<button class="envmini ${st}" data-mailbtn="${st}"><b>✉</b>${{new:"письмо себе в будущее",sealed:"запечатано до "+(l?human(l.open).big+" "+human(l.open).y:""),ready:"письмо пришло!",read:"письмо из этого дня"}[st]}</button>`})()}<button class="envmini tune" data-tune><b>☁</b>погода и воздух дня ↓</button><span class="pno">стр. ${h.doy*2}</span>`;
   }
   return el;
 }
@@ -1251,7 +1251,7 @@ let run=null;
 async function openFilm(record){stopSong();
   closeFilm();const d=DAYS[cur],L=d.look,ALLM=d.media.concat(moodFor(d));let plan=filmPlan(d,ALLM);const F={d,L,plan,h:human(d.date),els:new Map(),bg:new Map(),focus:new Map(),alive:true,fx:fxOf(d),fxr:Array.from({length:60},(_,i)=>{const r=rng(d.seed+i*77);return[r(),r(),r(),r()]})};run=F;
   const film=$("film"),cv=$("cv"),x=cv.getContext("2d");film.classList.add("on");film.classList.toggle("rec",!!record);
-  $("fmsg").textContent=record?"идёт запись — досмотри фильм до конца, видео сохранится само":"";$("bar").style.width="0";
+  $("fmsg").textContent=record?"идёт запись — досмотри клип до конца, видео сохранится само":"";$("bar").style.width="0";
   x.fillStyle="#000";x.fillRect(0,0,CW,CH);noiseTiles();
   await Promise.all([document.fonts.load('italic 400 40px "Cormorant Garamond"').catch(()=>{}),document.fonts.load('400 16px "PT Mono"').catch(()=>{}),document.fonts.load('500 40px "Caveat"').catch(()=>{}),document.fonts.load('400 30px "Neucha"').catch(()=>{}),loadImg("tex/paper-"+L.key+".jpg").then(i=>F.els.set("paper",i)).catch(()=>{}),
     ...ALLM.map(async m=>{try{const el=await(m.video?loadVid:loadImg)(m.url);F.els.set(m.url,el);m.ar=(el.videoWidth||el.naturalWidth)/(el.videoHeight||el.naturalHeight)||1;
@@ -1361,7 +1361,7 @@ function tidy(text){
   return out.join(" ");
 }
 function renderChips(){const ta=$("n-text"),ss=allSent(ta.value),box=$("n-chips");
-  box.innerHTML=ss.length>1||(ss.length===1&&ss[0].length>12)?`<small class="hintl">фразы по отдельности — нажми ✕, чтобы убрать лишнюю${ss.length>8?" (в фильм попадут первые 8)":""}</small>`+ss.map((s,i)=>`<span class="chip">${esc(s)}<button type="button" data-rm="${i}" aria-label="Убрать фразу">✕</button></span>`).join(""):""}
+  box.innerHTML=ss.length>1||(ss.length===1&&ss[0].length>12)?`<small class="hintl">фразы по отдельности — нажми ✕, чтобы убрать лишнюю${ss.length>8?" ":""}</small>`+ss.map((s,i)=>`<span class="chip">${esc(s)}<button type="button" data-rm="${i}" aria-label="Убрать фразу">✕</button></span>`).join(""):""}
 $("n-chips").addEventListener("click",e=>{const b=e.target.closest("[data-rm]");if(!b)return;const ss=allSent($("n-text").value);ss.splice(+b.dataset.rm,1);$("n-text").value=ss.join(" ");renderChips()});
 $("n-text").addEventListener("input",()=>{clearTimeout(renderChips.t);renderChips.t=setTimeout(renderChips,400)});
 $("n-tidy").onclick=()=>{$("n-text").value=tidy($("n-text").value);renderChips()};
@@ -1435,17 +1435,17 @@ function buildFront(){
     Array.from({length:N},(_,k)=>{const d=pool[k%pool.length];return`<div class="fleaf" style="--z:${((N-k)*.6).toFixed(1)}px">${face(d,"ff")}${face(pool[(k+1)%pool.length],"fb")}</div>`}).reverse().join("")+
     `<div class="fcover" id="fcover" role="button" tabindex="0" aria-label="Открыть дневник" style="--z:${((N+2)*.6).toFixed(1)}px"><i class="fc-out">
       <div class="ft">${ransom("тот самый",41,6,.55)}${ransom("день",42,8,.75)}</div>
-      <div class="fsub">дневник-кино</div><i class="fshine"></i>
+      <div class="fsub">дневник, который звучит</div><i class="fshine"></i>
       <img class="fs1" alt="" src="tex/stargold.webp"><img class="fs2" alt="" src="tex/starblack.webp">
       <i class="fring"></i><img class="fwashi" alt="" src="tex/washi.webp">
-      <div class="fhand">песня + фото + пара слов <b>= кино</b></div>
+      <div class="fhand">песня + фото + пара слов <b>= клип дня</b></div>
       <svg class="fwave" viewBox="0 0 300 40" preserveAspectRatio="none" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${(last.music.wave||[]).map((v,k,a)=>`${k?"L":"M"}${(k/(a.length-1)*300).toFixed(1)} ${(20+(k%2?1:-1)*(2+v*16)).toFixed(1)}`).join(" ")}"/></svg>
-      <div class="ftix"><small>билет · 1 сеанс</small><b>кино дня</b><i>вход по песне</i></div>
+      <div class="ftix"><small>билет · 30 секунд</small><b>клип дня</b><i>вход по песне</i></div>
       <div class="ffilm">${pics.map(u=>`<img alt="" src="${u}">`).join("")}</div><img class="ftape" alt="" src="tex/tape.webp">
       
       <img class="fflower" alt="" src="tex/flower.webp"><img class="fticket" alt="" src="tex/ticket.webp"><svg class="fdood" viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M22 44V16l20-5v28"/><ellipse cx="16" cy="45" rx="6.5" ry="4.5"/><ellipse cx="36" cy="40" rx="6.5" ry="4.5"/></svg>
       <div class="fname">внутри<b>${n} ${dayWord(n)}</b></div>
-      <svg class="fstamp" viewBox="0 0 120 120" fill="none" stroke="currentColor"><circle cx="60" cy="60" r="55" stroke-width="3"/><circle cx="60" cy="60" r="37" stroke-width="1.5"/><path id="farc" d="M60 60m-46 0a46 46 0 1 1 92 0a46 46 0 1 1 -92 0"/><text font-size="9.5" stroke="none"><textPath href="#farc">памятные дни · песня · фото · фильм ·</textPath></text><text x="60" y="66" text-anchor="middle" font-size="17" stroke="none">${yr}</text></svg>
+      <svg class="fstamp" viewBox="0 0 120 120" fill="none" stroke="currentColor"><circle cx="60" cy="60" r="55" stroke-width="3"/><circle cx="60" cy="60" r="37" stroke-width="1.5"/><path id="farc" d="M60 60m-46 0a46 46 0 1 1 92 0a46 46 0 1 1 -92 0"/><text font-size="9.5" stroke="none"><textPath href="#farc">памятные дни · песня · фото · клип ·</textPath></text><text x="60" y="66" text-anchor="middle" font-size="17" stroke="none">${yr}</text></svg>
     </i><i class="fc-in"><span>в этой тетради<b>${n} ${dayWord(n)}</b>у каждого своя песня</span></i></div>`;
   /* на столе вокруг тетради — только вещи, без фотографий */
   $("fdesk").innerHTML=`<img class="fd-sheet" alt="" src="tex/sheet.webp"><span class="fd-note">псс… вещи<br>на столе тоже<br>звучат. нажми<br>на любую!</span><img class="fd-card" alt="" src="tex/card.webp"><img class="fd-pen" alt="" src="tex/pen.webp"><img class="fd-leaf" alt="" src="tex/leaf.webp"><img class="fd-flower" alt="" src="tex/flower.webp"><img class="fd-tape" alt="" src="tex/washi.webp"><img class="fd-star a" alt="" src="tex/stargold.webp"><img class="fd-star b" alt="" src="tex/starcream.webp"><img class="fd-star c" alt="" src="tex/stargold.webp"><img class="fd-clip" alt="" src="tex/clip.webp"><i class="fd-ring"></i>`;
@@ -1523,7 +1523,7 @@ $("book").addEventListener("click",e=>{
   if(el=q("[data-folder]")){sfx("paper");openFolder(DAYS[cur]);return}
 });
 /* всплывающая подсказка у предмета: «не бойся, нажми» */
-const TIPS=[[".stamp","не бойся, нажми"],[".pol",["щёлкни меня","сфоткай ещё раз","нажми, не бойся"]],[".contact","перемотай плёнку"],[".slip","чек печатается"],[".star",["дзынь?","нажми, я звеню"]],[".flower","я хрущу"],[".s-olive","постучи"],[".sticker","отлепи меня"],[".ticket","вход в фильм тут"],[".song","включи песню дня"],[".text em","обведи ещё раз"],[".fq","шуршу"],[".fstub","билетик"],[".ftags b","ярлык"],[".title","открой папку дня"],[".date","пошурши"]];
+const TIPS=[[".stamp","не бойся, нажми"],[".pol",["щёлкни меня","сфоткай ещё раз","нажми, не бойся"]],[".contact","перемотай плёнку"],[".slip","чек печатается"],[".star",["дзынь?","нажми, я звеню"]],[".flower","я хрущу"],[".s-olive","постучи"],[".sticker","отлепи меня"],[".ticket","клип дня тут"],[".song","включи песню дня"],[".text em","обведи ещё раз"],[".fq","шуршу"],[".fstub","билетик"],[".ftags b","ярлык"],[".title","открой папку дня"],[".date","пошурши"]];
 let tipEl=null;
 $("book").addEventListener("pointerover",e=>{if(e.pointerType==="touch")return;for(const[sel,t]of TIPS){const el=e.target.closest(sel);if(el){if(el===tipEl)return;tipEl=el;const r=el.getBoundingClientRect(),T=$("tip");T.textContent=Array.isArray(t)?t[(r.left|0)%t.length]:t;T.style.left=clamp(r.left+r.width/2-60,8,innerWidth-190)+"px";T.style.top=Math.max(8,r.top-30)+"px";T.classList.add("on");return}}tipEl=null;$("tip").classList.remove("on")});
 $("book").addEventListener("pointerleave",()=>{tipEl=null;$("tip").classList.remove("on")});addEventListener("scroll",()=>{tipEl=null;$("tip").classList.remove("on")},{passive:true});
@@ -1601,7 +1601,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=28;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=29;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
