@@ -1135,13 +1135,13 @@ function renderYear(){
   $("ylegend").innerHTML=`<b>цвет даты — каким был день</b>`+Object.keys(LEG).map(k=>{const c=inY.filter(d=>d.look.key===k).length;return`<span><i style="--p:${PAPERS[k].paper}"></i>${LEG[k][0]} — ${LEG[k][1]}<small>${c?"×"+c:"пока нет"}</small></span>`}).join("")+`<em>цвет получается из двух вещей: как ты назвала день (значки ниже) и как звучит его песня</em>`;
   const mailOn=new Map(),wait=[];DAYS.forEach((d,i)=>{const l=letterOf(d);if(l){mailOn.set(l.open,i);if(l.open>today())wait.push(l.open)}});wait.sort();
   if(wait.length)$("ystat").textContent+=` писем ждёт своего дня: ${wait.length}, ближайшее откроется ${fullDate(wait[0])}.`;
-  $("ylegend").innerHTML+=`<em>✉ на календаре — в этот день открывается письмо в будущее</em>`;
+  $("ylegend").innerHTML+=`<em>✉ на календаре — в этот день приходит письмо себе; нажми на конверт, чтобы его открыть</em>`;
   let h="";
   for(let m=0;m<12;m++){
     const first=(new Date(y,m,1).getDay()+6)%7,n=new Date(y,m+1,0).getDate();let cells="<span class='c'></span>".repeat(first),cnt=0;
     for(let d=1;d<=n;d++){const key=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`,i=by.get(key);
       const mi=mailOn.get(key);
-      if(i===undefined)cells+=mi===undefined?`<span class="c">${d}</span>`:`<button class="c mailc" data-i="${mi}" style="--p:#f4ecd8;--i:#c73e24;--r:${(d*37%17)-8}deg" aria-label="${human(key).big}: откроется письмо">✉</button>`;else{cnt++;const L=DAYS[i].look;cells+=`<button class="c${mi!==undefined?" hasmail":""}${YT&&DAYS[i].type!==YT?" dim":""}" data-i="${i}" style="--p:${L.paper};--i:${L.ink};--r:${(d*37%17)-8}deg" aria-label="${human(key).big}: ${esc(DAYS[i].title)}">${d}</button>`}}
+      if(i===undefined)cells+=mi===undefined?`<span class="c">${d}</span>`:`<button class="c mailc" data-mailgo="1" title="${key>today()?"в этот день откроется письмо себе":"в этот день пришло письмо из дня "+human(DAYS[mi].date).big}" style="--p:#f4ecd8;--i:#c73e24;--r:${(d*37%17)-8}deg" aria-label="${human(key).big}: письмо себе">✉</button>`;else{cnt++;const L=DAYS[i].look;cells+=`<button class="c${mi!==undefined?" hasmail":""}${YT&&DAYS[i].type!==YT?" dim":""}" data-i="${i}" style="--p:${L.paper};--i:${L.ink};--r:${(d*37%17)-8}deg" aria-label="${human(key).big}: ${esc(DAYS[i].title)}">${d}</button>`}}
     h+=`<div class="month"><h3>${MNAME[m]}<i>${cnt?"×"+cnt:""}</i></h3><div class="grid">${cells}</div></div>`}
   $("months").innerHTML=h;
   $("strip").innerHTML=inY.filter(d=>!YT||d.type===YT).map(d=>`<button class="fr" data-i="${DAYS.indexOf(d)}" style="--p:${d.look.paper}">${mtag(cover(d))}<span>${human(d.date).dd} · ${TYPES[d.type].name} · ${esc(d.title)}</span></button>`).join("");
@@ -1650,7 +1650,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=46;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=47;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
@@ -1681,6 +1681,8 @@ async function qrOpen(){const box=$("mail"),close=()=>{try{qrES&&qrES.close()}ca
         if($("qr-n"))$("qr-n").textContent=`получено: ${got}`;if($("qr-msg"))$("qr-msg").textContent="Фото приходят. Можно выбрать ещё.";sfx("shutter")}catch(err){if($("qr-msg"))$("qr-msg").textContent="Одно фото не дошло — отправь его ещё раз."}}}
   catch(e){$("qr-msg").textContent="Не получилось открыть код: нет интернета."}}
 $("n-qr").onclick=qrOpen;
+/* конверт в календаре открывает вкладку «письма себе», а не день, в котором письмо написано */
+$("view-year").addEventListener("click",e=>{if(e.target.closest("[data-mailgo]")){e.stopPropagation();$("nav-mail").click()}},true);
 /* сайт открыт внутри Telegram (мини-приложение): разворачиваем на весь экран */
 if(/tgWebApp/.test(location.hash))loadJs("https://telegram.org/js/telegram-web-app.js").then(()=>{try{Telegram.WebApp.ready();Telegram.WebApp.expand()}catch(e){}}).catch(()=>{});
 /* день из Telegram-бота: ссылка ?bot=тема.ключ. Бот шифрует текст, фото и песню и кладёт их в сервис пересылки,
