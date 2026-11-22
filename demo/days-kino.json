@@ -791,6 +791,8 @@
   "kind": "Не переживай.",
   "photos": [
    "r3/p1.jpg",
+   "r3/p2.jpg",
+   "r3/p4.jpg",
    "r3/p3.jpg"
   ],
   "ask": {
@@ -905,9 +907,10 @@
   },
   "moods": [
    "rain",
-   "puddles",
-   "tea",
-   "citynight"
+   "tea"
+  ],
+  "noRepeat": [
+   "r3/p3.jpg"
   ]
  }
 ]
