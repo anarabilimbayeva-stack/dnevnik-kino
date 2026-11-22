@@ -249,6 +249,7 @@ body::before{background:radial-gradient(ellipse 85% 75% at 50% 42%,transparent 3
 .pol .clip{width:36px;height:auto;top:-30px;right:18px;filter:drop-shadow(1px 3px 2px rgba(0,0,0,.5))}
 img.star{height:auto}
 .pen{width:380px;height:auto;right:90px;bottom:26px}
+@media (min-width:821px){#view-book{position:relative;padding-bottom:104px}#view-book .pen{bottom:4px}}
 .k-olive .tb-tape{background:url(tex/tape.webp) center/100% 100% no-repeat;width:120px;height:28px;box-shadow:none;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
 .k-rain .tb-tape{background:url(tex/washi.webp) center/100% 100% no-repeat;width:112px;height:24px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
 .k-olive .tbox{background:url(tex/card.webp) center/100% 100% no-repeat;clip-path:none!important;padding:28px 28px 26px}
@@ -1626,7 +1627,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=36;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=37;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
