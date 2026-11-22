@@ -188,7 +188,7 @@ button.c:hover,button.c:focus-visible{transform:rotate(0) scale(1.7);z-index:3;o
 .pop{animation:none}
 .fresh .pop{animation:pop .55s cubic-bezier(.2,.9,.3,1.25) backwards}
 @keyframes pop{from{opacity:0;translate:0 -22px;scale:1.12}}
-.drag{cursor:grab}.dragging{cursor:grabbing;z-index:9!important;filter:drop-shadow(0 18px 14px rgba(0,0,0,.55))!important;transition:none!important}
+.drag{cursor:pointer}.dragging{cursor:grabbing;z-index:9!important;filter:drop-shadow(0 18px 14px rgba(0,0,0,.55))!important;transition:none!important}
 img.star.drag{pointer-events:auto}
 .contact{display:flex;gap:5px;width:80%;margin:-12px auto 20px;padding:11px 9px;background:#141210;transform:rotate(-2.5deg);z-index:2;box-shadow:0 10px 16px -8px rgba(0,0,0,.8);
   background-image:repeating-linear-gradient(90deg,transparent 0 6px,rgba(242,230,208,.85) 6px 12px,transparent 12px 18px),repeating-linear-gradient(90deg,transparent 0 6px,rgba(242,230,208,.85) 6px 12px,transparent 12px 18px);background-size:18px 5px,18px 5px;background-position:0 3px,0 calc(100% - 3px);background-repeat:repeat-x}
@@ -451,7 +451,11 @@ button.c.dim{opacity:.16;filter:grayscale(1)}
 @keyframes ffloat{to{translate:0 -7px}}
 /* вещи на столе вокруг тетради: снимки дней, ручка, чек, лист */
 .fdesk{position:absolute;left:50%;top:47%;width:0;height:0;transition:opacity .5s}.front.open .fdesk{opacity:0}
-.fdesk>*{position:absolute;filter:drop-shadow(0 10px 10px rgba(0,0,0,.55))}
+.fdesk>*{position:absolute;filter:drop-shadow(0 10px 10px rgba(0,0,0,.55));cursor:pointer;animation:fdsway var(--sd,5s) ease-in-out var(--sl,0s) infinite alternate}
+@keyframes fdsway{from{translate:0 0;rotate:-1.2deg}to{translate:0 -6px;rotate:1.6deg}}
+.fdesk>*:nth-child(2n){--sd:6.2s;--sl:-2s}.fdesk>*:nth-child(3n){--sd:4.4s;--sl:-1s}.fdesk>*:nth-child(5n){--sd:7s;--sl:-3s}
+.fd-star{animation-name:fdtw!important}@keyframes fdtw{from{scale:.9;rotate:-10deg}to{scale:1.15;rotate:12deg}}
+@media (prefers-reduced-motion:reduce){.fdesk>*{animation:none!important}}
 .fdp{margin:0;background:#fbf7ee;padding:calc(var(--w)*.022) calc(var(--w)*.022) 0;width:calc(var(--w)*.5);transform:rotate(var(--rr))}
 .fdp img{display:block;width:100%;aspect-ratio:1;object-fit:cover;object-position:50% 32%;filter:sepia(.25) saturate(1.15) contrast(1.06)}
 .fdp figcaption{font-family:var(--note);font-size:calc(var(--w)*.046);text-align:center;color:#3b2a24;padding:5% 0 8%;line-height:1}
@@ -621,7 +625,7 @@ header{z-index:8!important}
       <button class="arrow prev" id="prev" aria-label="Предыдущий день">←</button><button class="arrow next" id="next" aria-label="Следующий день">→</button></main>
     <div class="under" id="under"></div>
     <img class="pen" alt="" src="tex/pen.webp">
-    <p class="note">стрелки ← → листают · фото, наклейки и чек можно двигать мышкой · нужный день быстрее найти в <button id="toyear">год</button></p>
+    <p class="note">стрелки ← → листают · на фото, штамп, чек и наклейки можно нажимать — они звучат · нужный день быстрее найти в <button id="toyear">год</button></p>
   </div>
   <div id="view-year" hidden>
     <section class="year"><i class="pin" style="left:8%;transform:rotate(-5deg)"></i><i class="pin" style="right:8%;transform:rotate(4deg)"></i>
@@ -998,7 +1002,7 @@ function pageEl(d,side){
       ${(d.ask||{}).sense?`<p class="pline pop" ${pop()}><b>≈ осталось:</b> ${esc(d.ask.sense)}</p>`:""}${d.good?`<p class="pline pop" ${pop()}><b>✓ получилось:</b> ${esc(d.good)}</p>`:""}${d.kind?`<p class="pline pop" ${pop()}><b>♡ себе:</b> ${esc(d.kind)}</p>`:""}
       <span class="says pop" ${pop()}><button class="say" data-say>🔊 послушать запись<i>${VOICES.has(d.id)?"твой голос":"голос: "+voiceOf(d).word}</i></button><button class="say rec" data-rec>${VOICES.has(d.id)?"✕ убрать мой голос":"🎙 прочитать своим голосом"}<i></i></button></span>
       <div class="song pop" ${pop()}><svg viewBox="0 0 300 56" preserveAspectRatio="none"><path pathLength="1" d="${pts}"/></svg><div class="lbl">♪ ${esc(d.song.name)}<i>${d.music.bpm} уд/мин · ${L.word} день</i></div></div>
-      ${POKED?"":`<div class="poke" aria-hidden="true"><svg viewBox="0 0 80 70" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 64C8 40 22 16 58 10"/><path d="M44 4l15 6-9 13"/></svg><span>псс… ткни в штамп.<br>и в фото. тут всё<br>звучит и двигается</span></div>`}
+      ${POKED?"":`<div class="poke" aria-hidden="true"><svg viewBox="0 0 80 70" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 64C8 40 22 16 58 10"/><path d="M44 4l15 6-9 13"/></svg><span>псс… ткни в штамп.<br>и в фото. тут всё<br>звучит</span></div>`}
       <span class="pno">стр. ${h.doy*2-1}</span>`;
   }else{
     const plan=filmPlan(d),t=Math.round(plan.total),bars="▮".repeat(Math.round(d.music.energy*5))+"▯".repeat(5-Math.round(d.music.energy*5)),extra=d.media.slice(2,6),rest=d.media.slice(6,9);
@@ -1095,20 +1099,28 @@ function filmCaps(d){const w=words(d.text),c=[],add=v=>{if(v&&!c.includes(v))c.p
   const all=[...hits(EVENTS,w),...hits(PLACES,w),...hits(WITH,w),...hits(THINGS,w).map(x=>({...x,p:x.p.replace(/^и /,""),n:x.n*.6}))];
   all.sort((a,b)=>b.n-a.n||a.first-b.first).slice(0,5).sort((a,b)=>a.first-b.first).forEach(x=>add(x.p));
   if((d.ask||{}).sense)add(d.ask.sense);add("♪ "+d.song.name.split(" — ")[0]);if(d.good)add("получилось: "+d.good);add("день «"+TYPES[d.type].name+"»");return c}
-function filmPlan(d){
-  const L={...d.look,shot:d.look.shot*(p=>({slow:1.3,fast:.78}[p]||(/медлен|тих|спокой|лен/.test(p||"")?1.3:/быстр|сумат|бег|спеш/.test(p||"")?.78:1)))((d.ask||{}).pace)},caps=filmCaps(d),sent0=sentences(d.text),sent=sent0.length>=caps.length?sent0:sent0.concat(new Array(caps.length-sent0.length).fill(" ")),media=d.media.concat(moodFor(d)),m=media.length,per=sent.length>5?1:(L.shot<2.6?3:2);
-  const shots=[{card:true,media:d.media[0],f:FR[0],mv:"in",dur:Math.max(L.shot,2.8)}],subs=[];let k=m>1?1:0,at=shots[0].dur;const used=new Array(m).fill(0);used[0]=1;
-  sent.forEach((s0,si)=>{const s=caps[si]||"";const start=at;let subFrom=at;
-    if(s&&m<4&&(per>1||si%2===0)){const dur=Math.max(L.shot*.8,Math.min(3.2,1.5+s.length*.05));shots.push({paper:true,text:s,media:{url:"paper"},f:FR[0],mv:si%2?"left":"right",dur});at+=dur;subFrom=at}
-    for(let j=0;j<(m<4&&per>1?per-1:per);j++){const pi=k%m,fi=used[pi]===0?0:1+((used[pi]-1)*3+pi*2)%(FR.length-1);used[pi]++;shots.push({media:media[pi],f:FR[fi],close:used[pi]%2===0,mv:MOVES[k%MOVES.length],dur:L.shot});k++;at+=L.shot}
-    if(s&&subFrom===start)subs.push({text:s,from:subFrom+.35,to:at-.3})});
-  shots.push({end:true,media:d.media[d.media.length-1],f:FR[0],mv:"out",dur:Math.max(L.shot,3)});
-  /* путь камеры по каждому фото: делим высоту фото на отрезки по числу его появлений; чётные фото идут сверху вниз, нечётные — снизу вверх */
-  const by=new Map();shots.forEach(s=>{if(!s.card&&!s.end&&!s.paper){const a=by.get(s.media.url)||[];a.push(s);by.set(s.media.url,a)}});let mi=0;
-  by.forEach(a=>{const n=a.length,up=mi++%2===1;a.forEach((s,k)=>{let p0=n===1?.12:k/n*.86,p1=n===1?.7:Math.min(1,(k+1)/n*.86+.14);if(up){const t0=p0;p0=1-p1;p1=1-t0;[p0,p1]=[p1,p0]}s.p0=p0;s.p1=p1})});
-  /* каждый третий кадр с фото — полароид на бумаге дня, по очереди слева и справа */
-  let pc=0,ps=1;shots.forEach(s=>{if(s.card||s.end||s.paper||s.media.video)return;if(pc++%3===1){s.pol=ps;ps=-ps;s.cap=caps[(pc/3|0)%Math.max(1,Math.min(3,caps.length))]||"";s.dur=Math.max(s.dur,2.4)}});
-  let t=0;shots.forEach(s=>{s.at=t;t+=s.dur});
+/* план фильма: титул → карточка с темами дня → кадры → карточка «получилось» → конец.
+   Вертикальные фото и видео собираются по три в один широкий кадр (триптих), горизонтальные идут во весь экран с движением камеры.
+   Подписи не накладываются на фото: о чём день, сказано на отдельных бумажных карточках. */
+function filmPlan(d,med){
+  const pace=(p=>({slow:1.3,fast:.78}[p]||(/медлен|тих|спокой|лен/.test(p||"")?1.3:/быстр|сумат|бег|спеш/.test(p||"")?.78:1)))((d.ask||{}).pace),L={...d.look,shot:d.look.shot*pace},caps=filmCaps(d),media=(med||d.media.concat(moodFor(d))).filter(Boolean),m=media.length;
+  const first=media.find(x=>!x.video)||media[0],themes=caps.filter(c=>!/^♪|^день «|^получилось/.test(c)),shots=[{card:true,media:first,mv:"in",dur:Math.max(L.shot,2.8)}];
+  if(themes.length)shots.push({paper:true,text:themes.slice(0,5).join(" · "),media:{url:"paper"},mv:"right",dur:clamp(1.6+themes.slice(0,5).join("").length*.05,2.6,4)});
+  const isP=x=>(x.ar||1)<1.2,buf=[],seq=[];
+  media.forEach(x=>{if(m>=3&&isP(x)){buf.push(x);if(buf.length===3)seq.push({tri:buf.splice(0,3)})}else seq.push({pan:x})});
+  if(buf.length===2)seq.push({tri:buf.splice(0,2)});else if(buf.length===1)seq.push({pan:buf[0]});
+  /* фото мало — проходим по ним ещё раз, другой дорогой камеры */
+  const base=seq.length;for(let k=0;seq.length<6&&base;k++)seq.push({pan:(seq[k%base].pan||seq[k%base].tri[0]),again:1});
+  let ph=seq.map(q=>q.tri?Math.max(L.shot*1.45,3):L.shot),sum=ph.reduce((a,b)=>a+b,0);
+  if(sum>58){const f=58/sum;ph=ph.map((v,i)=>Math.max(seq[i].tri?2.4:1.5,v*f))}
+  const midAt=Math.floor(seq.length*.62),midText=d.good?"получилось: "+d.good:((d.ask||{}).sense||"");let pc=0,k=0;
+  seq.forEach((q,i)=>{if(i===midAt&&midText&&seq.length>3)shots.push({paper:true,text:midText,media:{url:"paper"},mv:"left",dur:clamp(1.6+midText.length*.05,2.4,3.6)});
+    if(q.tri){shots.push({tri:q.tri,media:q.tri[0],mv:"in",dur:ph[i]})}
+    else{const up=(k+(q.again?1:0))%2===1,sh={media:q.pan,mv:MOVES[k%MOVES.length],dur:ph[i],p0:up?.82:.1,p1:up?.26:.72};
+      if(m<=5&&!q.pan.video&&pc++%3===1){sh.pol=pc%2?1:-1;sh.cap="";sh.dur=Math.max(sh.dur,2.4)}shots.push(sh);k++}});
+  shots.push({end:true,media:[...media].reverse().find(x=>!x.video)||media[m-1],mv:"out",dur:Math.max(L.shot,3)});
+  let t=0;shots.forEach(q=>{q.at=t;t+=q.dur});
+  const fs=shots.find(q=>!q.card&&!q.paper&&!q.end),subs=fs?[{text:"♪ "+d.song.name,from:fs.at+.4,to:fs.at+Math.min(4.2,fs.dur+1.6)}]:[];
   return{shots,subs,total:t,moods:media.length-d.media.length};
 }
 const CW=1280,CH=536;
@@ -1120,8 +1132,20 @@ const actx=()=>ACTX||(ACTX=new(window.AudioContext||window.webkitAudioContext)()
 function noiseTiles(){if(NOISE)return NOISE;NOISE=[];for(let n=0;n<6;n++){const c=document.createElement("canvas");c.width=c.height=160;const x=c.getContext("2d"),im=x.createImageData(160,160);for(let i=0;i<im.data.length;i+=4){const v=Math.random()*255;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}x.putImageData(im,0,0);NOISE.push(c)}return NOISE}
 /* кадр фильма: фото заполняет весь широкий кадр по ширине, а камера медленно скользит по нему сверху вниз.
    Если фото встречается в фильме несколько раз, каждый следующий кадр продолжает путь с того места, где закончился прошлый — так видно всё фото, ничего не обрезано. */
+/* видео, которое ещё не готово показать кадр, заменяется своей картинкой — без чёрных вспышек */
+function elOf(F,m){const el=F.els.get(m.url);if(el&&el.videoWidth!==undefined&&(el.readyState<2||el.seeking||el.currentTime<.05))return F.els.get(m.url+"#p")||el;return el}
+function drawTri(x,F,s,tt,alpha){const L=F.L,K=L.key,n=s.tri.length,gap=K==="rain"?7:10,pw=(CW-gap*(n+1))/n,ph=CH-gap*2,pp=F.els.get("paper"),u0=clamp(tt/(s.dur+.3)),grade=`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(.95)`;
+  x.globalAlpha=alpha;if(pp){const k=Math.max(CW/pp.naturalWidth,CH/pp.naturalHeight);x.drawImage(pp,(CW-pp.naturalWidth*k)/2,(CH-pp.naturalHeight*k)/2,pp.naturalWidth*k,pp.naturalHeight*k);x.fillStyle="rgba(0,0,0,.42)";x.fillRect(0,0,CW,CH)}else{x.fillStyle="#0b0705";x.fillRect(0,0,CW,CH)}
+  s.tri.forEach((m,k)=>{const el=elOf(F,m);if(!el)return;const w=el.videoWidth||el.naturalWidth,h=el.videoHeight||el.naturalHeight;if(!w)return;
+    /* кадры появляются по очереди: у громких дней выезжают, у ночных включаются, у тихих проявляются */
+    const e=clamp((tt-k*Math.min(.3,L.beat*.5))/.5);if(e<=0)return;const ee=1-Math.pow(1-e,3),X=gap+k*(pw+gap),oy=K==="fire"?(1-ee)*CH*.55*(k%2?1:-1):0,al=K==="fire"||K==="night"?1:ee;
+    x.save();x.globalAlpha=alpha*al;x.beginPath();x.rect(X,gap+oy,pw,ph);x.clip();const z=1.04+.06*(k%2?1-u0:u0),sc=Math.max(pw/w,ph/h)*z,dw=w*sc,dh=h*sc;
+    x.filter=grade;x.drawImage(el,X+(pw-dw)/2,gap+oy+(ph-dh)*.3,dw,dh);x.filter="none";x.restore();
+    x.globalAlpha=alpha*al;x.lineWidth=K==="night"?2:3;x.strokeStyle=K==="night"?L.acc:K==="rain"?"rgba(255,255,255,.4)":"#f7ead9";x.strokeRect(X+1,gap+oy+1,pw-2,ph-2)});
+  x.globalAlpha=1}
 function drawShot(x,F,s,tt,alpha){
-  const el=F.els.get(s.media.url);if(!el)return;const w=el.videoWidth||el.naturalWidth,h=el.videoHeight||el.naturalHeight;if(!w)return;
+  if(s.tri){drawTri(x,F,s,tt,alpha);return}
+  const el=elOf(F,s.media);if(!el)return;const w=el.videoWidth||el.naturalWidth,h=el.videoHeight||el.naturalHeight;if(!w)return;
   const L=F.L,u0=clamp(tt/(s.dur+L.fade+.3)),u=u0*u0*(3-2*u0),grade=s.paper?"none":`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(${s.card||s.end?.58:.95})`;
   const zz=1+L.zoom*.5*(s.mv==="out"?1-u:u),sc=Math.max(CW/w,CH/h)*1.02*(s.paper?1:zz),dw=w*sc,dh=h*sc,over=Math.max(0,dh-CH),fc=F.focus.get(s.media.url);
   let p;if(s.paper)p=.5;else if(s.card||s.end)p=fc?clamp((fc.cy*dh-CH/2)/(over||1)):.3;else{const a=s.p0??.3,b=s.p1??.3;p=a+(b-a)*u}
@@ -1199,15 +1223,18 @@ function frame(x,F,t){
 function saveFile(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
 let run=null;
 async function openFilm(record){stopSong();
-  closeFilm();const d=DAYS[cur],L=d.look,plan=filmPlan(d),F={d,L,plan,h:human(d.date),els:new Map(),bg:new Map(),focus:new Map(),alive:true,fx:fxOf(d),fxr:Array.from({length:60},(_,i)=>{const r=rng(d.seed+i*77);return[r(),r(),r(),r()]})};run=F;
+  closeFilm();const d=DAYS[cur],L=d.look,ALLM=d.media.concat(moodFor(d));let plan=filmPlan(d,ALLM);const F={d,L,plan,h:human(d.date),els:new Map(),bg:new Map(),focus:new Map(),alive:true,fx:fxOf(d),fxr:Array.from({length:60},(_,i)=>{const r=rng(d.seed+i*77);return[r(),r(),r(),r()]})};run=F;
   const film=$("film"),cv=$("cv"),x=cv.getContext("2d");film.classList.add("on");film.classList.toggle("rec",!!record);
   $("fmsg").textContent=record?"идёт запись — досмотри фильм до конца, видео сохранится само":"";$("bar").style.width="0";
   x.fillStyle="#000";x.fillRect(0,0,CW,CH);noiseTiles();
   await Promise.all([document.fonts.load('italic 400 40px "Cormorant Garamond"').catch(()=>{}),document.fonts.load('400 16px "PT Mono"').catch(()=>{}),document.fonts.load('500 40px "Caveat"').catch(()=>{}),document.fonts.load('400 30px "Neucha"').catch(()=>{}),loadImg("tex/paper-"+L.key+".jpg").then(i=>F.els.set("paper",i)).catch(()=>{}),
-    ...[...new Map(plan.shots.filter(x=>!x.paper).map(x=>[x.media.url,x.media])).values()].map(async m=>{try{const el=await(m.video?loadVid:loadImg)(m.url);F.els.set(m.url,el);
+    ...ALLM.map(async m=>{try{const el=await(m.video?loadVid:loadImg)(m.url);F.els.set(m.url,el);m.ar=(el.videoWidth||el.naturalWidth)/(el.videoHeight||el.naturalHeight)||1;
+      if(m.video){if(m.poster)try{F.els.set(m.url+"#p",await loadImg(m.poster))}catch(e){}try{el.currentTime=Math.min(.7,(el.duration||2)/3)}catch(e){}}
       if(!m.video&&window.FaceDetector){const fs=await new FaceDetector({fastMode:true}).detect(el),f=fs.sort((a,b)=>b.boundingBox.width*b.boundingBox.height-a.boundingBox.width*a.boundingBox.height)[0];
         if(f){const b=f.boundingBox;F.focus.set(m.url,{cx:(b.x+b.width/2)/el.naturalWidth,cy:(b.y+b.height/2)/el.naturalHeight,h:b.height/el.naturalHeight})}}}catch(e){}})]);
   if(!F.alive)return;
+  /* в фильм идут только те кадры, что загрузились; план строится заново уже с настоящими пропорциями */
+  plan=F.plan=filmPlan(d,ALLM.filter(m=>F.els.has(m.url)));
   if(!d.music.buf){try{d.music.buf=(await analyzeSong(d.song.url)).buf}catch(e){}if(!F.alive)return}
   if(d.music.buf){try{const a=actx();a.resume();const src=a.createBufferSource(),g=a.createGain(),now=a.currentTime;src.buffer=d.music.buf;src.loop=true;
     g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(.9,now+1.8);g.gain.setValueAtTime(.9,now+Math.max(1.9,plan.total-1.6));g.gain.linearRampToValueAtTime(0,now+plan.total+.2);
@@ -1220,7 +1247,7 @@ async function openFilm(record){stopSong();
   F.t0=performance.now();let last=-1;
   const finish=()=>{try{F.src&&F.src.stop()}catch(e){}if(F.rec&&F.rec.state!=="inactive"){F.save=true;F.rec.stop();$("fmsg").textContent="готово: видео лежит в папке «Загрузки»"}film.classList.add("done");film.classList.remove("rec")};
   const tick=()=>{if(!F.alive)return;const t=(performance.now()-F.t0)/1000,i=plan.shots.findIndex(s=>t<s.at+s.dur);
-    if(i!==last&&i>=0){last=i;const el=F.els.get(plan.shots[i].media.url);if(el&&el.play){try{el.currentTime=0}catch(e){}el.play().catch(()=>{})}}
+    if(i!==last&&i>=0){last=i;const sh=plan.shots[i];for(const mm of(sh.tri||[sh.media])){const el=F.els.get(mm.url);if(el&&el.play){try{if(el.currentTime<.3)el.currentTime=Math.min(.6,(el.duration||2)/3)}catch(e){}el.play().catch(()=>{})}}}
     frame(x,F,Math.min(t,plan.total));$("bar").style.width=clamp(t/plan.total)*100+"%";
     if(t<plan.total+.3)F.raf=requestAnimationFrame(tick);else finish()};
   tick();
@@ -1241,21 +1268,21 @@ const hash=s=>{let h=7;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;retur
 const fromDemo=d=>({ask:d.ask||{},letter0:d.letter||null,id:d.id,date:d.date,text:d.text,type:d.type,good:d.good||"",kind:d.kind||"",media:d.photos.map(p=>({url:"demo/"+p,video:false})),song:{pre:d.song.url?d.song.music:null,name:d.song.url?d.song.name:(d.song.itunes?"мелодия (песня не загрузилась)":d.song.name),url:d.song.url||"demo/"+d.song.file,genre:d.song.genre||"",year:d.song.year||"",link:d.song.link||""}});
 const fromStored=r=>({ask:r.ask||{},id:r.id,date:r.date,text:r.text,own:true,film:!!r.film,mood:r.mood!==false,type:r.type,good:r.good||"",kind:r.kind||"",media:r.files.map(f=>({url:URL.createObjectURL(f),video:(f.type||"").startsWith("video")})),song:{name:r.song.name,url:URL.createObjectURL(r.song.blob),genre:r.song.genre||"",year:r.song.year||"",link:r.song.link||""}});
 /* проверка кадров: чёрные и нечитаемые фото и видео в день не попадают */
-function mediaOk(m){return new Promise(res=>{let done=false;const fin=(ok,poster,q)=>{if(!done){done=true;res({ok,poster,q:q||0})}},
+function mediaOk(m){return new Promise(res=>{let done=false;const fin=(ok,poster,q,ar)=>{if(!done){done=true;res({ok,poster,q:q||0,ar})}},
   stat=el=>{try{const c=document.createElement("canvas");c.width=c.height=24;const x=c.getContext("2d");x.drawImage(el,0,0,24,24);const p=x.getImageData(0,0,24,24).data;let t=0,mx=0;for(let i=0;i<p.length;i+=4){const l=(p[i]*.3+p[i+1]*.59+p[i+2]*.11)/255;t+=l;if(l>mx)mx=l}return{mean:t/(p.length/4),mx}}catch(e){return{mean:1,mx:1}}},
   bright=el=>{const q=stat(el);return!(q.mean<.07&&q.mx<.25)};
   setTimeout(()=>fin(!m.video),8000);
   if(m.video){const v=document.createElement("video");v.muted=true;v.playsInline=true;v.preload="auto";v.onerror=()=>fin(false);
     /* у видео ищем первый не чёрный кадр и делаем из него картинку для страницы */
     v.onloadeddata=()=>{const tries=[.8,2,.25,4];let k=0;const step=()=>{if(k>=tries.length){fin(false);return}const t=Math.min(tries[k++],Math.max(0,(v.duration||1)-.1));
-        v.onseeked=()=>{if(v.videoWidth>0&&bright(v)){try{const c=document.createElement("canvas"),q=Math.min(1,640/Math.max(v.videoWidth,v.videoHeight));c.width=v.videoWidth*q|0;c.height=v.videoHeight*q|0;c.getContext("2d").drawImage(v,0,0,c.width,c.height);fin(true,c.toDataURL("image/jpeg",.8))}catch(e){fin(true)}}else step()};
+        v.onseeked=()=>{if(v.videoWidth>0&&bright(v)){try{const c=document.createElement("canvas"),q=Math.min(1,640/Math.max(v.videoWidth,v.videoHeight));c.width=v.videoWidth*q|0;c.height=v.videoHeight*q|0;c.getContext("2d").drawImage(v,0,0,c.width,c.height);fin(true,c.toDataURL("image/jpeg",.8),0,v.videoWidth/v.videoHeight)}catch(e){fin(true,null,0,v.videoWidth/v.videoHeight)}}else step()};
         try{v.currentTime=t}catch(e){fin(false)}};step()};v.src=m.url}
-  else{const i=new Image();i.onerror=()=>fin(false);i.onload=()=>fin(i.naturalWidth>0&&bright(i),null,sharp(i));i.src=m.url}})}
+  else{const i=new Image();i.onerror=()=>fin(false);i.onload=()=>fin(i.naturalWidth>0&&bright(i),null,sharp(i),i.naturalWidth/i.naturalHeight);i.src=m.url}})}
 /* резкость и свет снимка: по ним выбираются фото для больших рамок */
 function sharp(el){try{const N=72,c=document.createElement("canvas");c.width=c.height=N;const x=c.getContext("2d",{willReadFrequently:true});x.drawImage(el,0,0,N,N);const p=x.getImageData(0,0,N,N).data,g=new Float32Array(N*N);let mean=0;
   for(let i=0;i<N*N;i++){g[i]=(p[i*4]*.3+p[i*4+1]*.59+p[i*4+2]*.11)/255;mean+=g[i]}mean/=N*N;let e=0;for(let y=1;y<N-1;y++)for(let X=1;X<N-1;X++){const k=y*N+X;e+=Math.abs(4*g[k]-g[k-1]-g[k+1]-g[k-N]-g[k+N])}
   return e/(N*N)*(mean<.16||mean>.9?.5:1)}catch(e){return 0}}
-async function hydrate(raw){if(raw.own&&raw.media.length){const ok=await Promise.all(raw.media.map(mediaOk)),good0=raw.media.map((m,i)=>ok[i].ok?{...m,poster:ok[i].poster,q:ok[i].q}:null).filter(Boolean),top=[...good0].filter(m=>!m.video).sort((a,b)=>b.q-a.q).slice(0,2),good=[...top,...good0.filter(m=>!top.includes(m))];raw={...raw,media:good.length?good:raw.media.slice(0,1),dropped:raw.media.length-good.length}}
+async function hydrate(raw){if(raw.own&&raw.media.length){const ok=await Promise.all(raw.media.map(mediaOk)),good0=raw.media.map((m,i)=>ok[i].ok?{...m,poster:ok[i].poster,q:ok[i].q,ar:ok[i].ar||1}:null).filter(Boolean),top=[...good0].filter(m=>!m.video).sort((a,b)=>b.q-a.q).slice(0,2),good=[...top,...good0.filter(m=>!top.includes(m))];raw={...raw,media:good.length?good:raw.media.slice(0,1),dropped:raw.media.length-good.length}}
   let music;try{music=raw.song.pre?{...raw.song.pre}:await analyzeSong(raw.song.url)}catch(e){music={bpm:96,energy:.4,bright:.5,duration:30,wave:Array.from({length:90},(_,k)=>.4+.3*Math.sin(k/4))}}
   const L=look(music),photo=await photoLook(raw,L);return{...raw,photo,seed:hash(raw.id),music,look:L,ask:{...(raw.ask||{}),...(ASKS[raw.id]||{})},title:makeTitle(raw.text,raw.date,TAIL[L.word],{...(raw.ask||{}),...(ASKS[raw.id]||{})}),caps:CAPS[raw.id]||[human(raw.date).dd,raw.song.name],type:TYPES[raw.type]?raw.type:suggestType(raw.text,L.key),typeAuto:!TYPES[raw.type]};
 }
@@ -1408,7 +1435,9 @@ function openFront(){
   L.forEach((el,k)=>{setTimeout(()=>el.classList.add("fl"),t);flick(t/1000,1500+k*190,.13+.05*Math.random());t+=Math.max(72,170-k*13)});
   thump((t+420)/1000,.2);setTimeout(()=>F.classList.add("off"),t+620);setTimeout(done,t+1350);
 }
-$("logo").onclick=()=>{show("book");showFront()};$("logo").title="закрыть тетрадь";
+$("logo").onclick=()=>{show("book");showFront()};
+/* вещи на столе у закрытой тетради: нажал — звучат и подпрыгивают */
+$("fdesk").addEventListener("pointerdown",e=>{const el=e.target.closest("img,i");if(!el)return;const c=el.className;sfx(/pen/.test(c)?"pencil":/sheet|card/.test(c)?"paper":/leaf|flower/.test(c)?"leaf":/tape/.test(c)?"tape":/star/.test(c)?"star":/clip/.test(c)?"ticket":"tag",[...el.parentNode.children].indexOf(el));bop(el)});$("logo").title="закрыть тетрадь";
 
 /* ---------- звуки нажатий: у каждой вещи на развороте свой ---------- */
 let MUTE=false;try{MUTE=localStorage.getItem("kino-mute")==="1"}catch(e){}
@@ -1468,7 +1497,7 @@ $("book").addEventListener("click",e=>{
   if(el=q("[data-folder]")){sfx("paper");openFolder(DAYS[cur]);return}
 });
 /* всплывающая подсказка у предмета: «не бойся, нажми» */
-const TIPS=[[".stamp","не бойся, нажми"],[".pol",["щёлкни меня","сфоткай ещё раз","меня можно двигать"]],[".contact","перемотай плёнку"],[".slip","чек печатается"],[".star",["дзынь?","нажми, я звеню"]],[".flower","я хрущу"],[".s-olive","постучи"],[".sticker","отлепи меня"],[".ticket","вход в фильм тут"],[".song","включи песню дня"],[".text em","обведи ещё раз"],[".fq","шуршу"],[".fstub","билетик"],[".ftags b","ярлык"],[".title","открой папку дня"],[".date","пошурши"]];
+const TIPS=[[".stamp","не бойся, нажми"],[".pol",["щёлкни меня","сфоткай ещё раз","нажми, не бойся"]],[".contact","перемотай плёнку"],[".slip","чек печатается"],[".star",["дзынь?","нажми, я звеню"]],[".flower","я хрущу"],[".s-olive","постучи"],[".sticker","отлепи меня"],[".ticket","вход в фильм тут"],[".song","включи песню дня"],[".text em","обведи ещё раз"],[".fq","шуршу"],[".fstub","билетик"],[".ftags b","ярлык"],[".title","открой папку дня"],[".date","пошурши"]];
 let tipEl=null;
 $("book").addEventListener("pointerover",e=>{if(e.pointerType==="touch")return;for(const[sel,t]of TIPS){const el=e.target.closest(sel);if(el){if(el===tipEl)return;tipEl=el;const r=el.getBoundingClientRect(),T=$("tip");T.textContent=Array.isArray(t)?t[(r.left|0)%t.length]:t;T.style.left=clamp(r.left+r.width/2-60,8,innerWidth-190)+"px";T.style.top=Math.max(8,r.top-30)+"px";T.classList.add("on");return}}tipEl=null;$("tip").classList.remove("on")});
 $("book").addEventListener("pointerleave",()=>{tipEl=null;$("tip").classList.remove("on")});addEventListener("scroll",()=>{tipEl=null;$("tip").classList.remove("on")},{passive:true});
@@ -1546,7 +1575,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=24;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=25;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
@@ -1598,7 +1627,7 @@ let li=0;const ltxt="проявляем плёнку",lt=setInterval(()=>{if(li%
   render(DAYS.length-1);renderYear();showFront();navMark();await new Promise(r=>setTimeout(r,Math.max(0,1700-performance.now())));if(getPin())openLock("ask");clearInterval(lt);$("loading").classList.add("off");
 })();
 let drag=null,dragged=0;
-addEventListener("pointerdown",e=>{const el=e.target.closest(".drag");if(!el||e.button||e.pointerType!=="mouse")return;drag={el,x:e.clientX,y:e.clientY,ox:+el.dataset.x||0,oy:+el.dataset.y||0,moved:false}});
+addEventListener("pointerdown",e=>{return;/* перетаскивание предметов выключено по просьбе команды */const el=e.target.closest(".drag");if(!el||e.button||e.pointerType!=="mouse")return;drag={el,x:e.clientX,y:e.clientY,ox:+el.dataset.x||0,oy:+el.dataset.y||0,moved:false}});
 addEventListener("pointermove",e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>5)drag.moved=true;
   if(drag.moved){e.preventDefault();drag.el.classList.add("dragging");drag.el.style.translate=`${drag.ox+dx}px ${drag.oy+dy}px`;drag.el.dataset.x=drag.ox+dx;drag.el.dataset.y=drag.oy+dy}});
 addEventListener("pointerup",()=>{if(drag){drag.el.classList.remove("dragging");if(drag.moved)dragged=performance.now();drag=null}});
