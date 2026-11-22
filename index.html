@@ -618,6 +618,9 @@ header{z-index:8!important}
 .gdec.gl>*{left:6%}.gdec.gr>*{right:6%}
 .gdec .doodle{position:absolute!important;width:46px;height:46px;transform:rotate(-8deg)!important;filter:none}
 .gdec b{font-weight:400;font-family:"Caveat",cursive;font-size:30px;line-height:1;rotate:-7deg;filter:none;opacity:.85}
+.rcol{flex:1;min-width:0;display:grid;gap:26px;justify-items:start}.rcol .ticket{width:100%}
+.fq.mini{font-size:24px;padding:20px 16px 14px;max-width:96%;margin:0;position:relative;transform:rotate(1.6deg)}.fq.mini .tb-tape{width:84px;margin-left:-42px;height:22px;top:-10px}
+@media (max-width:820px){.rcol{width:100%}}
 </style>
 </head>
 <body>
@@ -1039,7 +1042,7 @@ function pageEl(d,side){
       <div class="row"><div class="slip drag pop" ${pop()}><b>чек дня № ${h.doy}</b>
         <div><span>песня</span><span>${esc(d.song.name)}</span></div><div><span>темп</span><span>${d.music.bpm} уд/мин</span></div><div><span>энергия</span><span>${bars}</span></div>${d.song.genre?`<div><span>жанр</span><span>${esc(d.song.genre)}</span></div>`:""}${d.song.year?`<div><span>год песни</span><span>${d.song.year}</span></div>`:""}${d.photo?`<div><span>цвета фото</span><span class="sw">${d.photo.pal.map(c=>`<i style="background:${c}"></i>`).join("")}</span></div>`:""}
         <div><span>бумага</span><span>${L.pname}</span></div><div><span>фото</span><span>${d.media.length}</span></div><div><span>слов</span><span>${words(d.text).length}</span></div><div><span>кадров</span><span>${plan.shots.length}</span></div>${plan.moods?`<div><span>настроения</span><span>+${plan.moods}</span></div>`:""}</div>
-      ${d.film!==false?`<button class="ticket drag pop" ${pop()} data-film><span class="play"></span><span><small>фильм дня · ${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}</small><em>${esc(d.title)}</em></span></button>`:`<button class="ticket nofilm drag pop" ${pop()} data-mkfilm="${d.id}"><span class="play plus"></span><span><small>фильма у этого дня пока нет</small><em>снять фильм</em></span></button>`}</div>
+      <div class="rcol">${d.film!==false?`<button class="ticket drag pop" ${pop()} data-film><span class="play"></span><span><small>фильм дня · ${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}</small><em>${esc(d.title)}</em></span></button>`:`<button class="ticket nofilm drag pop" ${pop()} data-mkfilm="${d.id}"><span class="play plus"></span><span><small>фильма у этого дня пока нет</small><em>снять фильм</em></span></button>`}${(()=>{const q=allSent(d.text).map(x=>x.replace(/[.!…]+$/,"").trim()).filter(x=>x.length>=12&&x.length<=64),pk=q.find(x=>/обожа|люблю|никогда|впервые|незабыва|мечта/i.test(x))||q.find(x=>/самый|самая|самое|первый раз/i.test(x))||q.sort((a,b)=>a.length-b.length)[0];return pk?`<blockquote class="fq mini pop" ${pop()}><i class="tb-tape"></i>«${esc(pk)}»</blockquote>`:""})()}</div></div>
       ${rest.length?`<div class="wall">${rest.map((m,k)=>`<figure class="pol mini drag pop" ${pop()} style="--rr:${((k*37)%9)-4}deg">${k%3===0?`<i class="tape"></i>`:""}<div class="ph">${mtag(m)}</div></figure>`).join("")}</div>`:""}
       ${stick}${K==="olive"?`<img class="flower drag pop" alt="" draggable="false" src="tex/flower.webp">`:""}${dsvg(doodlesOf(d.text)[1],"d2")}${d.own?`<button class="rip" data-del="${d.id}">вырвать страницу ✂</button>`:""}${d.own&&d.film?`<button class="unfilm" data-unfilm="${d.id}">убрать фильм</button>`:""}${(()=>{const l=letterOf(d),st=!l?"new":l.open>today()?"sealed":l.read?"read":"ready";return`<button class="envmini ${st}" data-mailbtn="${st}"><b>✉</b>${{new:"письмо себе в будущее",sealed:"запечатано до "+(l?human(l.open).big+" "+human(l.open).y:""),ready:"письмо пришло!",read:"письмо из этого дня"}[st]}</button>`})()}<button class="envmini tune" data-tune><b>☁</b>погода и воздух дня ↓</button><span class="pno">стр. ${h.doy*2}</span>`;
   }
@@ -1623,7 +1626,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=35;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=36;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
@@ -1669,7 +1672,7 @@ let li=0;const ltxt="проявляем плёнку",lt=setInterval(()=>{if(li%
   /* песни демо-дней — официальные 30-секундные фрагменты из iTunes; сами песни в проекте не хранятся */
   try{const ids=[...new Set(dj.map(x=>x.song.itunes).filter(Boolean))],ac=new AbortController(),tm=setTimeout(()=>ac.abort(),4000),j=await(await fetch("https://itunes.apple.com/lookup?id="+ids.join(","),{signal:ac.signal})).json();clearTimeout(tm);
     const by=new Map((j.results||[]).map(r=>[r.trackId,r]));dj.forEach(x=>{const r=by.get(x.song.itunes);if(r&&r.previewUrl){x.song.url=r.previewUrl;x.song.link=r.trackViewUrl||""}})}catch(e){}
-  const demo=dj.map(fromDemo),own=(await DB.all()).filter(r=>!String(r.id).startsWith("voice:")).map(fromStored);
+  const demo=dj.map(fromDemo),own=(await DB.all()).filter(r=>!String(r.id).startsWith("voice:")).map(fromStored).filter(o=>!dj.some(x=>String(x.id).startsWith("real-")&&x.date===o.date));
   for(const r of await DB.all())if(String(r.id).startsWith("voice:"))VOICES.set(r.id.slice(6),r.blobs||[r.blob]);
   DAYS=await Promise.all([...demo,...own].map(hydrate));sortDays();
   render(DAYS.length-1);renderYear();showFront();navMark();await new Promise(r=>setTimeout(r,Math.max(0,1700-performance.now())));if(getPin())openLock("ask");clearInterval(lt);$("loading").classList.add("off");
