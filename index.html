@@ -1639,7 +1639,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=42;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=43;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
@@ -1670,6 +1670,8 @@ async function qrOpen(){const box=$("mail"),close=()=>{try{qrES&&qrES.close()}ca
         if($("qr-n"))$("qr-n").textContent=`получено: ${got}`;if($("qr-msg"))$("qr-msg").textContent="Фото приходят. Можно выбрать ещё.";sfx("shutter")}catch(err){if($("qr-msg"))$("qr-msg").textContent="Одно фото не дошло — отправь его ещё раз."}}}
   catch(e){$("qr-msg").textContent="Не получилось открыть код: нет интернета."}}
 $("n-qr").onclick=qrOpen;
+/* сайт открыт внутри Telegram (мини-приложение): разворачиваем на весь экран */
+if(/tgWebApp/.test(location.hash))loadJs("https://telegram.org/js/telegram-web-app.js").then(()=>{try{Telegram.WebApp.ready();Telegram.WebApp.expand()}catch(e){}}).catch(()=>{});
 /* день из Telegram-бота: ссылка ?bot=тема.ключ. Бот шифрует текст, фото и песню и кладёт их в сервис пересылки,
    сайт забирает их, расшифровывает и ставит в форму «новый день». Дальше всё делает сайт, как обычно. */
 (async()=>{const B=new URLSearchParams(location.search).get("bot");if(!B)return;const[topic,k]=B.split(".");if(!topic||!k)return;
