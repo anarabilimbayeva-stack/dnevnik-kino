@@ -1157,6 +1157,7 @@ const MOOD=[["sea","мор волн пляж"],["leaves","лист осен"],["
 const MOODBACK={fire:["sky","joy"],olive:["sunset","leaves"],night:["citynight","stars"],rain:["rain","tea"]};
 function moodFor(d){
   if(d.mood===false)return[];const need=Math.min(5,6-d.media.length);if(need<=0)return[];
+  if(d.moods)return d.moods.slice(0,need).map(f=>({url:`mood/${f}.jpg`,video:false,mood:true}));
   const w=words(d.text),hit=[];
   for(const[f,ks]of MOOD){const i=w.findIndex(x=>ks.some(k=>x.startsWith(k)&&x.length<=k.length+4));if(i>=0)hit.push([i,f])}
   let names=hit.sort((a,b)=>a[0]-b[0]).map(h=>h[1]);
@@ -1181,7 +1182,7 @@ function filmPlan(d,med){
   media.forEach(x=>{if(m>=3&&isP(x)){buf.push(x);if(buf.length===3)seq.push({tri:buf.splice(0,3)})}else if(m>=3&&isM(x)){buf2.push(x);if(buf2.length===2)seq.push({tri:buf2.splice(0,2)})}else seq.push({pan:x})});
   if(buf.length===2)seq.push({tri:buf.splice(0,2)});else if(buf.length===1)seq.push({pan:buf[0]});if(buf2.length)seq.push({pan:buf2[0]});
   /* фото мало — проходим по ним ещё раз, другой дорогой камеры */
-  const base=seq.length;for(let k=0;seq.length<6&&base;k++)seq.push({pan:(seq[k%base].pan||seq[k%base].tri[0]),again:1});
+  const base=seq.length;for(let k=0;seq.length<6&&base;k++)seq.push({pan:media[(k+1)%m],again:1});
   const midText=d.good?"получилось: "+d.good:((d.ask||{}).sense||""),midDur=clamp(1.6+midText.length*.05,2.4,3.6);
   let ph=seq.map(q=>q.tri?Math.max(L.shot*1.45,3):L.shot),sum=ph.reduce((a,b)=>a+b,0);
   /* фильм не длиннее песни: отрывок идёт 30 секунд и не должен начинаться заново */
@@ -1337,10 +1338,10 @@ const DB={db:null,mem:new Map(),
   async put(d){this.mem.set(d.id,d);if(!this.db)return;try{await new Promise((res,rej)=>{const tx=this.db.transaction("days","readwrite");tx.objectStore("days").put(d);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}catch(e){}},
   async del(id){this.mem.delete(id);if(!this.db)return;try{await new Promise((res,rej)=>{const tx=this.db.transaction("days","readwrite");tx.objectStore("days").delete(id);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}catch(e){}}
 };
-const CAPS={"demo-1":["с мамой","какао"],"demo-2":["волны!","мороженое"],"demo-3":["2:00","огни"],"demo-4":["капли","чай"],"demo-5":["никого","музыка"],"demo-6":["плед","чай"],"real-1":["Пекин","18 июня"],"real-2":["прогулка","20 июля"]};
+const CAPS={"demo-1":["с мамой","какао"],"demo-2":["волны!","мороженое"],"demo-3":["2:00","огни"],"demo-4":["капли","чай"],"demo-5":["никого","музыка"],"demo-6":["плед","чай"],"real-1":["Пекин","18 июня"],"real-2":["прогулка","20 июля"],"real-3":["зал","22 ноября"]};
 const TAIL={громкий:"на полной громкости",яркий:"полный смеха",тёплый:"в тёплом свете",тихий:"в тихом ритме"};
 const hash=s=>{let h=7;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)%100000+1};
-const fromDemo=d=>({ask:d.ask||{},letter0:d.letter||null,id:d.id,date:d.date,text:d.text,type:d.type,good:d.good||"",kind:d.kind||"",media:d.photos.map(p=>({url:"demo/"+p,video:/\.(mp4|webm|mov)$/i.test(p)})),song:{pre:d.song.url?d.song.music:null,name:d.song.url?d.song.name:(d.song.itunes?"мелодия (песня не загрузилась)":d.song.name),url:d.song.url||"demo/"+d.song.file,genre:d.song.genre||"",year:d.song.year||"",link:d.song.link||""}});
+const fromDemo=d=>({moods:d.moods||null,ask:d.ask||{},letter0:d.letter||null,id:d.id,date:d.date,text:d.text,type:d.type,good:d.good||"",kind:d.kind||"",media:d.photos.map(p=>({url:"demo/"+p,video:/\.(mp4|webm|mov)$/i.test(p)})),song:{pre:d.song.url?d.song.music:null,name:d.song.url?d.song.name:(d.song.itunes?"мелодия (песня не загрузилась)":d.song.name),url:d.song.url||"demo/"+d.song.file,genre:d.song.genre||"",year:d.song.year||"",link:d.song.link||""}});
 const fromStored=r=>({ask:r.ask||{},id:r.id,date:r.date,text:r.text,own:true,film:!!r.film,mood:r.mood!==false,type:r.type,good:r.good||"",kind:r.kind||"",media:r.files.map(f=>({url:URL.createObjectURL(f),video:(f.type||"").startsWith("video")})),song:{name:r.song.name,url:URL.createObjectURL(r.song.blob),genre:r.song.genre||"",year:r.song.year||"",link:r.song.link||""}});
 /* проверка кадров: чёрные и нечитаемые фото и видео в день не попадают */
 function mediaOk(m){return new Promise(res=>{let done=false;const fin=(ok,poster,q,ar,t0)=>{if(!done){done=true;res({ok,poster,q:q||0,ar,t0:t0||0})}},
@@ -1650,7 +1651,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=47;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=48;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
