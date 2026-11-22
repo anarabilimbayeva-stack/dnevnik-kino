@@ -464,6 +464,8 @@ button.c.dim{opacity:.16;filter:grayscale(1)}
 .fdp:nth-child(3){left:calc(var(--w)*.78);top:calc(var(--w)*-.7);--rr:9deg}
 .fdp:nth-child(4){left:calc(var(--w)*.86);top:calc(var(--w)*0);--rr:-6deg;width:calc(var(--w)*.44)}
 .fd-pen{left:calc(var(--w)*.5);top:calc(var(--w)*.66);width:calc(var(--w)*1.05);transform:rotate(-14deg)}
+.fdesk>.fd-sheet,.fdesk>.fd-note{animation:none}
+.fd-note{left:calc(var(--w)*-1.28);top:calc(var(--w)*-.42);font-family:"Caveat",cursive;font-weight:700;font-size:calc(var(--w)*.072);line-height:1.02;color:#2f4a6b;transform:rotate(-9deg);filter:none!important;pointer-events:none;white-space:nowrap}
 .fd-sheet{left:calc(var(--w)*-1.42);top:calc(var(--w)*-.62);width:calc(var(--w)*.86);transform:rotate(-9deg);opacity:.96}
 .fd-card{left:calc(var(--w)*.72);top:calc(var(--w)*-.68);width:calc(var(--w)*.66);transform:rotate(8deg)}
 .fd-flower{left:calc(var(--w)*-.84);top:calc(var(--w)*-.3);height:calc(var(--w)*.72);transform:rotate(-24deg)}
@@ -726,8 +728,11 @@ const PLACES=[["парк","в парке"],["лес","в лесу"],["море",
 const WITH=[["мам","с мамой"],["пап","с папой"],["друз","с друзьями"],["подруг","с подругой"],["бабушк","с бабушкой"],["сестр","с сестрой"],["брат","с братом"],["класс","с классом"]];
 const THINGS=[["какао","и какао"],["чай","и чай"],["морожен","и мороженое"],["шарик","и шарики"],["дожд","и дождь"],["снег","и первый снег"],["лист","и жёлтые листья"],["звезд","и звёзды"],["снек","и снеки"],["одежд","и новая одежда"],["танц","и танцы"],["флаг","и флаг"],["фот","и много фото"]];
 const EVENTS=[["сдач","перед сдачей"],["экзамен","перед экзаменом"],["рожден","в день рождения"],["соревн","на соревнованиях"],["баттл","на баттлах"],["мастер-класс","на мастер-классе"],["выступ","на выступлении"],["турнир","на турнире"],["поезд","в поездке"],["праздн","на празднике"],["свадьб","на свадьбе"],["выпускн","на выпускном"]];
+/* короткие корни легко путаются с другими словами («классно» ≠ «класс», «залезли» ≠ «зал»), для них — только настоящие формы слова */
+const EXACT={класс:/^(одно)?класс(а|е|ом|у|ы|ов|ник.*)?$/,зал:/^зал(а|е|ом|у|ы)?$/,лист:/^лист(ья|ьев|ьях|ьями|ва|ве|вой|ок|ики|ик|опад.*)?$/,пап:/^пап(а|ы|е|у|ой|очк.*|ул.*)$/,мам:/^мам(а|ы|е|у|ой|очк.*|ул.*)$/,чай:/^ча(й|я|ю|ем|е)$/,сцен:/^сцен(а|е|у|ы|ой)$/,фот:/^фот(о|к.*|ограф.*)$/,дома:/^дома$/,кино:/^кино$/,окн:/^окн(о|а|е|у|ом)$/,двор:/^двор(а|е|у|ом|ик.*)?$/,брат:/^брат(а|у|ом|ик.*|ишк.*)?$/,лес:/^лес(а|у|ом|е)?$/,горы:/^горы$/,снег:/^снег(а|у|ом|е)?$/,поезд:/^поезд(а|у|ом|е|к.*)?$/,музе:/^музе(й|я|е|ю|ем)$/};
+const kw=(k,x)=>EXACT[k]?EXACT[k].test(x):x.startsWith(k);
 /* из списка выбирается то, о чём в рассказе говорят чаще; при равенстве — то, что названо раньше */
-const hits=(l,w)=>{const m=new Map();l.forEach(([k,p])=>{let n=0,first=-1;w.forEach((x,i)=>{if(x.startsWith(k)){n++;if(first<0)first=i}});if(n){const o=m.get(p);if(!o)m.set(p,{p,n,first});else{o.n+=n;o.first=Math.min(o.first,first)}}});return[...m.values()]};
+const hits=(l,w)=>{const m=new Map();l.forEach(([k,p])=>{let n=0,first=-1;w.forEach((x,i)=>{if(kw(k,x)){n++;if(first<0)first=i}});if(n){const o=m.get(p);if(!o)m.set(p,{p,n,first});else{o.n+=n;o.first=Math.min(o.first,first)}}});return[...m.values()]};
 const find=(l,w)=>{const h=hits(l,w).sort((a,b)=>b.n-a.n||a.first-b.first);return h.length?h[0].p:null};
 function makeTitle(text,date,tail,ask={}){
   const w=words(text),m=new Date(date+"T12:00").getMonth();
@@ -742,7 +747,7 @@ function makeTitle(text,date,tail,ask={}){
   return parts.join(" ");
 }
 const KEY=[...PLACES,...WITH,...THINGS].map(x=>x[0]);
-function markText(t){return t.replace(/[A-Za-zА-Яа-яЁё-]+/g,w=>{const l=w.toLowerCase().replace(/ё/g,"е");return KEY.some(k=>l.startsWith(k)&&l.length<k.length+4)?`<em>${w}</em>`:w})}
+function markText(t){return t.replace(/[A-Za-zА-Яа-яЁё-]+/g,w=>{const l=w.toLowerCase().replace(/ё/g,"е");return KEY.some(k=>kw(k,l)&&l.length<k.length+5)?`<em>${w}</em>`:w})}
 const DOODLES={
   sun:`<circle cx="30" cy="30" r="10"/><path d="M30 6v8M30 46v8M6 30h8M46 30h8M13 13l6 6M41 41l6 6M47 13l-6 6M19 41l-6 6"/>`,
   wave:`<path d="M5 20q6-9 12 0t12 0 12 0 12 0M5 32q6-9 12 0t12 0 12 0 12 0M5 44q6-9 12 0t12 0 12 0 12 0"/>`,
@@ -914,11 +919,11 @@ async function recVoice(btn){const d=DAYS[cur];
   catch(e){btn.querySelector("i").textContent="нет доступа к микрофону"}}
 try{speechSynthesis.getVoices()}catch(e){}
 /* ---------- почему день выглядит так ---------- */
-function whyRows(d){const L=d.look,m=d.music,v=voiceOf(d),kw=[...new Set((d.text.match(/[A-Za-zА-Яа-яЁё-]+/g)||[]).filter(w=>{const l=w.toLowerCase().replace(/ё/g,"е");return KEY.some(k=>l.startsWith(k)&&l.length<k.length+4)}).map(w=>w.toLowerCase()))].slice(0,6);
+function whyRows(d){const L=d.look,m=d.music,v=voiceOf(d),kws=[...new Set((d.text.match(/[A-Za-zА-Яа-яЁё-]+/g)||[]).filter(w=>{const l=w.toLowerCase().replace(/ё/g,"е");return KEY.some(k=>kw(k,l)&&l.length<k.length+5)}).map(w=>w.toLowerCase()))].slice(0,6);
   const R=[["песня",`${m.bpm} ударов в минуту, энергия ${Math.round(m.energy*100)}%, звук ${(m.tone??.4)<.22?"приглушённый":(m.tone??.4)>.6?"яркий":"мягкий"}`,`${L.pname} бумага и «${L.word}» день; буквы названия наклонены на ${parseFloat(L.tilt)}°; кадр фильма длится ${L.shot.toFixed(1)} с`]];
   if(d.song.genre||d.song.year)R.push(["о песне",[d.song.genre,d.song.year].filter(Boolean).join(", "),"записано в чек дня"]);
   if(d.photo)R.push(["фото",`${d.media.length} шт., ${d.photo.light}`,"главный цвет снимка стал цветом обведённых слов и волны песни",d.photo.pal]);
-  R.push(["слова",kw.length?kw.map(w=>"«"+w+"»").join(", "):"ключевых слов не нашлось",kw.length?"из них собрано название папки, они обведены в тексте, по ним нарисованы значки на полях":"название собрано из времени года и суток"]);
+  R.push(["слова",kws.length?kws.map(w=>"«"+w+"»").join(", "):"ключевых слов не нашлось",kws.length?"из них собрано название папки, они обведены в тексте, по ним нарисованы значки на полях":"название собрано из времени года и суток"]);
   const A=d.ask||{},an=[A.weather&&({sun:"солнце",clouds:"пасмурно",rain:"дождь",snow:"снег",wind:"ветер",fog:"туман"}[A.weather]||A.weather),A.time&&{morning:"утро",day:"день",evening:"вечер",night:"ночь"}[A.time],A.pace&&({slow:"медленный день",mid:"обычный темп",fast:"суматошный день"}[A.pace]||A.pace),A.place].filter(Boolean);
   if(an.length)R.push(["ответы",an.join(", "),"погода задаёт эффект в фильме, часть дня — оттенок кадров и слово в названии, темп — длину кадров"]);
   R.push(["фильм",FXNAME[fxOf(d)],A.weather?"эффект взят из ответа про погоду":"эффект выбран по словам записи, а если подходящих слов нет — по звуку песни"]);
@@ -1060,9 +1065,9 @@ function renderYear(){
   $("ybig").innerHTML=ransom(String(y)+" год",y,7,.7);
   $("tfilter").innerHTML=`<button data-t="" class="${YT?"":"on"}">все дни</button>`+TKEYS.map(t=>`<button data-t="${t}" class="${YT===t?"on":""}">${tsvg(t)}${TYPES[t].name}</button>`).join("");
   const fastest=[...inY].sort((a,b)=>b.music.bpm-a.music.bpm)[0];
-  $("ystat").textContent=`записано дней: ${inY.length}. самый быстрый день — ${human(fastest.date).big}. нажми на клочок, чтобы открыть день.`;
+  $("ystat").textContent=`записано дней: ${inY.length}. самый быстрый день — ${human(fastest.date).big}. нажми на цветную дату, чтобы открыть день.`;
   const LEG={fire:["красная","громкая, звонкая песня"],night:["чёрная","громкая песня с тёмным, плотным звуком"],olive:["оливковая","спокойная песня с мягким звуком"],rain:["сизая","тихая, приглушённая песня"]};
-  $("ylegend").innerHTML=`<b>цвет клочка — какой была песня дня</b>`+Object.keys(LEG).map(k=>{const c=inY.filter(d=>d.look.key===k).length;return`<span><i style="--p:${PAPERS[k].paper}"></i>${LEG[k][0]} — ${LEG[k][1]}<small>${c?"×"+c:"пока нет"}</small></span>`}).join("")+`<em>цвет выбирает звук песни, а настроение дня выбираешь ты сама — оно ниже, значками</em>`;
+  $("ylegend").innerHTML=`<b>цвет даты — какой была песня дня</b>`+Object.keys(LEG).map(k=>{const c=inY.filter(d=>d.look.key===k).length;return`<span><i style="--p:${PAPERS[k].paper}"></i>${LEG[k][0]} — ${LEG[k][1]}<small>${c?"×"+c:"пока нет"}</small></span>`}).join("")+`<em>цвет выбирает звук песни, а настроение дня выбираешь ты сама — оно ниже, значками</em>`;
   const mailOn=new Map(),wait=[];DAYS.forEach((d,i)=>{const l=letterOf(d);if(l){mailOn.set(l.open,i);if(l.open>today())wait.push(l.open)}});wait.sort();
   if(wait.length)$("ystat").textContent+=` писем ждёт своего дня: ${wait.length}, ближайшее откроется ${fullDate(wait[0])}.`;
   $("ylegend").innerHTML+=`<em>✉ на календаре — в этот день открывается письмо в будущее</em>`;
@@ -1111,10 +1116,14 @@ function filmPlan(d,med){
   if(buf.length===2)seq.push({tri:buf.splice(0,2)});else if(buf.length===1)seq.push({pan:buf[0]});
   /* фото мало — проходим по ним ещё раз, другой дорогой камеры */
   const base=seq.length;for(let k=0;seq.length<6&&base;k++)seq.push({pan:(seq[k%base].pan||seq[k%base].tri[0]),again:1});
+  const midText=d.good?"получилось: "+d.good:((d.ask||{}).sense||""),midDur=clamp(1.6+midText.length*.05,2.4,3.6);
   let ph=seq.map(q=>q.tri?Math.max(L.shot*1.45,3):L.shot),sum=ph.reduce((a,b)=>a+b,0);
-  if(sum>58){const f=58/sum;ph=ph.map((v,i)=>Math.max(seq[i].tri?2.4:1.5,v*f))}
-  const midAt=Math.floor(seq.length*.62),midText=d.good?"получилось: "+d.good:((d.ask||{}).sense||"");let pc=0,k=0;
-  seq.forEach((q,i)=>{if(i===midAt&&midText&&seq.length>3)shots.push({paper:true,text:midText,media:{url:"paper"},mv:"left",dur:clamp(1.6+midText.length*.05,2.4,3.6)});
+  /* фильм не длиннее песни: отрывок идёт 30 секунд и не должен начинаться заново */
+  const fixed=shots.reduce((a,q)=>a+q.dur,0)+(midText&&seq.length>3?midDur:0)+Math.max(L.shot,3),budget=Math.max(8,Math.min(58,(d.music.duration||30)-.4)-fixed);
+  if(sum>budget){const f=budget/sum;ph=ph.map((v,i)=>Math.max(seq[i].tri?2.2:1.3,v*f));sum=ph.reduce((a,b)=>a+b,0);
+    while(sum>budget&&seq.length>3){const i=Math.floor(seq.length/2);sum-=ph[i];seq.splice(i,1);ph.splice(i,1)}}
+  const midAt=Math.floor(seq.length*.62);let pc=0,k=0;
+  seq.forEach((q,i)=>{if(i===midAt&&midText&&seq.length>3)shots.push({paper:true,text:midText,media:{url:"paper"},mv:"left",dur:midDur});
     if(q.tri){shots.push({tri:q.tri,media:q.tri[0],mv:"in",dur:ph[i]})}
     else{const up=(k+(q.again?1:0))%2===1,sh={media:q.pan,mv:MOVES[k%MOVES.length],dur:ph[i],p0:up?.82:.1,p1:up?.26:.72};
       if(m<=5&&!q.pan.video&&pc++%3===1){sh.pol=pc%2?1:-1;sh.cap="";sh.dur=Math.max(sh.dur,2.4)}shots.push(sh);k++}});
@@ -1236,7 +1245,7 @@ async function openFilm(record){stopSong();
   /* в фильм идут только те кадры, что загрузились; план строится заново уже с настоящими пропорциями */
   plan=F.plan=filmPlan(d,ALLM.filter(m=>F.els.has(m.url)));
   if(!d.music.buf){try{d.music.buf=(await analyzeSong(d.song.url)).buf}catch(e){}if(!F.alive)return}
-  if(d.music.buf){try{const a=actx();a.resume();const src=a.createBufferSource(),g=a.createGain(),now=a.currentTime;src.buffer=d.music.buf;src.loop=true;
+  if(d.music.buf){try{const a=actx();a.resume();const src=a.createBufferSource(),g=a.createGain(),now=a.currentTime;src.buffer=d.music.buf;src.loop=false;
     g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(.9,now+1.8);g.gain.setValueAtTime(.9,now+Math.max(1.9,plan.total-1.6));g.gain.linearRampToValueAtTime(0,now+plan.total+.2);
     src.connect(g);g.connect(a.destination);if(record){F.dest=a.createMediaStreamDestination();g.connect(F.dest)}src.start();F.src=src}catch(e){}}
   if(record){try{const stream=new MediaStream([...cv.captureStream(30).getVideoTracks(),...(F.dest?F.dest.stream.getAudioTracks():[])]);
@@ -1422,7 +1431,7 @@ function buildFront(){
       <svg class="fstamp" viewBox="0 0 120 120" fill="none" stroke="currentColor"><circle cx="60" cy="60" r="55" stroke-width="3"/><circle cx="60" cy="60" r="37" stroke-width="1.5"/><path id="farc" d="M60 60m-46 0a46 46 0 1 1 92 0a46 46 0 1 1 -92 0"/><text font-size="9.5" stroke="none"><textPath href="#farc">памятные дни · песня · фото · фильм ·</textPath></text><text x="60" y="66" text-anchor="middle" font-size="17" stroke="none">${yr}</text></svg>
     </i><i class="fc-in"><span>в этой тетради<b>${n} ${dayWord(n)}</b>у каждого своя песня</span></i></div>`;
   /* на столе вокруг тетради — только вещи, без фотографий */
-  $("fdesk").innerHTML=`<img class="fd-sheet" alt="" src="tex/sheet.webp"><img class="fd-card" alt="" src="tex/card.webp"><img class="fd-pen" alt="" src="tex/pen.webp"><img class="fd-leaf" alt="" src="tex/leaf.webp"><img class="fd-flower" alt="" src="tex/flower.webp"><img class="fd-tape" alt="" src="tex/washi.webp"><img class="fd-star a" alt="" src="tex/stargold.webp"><img class="fd-star b" alt="" src="tex/starcream.webp"><img class="fd-star c" alt="" src="tex/stargold.webp"><img class="fd-clip" alt="" src="tex/clip.webp"><i class="fd-ring"></i>`;
+  $("fdesk").innerHTML=`<img class="fd-sheet" alt="" src="tex/sheet.webp"><span class="fd-note">псс… вещи<br>на столе тоже<br>звучат. нажми<br>на любую!</span><img class="fd-card" alt="" src="tex/card.webp"><img class="fd-pen" alt="" src="tex/pen.webp"><img class="fd-leaf" alt="" src="tex/leaf.webp"><img class="fd-flower" alt="" src="tex/flower.webp"><img class="fd-tape" alt="" src="tex/washi.webp"><img class="fd-star a" alt="" src="tex/stargold.webp"><img class="fd-star b" alt="" src="tex/starcream.webp"><img class="fd-star c" alt="" src="tex/stargold.webp"><img class="fd-clip" alt="" src="tex/clip.webp"><i class="fd-ring"></i>`;
   $("fhint").innerHTML=`нажми на тетрадь, она откроется<small>${mi>=0?"✉ тебе пришло письмо из прошлого":`внутри ${n} ${dayWord(n)} · со звуком`} · версия ${VER}</small>`;
   const c=$("fcover");c.onclick=openFront;c.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openFront()}};
 }
@@ -1575,7 +1584,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=25;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=26;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
