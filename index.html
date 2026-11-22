@@ -1265,13 +1265,16 @@ function filmPlan(d,med,grid){
   const pace=(p=>({slow:1.3,fast:.78}[p]||(/медлен|тих|спокой|лен/.test(p||"")?1.3:/быстр|сумат|бег|спеш/.test(p||"")?.78:1)))((d.ask||{}).pace),FL=filmLook(d),D=FL.D,L={...FL,shot:FL.shot*pace},caps=filmCaps(d),media=(med||d.media.concat(moodFor(d))).filter(Boolean),m=media.length;
   /* раскадровка от нейросети: если для дня она есть, фильм идёт по ней. В ней сказано, какие кадры стоят вместе,
      сколько счётов длится каждый и какое слово на нём появляется, — так слово «БАТТЛЫ» встаёт на кадры с баттлов, а не на случайные */
-  if(d.board&&d.board.shots){const B=d.board,P=grid?grid.P:60/d.music.bpm,find=u=>media.find(x=>(x.url||"").endsWith(u)),sh=[],subs=[];
+  if(d.board&&d.board.shots){const B=d.board,P=grid?grid.P:60/d.music.bpm,find=u=>u&&media.find(x=>(x.url||"").endsWith(u)||x.name===u),sh=[],subs=[];
     const cm=find(B.card)||media.find(x=>!x.video)||media[0];let cd=Math.max(L.shot,2.8);if(grid){const k=Math.max(4,Math.round((cd-grid.ph)/P));cd=grid.ph+k*P;if(cd<4*P+.9)cd+=P*Math.ceil((4*P+.9-cd)/P)}
     sh.push({card:true,media:cm,mv:"in",dur:cd});let kk=0;
     for(const q of B.shots){const ms=q.m.map(find).filter(Boolean);if(!ms.length)continue;const dur=q.b*P;
       if(ms.length>1)sh.push({tri:ms,media:ms[0],mv:"in",dur,w:q.w,w2:q.w2});
       else{const up=kk%2===1,tall=(ms[0].ar||1)<1.2,o={media:ms[0],mv:MOVES[kk%MOVES.length],dur,p0:tall?(up?.7:.08):(up?.5:.28),p1:tall?(up?.2:.6):(up?.28:.5),w:q.w,w2:q.w2};if(q.pol&&!ms[0].video){o.pol=kk%2?1:-1;o.cap=""}sh.push(o);kk++}}
     sh.push({end:true,media:find(B.end)||[...media].reverse().find(x=>!x.video)||media[m-1],mv:"out",dur:Math.max(4*P,2.6)});
+    /* раскадровка не должна быть длиннее песни: самые длинные кадры укорачиваются на два счёта */
+    {const cap=Math.min(58,(d.music.duration||30)-.4);let sum=sh.reduce((a,q)=>a+q.dur,0);for(let g=0;g<60&&sum>cap;g++){let bi=-1,bd=0;sh.forEach((q,i)=>{if(i&&!q.end&&q.dur>bd&&q.dur>2*P+.01){bd=q.dur;bi=i}});if(bi<0)break;sh[bi].dur-=2*P;sum-=2*P}
+      while(sum>cap&&sh.length>3){const q=sh.splice(sh.length-2,1)[0];sum-=q.dur}}
     let tt=0,wk=0;sh.forEach(q=>{q.at=tt;tt+=q.dur;if(q.w){subs.push({text:q.w,word:1,k:wk++,from:q.at+(q.card?0:.02),to:q.at+Math.min(q.w2?q.dur/2-.2:q.dur-.25,2.2)});if(q.w2){const f=q.at+Math.round(q.dur/2/P)*P;subs.push({text:q.w2,word:1,k:wk++,from:f,to:Math.min(f+2.3,q.at+q.dur-.1)})}}});
     return{shots:sh,subs,total:tt,moods:0,board:true}}
   const first=media.find(x=>!x.video)||media[0],themes=caps.filter(c=>!/^♪|^день «|^получилось/.test(c)),shots=[{card:true,media:first,mv:"in",dur:Math.max(L.shot,2.8)}];
@@ -1552,7 +1555,7 @@ const CAPS={"demo-1":["с мамой","какао"],"demo-2":["волны!","м�
 const TAIL={громкий:"на полной громкости",яркий:"полный смеха",тёплый:"в тёплом свете",тихий:"в тихом ритме"};
 const hash=s=>{let h=7;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)%100000+1};
 const fromDemo=d=>({board:d.board||null,words:d.words||null,moods:d.moods||null,noRepeat:d.noRepeat||null,ask:d.ask||{},letter0:d.letter||null,id:d.id,date:d.date,text:d.text,type:d.type,good:d.good||"",kind:d.kind||"",media:d.photos.map(p=>({url:"demo/"+p,video:/\.(mp4|webm|mov)$/i.test(p)})),song:{nn:d.song.url?d.song.nn||null:null,pre:d.song.url?d.song.music:null,name:d.song.url?d.song.name:(d.song.itunes?"мелодия (песня не загрузилась)":d.song.name),url:d.song.url||"demo/"+d.song.file,genre:d.song.genre||"",year:d.song.year||"",link:d.song.link||""}});
-const fromStored=r=>({ask:r.ask||{},id:r.id,date:r.date,text:r.text,own:true,film:!!r.film,mood:r.mood!==false,type:r.type,good:r.good||"",kind:r.kind||"",media:r.files.map(f=>({url:URL.createObjectURL(f),video:(f.type||"").startsWith("video")})),song:{name:r.song.name,url:URL.createObjectURL(r.song.blob),genre:r.song.genre||"",year:r.song.year||"",link:r.song.link||""}});
+const fromStored=r=>({words:r.words||null,board:r.board||null,ask:r.ask||{},id:r.id,date:r.date,text:r.text,own:true,film:!!r.film,mood:r.mood!==false,type:r.type,good:r.good||"",kind:r.kind||"",media:r.files.map(f=>({url:URL.createObjectURL(f),name:f.name||"",video:(f.type||"").startsWith("video")})),song:{name:r.song.name,url:URL.createObjectURL(r.song.blob),genre:r.song.genre||"",year:r.song.year||"",link:r.song.link||""}});
 /* проверка кадров: чёрные и нечитаемые фото и видео в день не попадают */
 function mediaOk(m){return new Promise(res=>{let done=false;const fin=(ok,poster,q,ar,t0)=>{if(!done){done=true;res({ok,poster,q:q||0,ar,t0:t0||0})}},
   stat=el=>{try{const c=document.createElement("canvas");c.width=c.height=24;const x=c.getContext("2d");x.drawImage(el,0,0,24,24);const p=x.getImageData(0,0,24,24).data;let t=0,mx=0;for(let i=0;i<p.length;i+=4){const l=(p[i]*.3+p[i+1]*.59+p[i+2]*.11)/255;t+=l;if(l>mx)mx=l}return{mean:t/(p.length/4),mx}}catch(e){return{mean:1,mx:1}}},
@@ -1594,7 +1597,7 @@ $("n-media").onchange=async()=>{const fs=[...$("n-media").files].slice(0,30);
   else if(fs.length)$("n-datenote").textContent="в фото нет даты съёмки (так бывает после Telegram и WhatsApp) — проверь дату сама"};
 $("n-song").onchange=()=>{const f=$("n-song").files[0];$("n-scount").textContent=f?f.name:"";if(f&&!$("n-sname").value)$("n-sname").value=f.name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ")};
 /* песня по названию: открытый каталог iTunes отдаёт 30-секундный отрывок */
-let PICK=null,FOUND=[];const prev=new Audio();
+let PICK=null,FOUND=[],BOTNN=null;const prev=new Audio();
 async function findSong(){const q=$("n-q").value.trim(),box=$("n-res");if(!q)return;box.innerHTML='<small class="hintl">ищу…</small>';
   try{let r=[];for(const c of["","&country=ru"]){const j=await(await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=song&limit=5${c}`)).json();r=(j.results||[]).filter(x=>x.previewUrl);if(r.length)break}
     FOUND=r;box.innerHTML=r.length?r.map((x,i)=>`<div class="sr" data-row="${i}"><img src="${esc(x.artworkUrl60||"")}" alt=""><span><b>${esc(x.trackName)}</b>${esc(x.artistName)}</span><button type="button" data-play="${i}">▶</button><button type="button" data-pick="${i}">выбрать</button></div>`).join(""):'<small class="hintl">ничего не нашлось — попробуй написать иначе или выбери файл</small>'}
@@ -1670,10 +1673,10 @@ $("n-form").onsubmit=async e=>{e.preventDefault();const st=$("n-status"),btn=$("
   btn.disabled=true;st.textContent="слушаю песню и вклеиваю страницу…";
   try{const ok=[];for(const f of files){if(f.type.startsWith("video")){ok.push(f);continue}const u=URL.createObjectURL(f);try{await loadImg(u);ok.push(f)}catch(err){}URL.revokeObjectURL(u)}
     if(!ok.length)throw new Error("не получилось открыть фото. Если это HEIC с айфона, сохрани их как JPEG");
-    const rec={id:"d"+Date.now(),ask:{...NQ},date,text,film:$("n-film").checked,mood:$("n-mood").checked,type:NTYPE||undefined,good:$("n-good").value.trim(),kind:NTYPE&&TYPES[NTYPE].hard?$("n-kind").value.trim():"",files:ok,song:{name:PICK?PICK.name:($("n-sname").value.trim()||"песня дня"),blob:song,genre:PICK?PICK.genre:"",year:PICK?PICK.year:"",link:PICK?PICK.link:""}},day=await hydrate(fromStored(rec));if(NVOICE.length){VOICES.set(rec.id,NVOICE);await DB.put({id:"voice:"+rec.id,blobs:NVOICE});NVOICE=[];$("n-voicenote").textContent=""}
+    const rec={id:"d"+Date.now(),ask:{...NQ},date,text,film:$("n-film").checked,mood:$("n-mood").checked,type:NTYPE||undefined,good:$("n-good").value.trim(),kind:NTYPE&&TYPES[NTYPE].hard?$("n-kind").value.trim():"",files:ok,words:BOTNN&&BOTNN.words||undefined,board:BOTNN&&BOTNN.board||undefined,song:{name:PICK?PICK.name:($("n-sname").value.trim()||"песня дня"),blob:song,genre:PICK?PICK.genre:"",year:PICK?PICK.year:"",link:PICK?PICK.link:""}},day=await hydrate(fromStored(rec));if(NVOICE.length){VOICES.set(rec.id,NVOICE);await DB.put({id:"voice:"+rec.id,blobs:NVOICE});NVOICE=[];$("n-voicenote").textContent=""}
     if(!day.music.buf)throw new Error("не получилось прочитать песню — попробуй файл mp3");
     await DB.put(rec);DAYS.push(day);sortDays();YEAR=null;openDay(DAYS.indexOf(day));
-    $("n-more").open=false;$("n-form").reset();PICK=null;NTYPE=null;NQ={};$("n-qs").querySelectorAll(".on").forEach(x=>x.classList.remove("on"));drawTypes();$("n-mood").checked=true;$("n-res").innerHTML="";$("n-thumbs").innerHTML="";$("n-mcount").textContent=$("n-scount").textContent=$("n-datenote").textContent="";$("n-date").value=today();
+    $("n-more").open=false;$("n-form").reset();PICK=null;BOTNN=null;NTYPE=null;NQ={};$("n-qs").querySelectorAll(".on").forEach(x=>x.classList.remove("on"));drawTypes();$("n-mood").checked=true;$("n-res").innerHTML="";$("n-thumbs").innerHTML="";$("n-mcount").textContent=$("n-scount").textContent=$("n-datenote").textContent="";$("n-date").value=today();
     st.textContent=ok.length<files.length?`страница готова. ${files.length-ok.length} фото не открылись (возможно, HEIC)`:"";
   }catch(err){st.textContent=err.message}
   btn.disabled=false};
@@ -1861,7 +1864,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=68;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=69;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
@@ -1908,13 +1911,13 @@ if(/tgWebApp/.test(location.hash))loadJs("https://telegram.org/js/telegram-web-a
     const files=[];let draft=null;
     for(const m of ms){try{const u=new Uint8Array(await(await fetch(m.attachment.url)).arrayBuffer()),{meta,data}=await unseal(key,u);
       if(meta.kind==="draft")draft=JSON.parse(new TextDecoder().decode(data));else files.push([meta.n||0,new File([data],meta.name,{type:meta.mime})])}catch(e){}}
-    if(draft){if(draft.text){$("n-text").value=draft.text;$("n-text").dispatchEvent(new Event("input",{bubbles:true}))}
+    if(draft){BOTNN=draft.nn||null;if(draft.text){$("n-text").value=draft.text;$("n-text").dispatchEvent(new Event("input",{bubbles:true}))}
       if(draft.date)$("n-date").value=draft.date;
       const x=draft.song;if(x&&x.previewUrl){try{$("n-q").value=x.trackName+" "+x.artistName;const blob=await(await fetch(x.previewUrl)).blob();
         PICK={blob,name:`${x.trackName} — ${x.artistName}`,genre:x.genre||"",year:x.year||"",link:x.link||""};FOUND=[x];
         $("n-res").innerHTML=`<div class="sr sel" data-row="0"><img src="${esc(x.art||"")}" alt=""><span><b>${esc(x.trackName)}</b>${esc(x.artistName)}</span><button type="button" data-play="0">▶</button><button type="button" data-pick="0">выбрано ✓</button></div>`}catch(e){}}}
     if(files.length)addMedia(files.sort((a,b)=>a[0]-b[0]).map(f=>f[1]));
-    say(`День пришёл из Telegram: текст${files.length?", фото: "+files.length:""}${draft&&draft.song?", песня":""}. Проверь и нажми «вклеить в тетрадь».`);
+    say(`День пришёл из Telegram: текст${files.length?", фото: "+files.length:""}${draft&&draft.song?", песня":""}${BOTNN?"; нейросеть составила раскадровку фильма":""}. Проверь и нажми «вклеить в тетрадь».`);
     history.replaceState(null,"",location.pathname)}
   catch(e){say("Не получилось забрать день из Telegram: проверь интернет и открой ссылку из бота ещё раз.")}})();
 /* сторона телефона: страница открыта по коду и показывает только выбор фото */
