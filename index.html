@@ -464,9 +464,8 @@ button.c.dim{opacity:.16;filter:grayscale(1)}
 .fdp:nth-child(3){left:calc(var(--w)*.78);top:calc(var(--w)*-.7);--rr:9deg}
 .fdp:nth-child(4){left:calc(var(--w)*.86);top:calc(var(--w)*0);--rr:-6deg;width:calc(var(--w)*.44)}
 .fd-pen{left:calc(var(--w)*.5);top:calc(var(--w)*.66);width:calc(var(--w)*1.05);transform:rotate(-14deg)}
-.fdesk>.fd-sheet,.fdesk>.fd-note{animation:none}
-.fd-note{left:calc(var(--w)*-1.28);top:calc(var(--w)*-.42);font-family:"Caveat",cursive;font-weight:700;font-size:calc(var(--w)*.072);line-height:1.02;color:#2f4a6b;transform:rotate(-9deg);filter:none!important;pointer-events:none;white-space:nowrap}
-.fd-sheet{left:calc(var(--w)*-1.42);top:calc(var(--w)*-.62);width:calc(var(--w)*.86);transform:rotate(-9deg);opacity:.96}
+.fd-sheet{left:calc(var(--w)*-1.42);top:calc(var(--w)*-.62);width:calc(var(--w)*.86);aspect-ratio:620/437;transform:rotate(-9deg);background:url(tex/sheet.webp) center/100% 100% no-repeat;display:grid;align-content:center;padding-left:calc(var(--w)*.16)}
+.fd-sheet span{font-family:"Caveat",cursive;font-weight:700;font-size:calc(var(--w)*.072);line-height:1.02;color:#2f4a6b;white-space:nowrap}
 .fd-card{left:calc(var(--w)*.72);top:calc(var(--w)*-.68);width:calc(var(--w)*.66);aspect-ratio:620/391;transform:rotate(8deg);background:url(tex/card.webp) center/100% 100% no-repeat;padding:calc(var(--w)*.06) calc(var(--w)*.07);display:grid;align-content:start;gap:calc(var(--w)*.006);color:#3a2a1c}
 .fd-card b{font-weight:400;font-family:var(--mono);font-size:calc(var(--w)*.026);letter-spacing:.16em;text-transform:uppercase;color:#7c2413;border-bottom:1.5px solid #7c2413;padding-bottom:3px;margin-bottom:3px;width:fit-content}
 .fd-card span{font-family:"Caveat",cursive;font-weight:700;font-size:calc(var(--w)*.058);line-height:1.02;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -613,6 +612,12 @@ header{z-index:8!important}
 .lspread{position:absolute;left:0;top:0;width:1100px;display:grid;grid-template-columns:1fr 1fr;transform-origin:0 0;transform:scale(calc(100cqw/1100px));pointer-events:none}
 .lspread .page{position:relative;min-height:650px}.lspread .poke,.lspread .envmini,.lspread .rip,.lspread .unfilm{display:none!important}
 .lcap{font-family:var(--note);font-size:19px;line-height:1.15;display:grid;gap:1px}.lcap b{font-weight:400;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}.lcap i{font-style:normal;font-size:15px;opacity:.7}
+.edec{position:absolute!important;z-index:1;pointer-events:none;color:var(--ph,var(--acc));filter:drop-shadow(1px 2px 1px rgba(0,0,0,.3))}.edec .doodle{position:static!important;width:44px;height:44px;transform:none!important}.edec b{font-weight:400;font-family:"Caveat",cursive;font-size:30px;line-height:1;opacity:.85}
+.gdec{position:relative;height:0;z-index:2;pointer-events:none;color:var(--ph,var(--acc))}
+.gdec>*{position:absolute;top:calc(var(--up,40px)*-1);filter:drop-shadow(1px 2px 1px rgba(0,0,0,.35))}
+.gdec.gl>*{left:6%}.gdec.gr>*{right:6%}
+.gdec .doodle{position:absolute!important;width:46px;height:46px;transform:rotate(-8deg)!important;filter:none}
+.gdec b{font-weight:400;font-family:"Caveat",cursive;font-size:30px;line-height:1;rotate:-7deg;filter:none;opacity:.85}
 </style>
 </head>
 <body>
@@ -1049,14 +1054,24 @@ function arrows(){$("prev").disabled=cur===0;$("next").disabled=cur===DAYS.lengt
 function fillers(d,side){const h=human(d.date),ss=allSent(d.text),q=ss.filter(x=>x.length>18&&x.length<110),pick=q.find(x=>/!/.test(x))||q[q.length-1];
   /* спокойно: на пустое место кладётся одна-две вещи, а не всё подряд */
   const stub=`<div class="fstub fill drag"><b>${h.doy}</b><span>день из 365<br>${h.small.split(" · ")[0]}</span><i>${esc(d.song.name.split(" — ")[0])}</i></div>`,quote=pick?`<blockquote class="fq fill drag"><i class="tb-tape"></i>«${esc(pick.replace(/[.!…]+$/,""))}»</blockquote>`:"";
-  return(side==="r"?[quote,stub]:[stub,quote]).filter(Boolean)}
+  /* для очень длинного рассказа есть запас: ещё фото, которых не было на странице, и вторая фраза */
+  const pols=(arr,off)=>arr.length?`<div class="wall fill">${arr.map((m,k)=>`<figure class="pol mini" style="--rr:${(((k+off)*41)%9)-4}deg">${k%2?"":`<i class="tape"></i>`}<div class="ph">${mtag(m)}</div></figure>`).join("")}</div>`:"",q2=q.find(x=>x!==pick),quote2=q2?`<blockquote class="fq fill"><i class="tb-tape"></i>«${esc(q2.replace(/[.!…]+$/,""))}»</blockquote>`:"";
+  return(side==="r"?[quote,stub,pols(d.media.slice(9,12),1),quote2,pols(d.media.slice(12,15),4),pols(d.media.slice(15,18),7)]:[stub,quote]).filter(Boolean)}
 function balance(d){if(matchMedia("(max-width:820px)").matches)return;for(const side of["l","r"]){const pg=$(side==="l"?"L":"R").firstChild;if(!pg)continue;const F=fillers(d,side);let guard=0;
     while(F.length&&guard++<8){const pr=pg.getBoundingClientRect();let bottom=0;for(const c of pg.children){if(getComputedStyle(c).position==="absolute")continue;const r=c.getBoundingClientRect();if(r.height)bottom=Math.max(bottom,r.bottom)}
       if(pr.bottom-bottom<230)break;const t=document.createElement("div");t.innerHTML=F.shift();const el=t.firstElementChild;if(el)pg.append(el)}
+    /* на высокой странице по краям — пара мелких деталей: звезда, значок, дата от руки */
+    {const H=pg.getBoundingClientRect().height;if(side==="r"&&H>900){const h=human(d.date),dd=[...new Set([...doodlesOf(d.text),"star","heart","note"])].filter(k=>DOODLES[k]),mk=(html,st)=>{const e=document.createElement("div");e.className="edec";e.style.cssText=st;e.innerHTML=html;pg.append(e)};
+      mk(`<img src="tex/stargold.webp" alt="" style="width:30px">`,"right:3.5%;top:47%;rotate:14deg");mk(dsvg(dd[0]||"star"),"left:2.5%;top:66%;rotate:-10deg");
+      if(H>1250){mk(`<b>${h.dd}.${String(new Date(d.date+"T12:00").getMonth()+1).padStart(2,"0")}</b>`,"right:5%;top:83%;rotate:-7deg");mk(`<img src="tex/starcream.webp" alt="" style="width:22px">`,"left:4%;top:38%;rotate:-18deg")}}}
     /* оставшееся место делится между предметами поровну — воздух вместо пустоты внизу */
     const flow=[...pg.children].filter(c=>getComputedStyle(c).position!=="absolute"&&c.getBoundingClientRect().height>0);if(flow.length<2)continue;
     const pr=pg.getBoundingClientRect(),bottom=Math.max(...flow.map(c=>c.getBoundingClientRect().bottom)),gap=pr.bottom-bottom-56;if(gap<40)continue;
-    const per=Math.min(150,gap/(flow.length-1));flow.slice(1).forEach(c=>{c.style.marginTop=(parseFloat(getComputedStyle(c).marginTop)+per)+"px"})}}
+    const per=Math.min(150,gap/(flow.length-1));flow.slice(1).forEach(c=>{c.style.marginTop=(parseFloat(getComputedStyle(c).marginTop)+per)+"px"});
+    /* в появившиеся промежутки — по одной маленькой детали, через один, слева и справа по очереди */
+    if(per>42){const h=human(d.date),dd=[...new Set([...doodlesOf(d.text),"star","heart","note","sun"])].filter(k=>DOODLES[k]),K=d.look.key,G=K==="olive"||K==="rain"?"black":"cream";
+      const kinds=[()=>`<img src="tex/stargold.webp" alt="" style="width:30px;rotate:14deg">`,()=>dsvg(dd[0]||"star"),()=>`<img src="tex/washi.webp" alt="" style="width:120px;rotate:-6deg;opacity:.9">`,()=>`<b>${h.dd}.${String(new Date(d.date+"T12:00").getMonth()+1).padStart(2,"0")}</b>`,()=>`<img src="tex/star${G}.webp" alt="" style="width:22px;rotate:-18deg">`,()=>dsvg(dd[1]||"heart")];
+      let n=0;flow.slice(1).forEach((c,k)=>{if(n>=4||k%2===(side==="l"?1:0)&&flow.length>3)return;const g=document.createElement("div");g.className="gdec "+(n%2?"gr":"gl");g.style.setProperty("--up",Math.round(per*.55)+"px");g.innerHTML=kinds[(n+(side==="l"?3:0))%kinds.length]();c.before(g);n++})}}}
 function render(i){if(typeof stopSong==="function")stopSong();cur=i;const d=DAYS[i],l=pageEl(d,"l"),r=pageEl(d,"r");l.classList.add("fresh");r.classList.add("fresh");$("L").replaceChildren(l);$("R").replaceChildren(r);$("under").innerHTML=underHtml(d);arrows();balance(d)}
 function go(i){
   if(busy||i<0||i>=DAYS.length||i===cur)return;
@@ -1454,7 +1469,7 @@ function buildFront(){
       <svg class="fstamp" viewBox="0 0 120 120" fill="none" stroke="currentColor"><circle cx="60" cy="60" r="55" stroke-width="3"/><circle cx="60" cy="60" r="37" stroke-width="1.5"/><path id="farc" d="M60 60m-46 0a46 46 0 1 1 92 0a46 46 0 1 1 -92 0"/><text font-size="9.5" stroke="none"><textPath href="#farc">памятные дни · песня · фото · фильм ·</textPath></text><text x="60" y="66" text-anchor="middle" font-size="17" stroke="none">${yr}</text></svg>
     </i><i class="fc-in"><span>в этой тетради<b>${n} ${dayWord(n)}</b>у каждого своя песня</span></i></div>`;
   /* на столе вокруг тетради — только вещи, без фотографий */
-  $("fdesk").innerHTML=`<img class="fd-sheet" alt="" src="tex/sheet.webp"><span class="fd-note">псс… вещи<br>на столе тоже<br>звучат. нажми<br>на любую!</span><div class="fd-card"><b>что звучало</b>${DAYS.slice(-4).map(x=>`<span>♪ ${esc(x.song.name.split(" — ")[0].slice(0,24))}</span>`).join("")}</div><img class="fd-pen" alt="" src="tex/pen.webp"><img class="fd-leaf" alt="" src="tex/leaf.webp"><img class="fd-flower" alt="" src="tex/flower.webp"><img class="fd-tape" alt="" src="tex/washi.webp"><img class="fd-star a" alt="" src="tex/stargold.webp"><img class="fd-star b" alt="" src="tex/starcream.webp"><img class="fd-star c" alt="" src="tex/stargold.webp"><img class="fd-clip" alt="" src="tex/clip.webp"><i class="fd-ring"></i>`;
+  $("fdesk").innerHTML=`<div class="fd-sheet"><span>псс… вещи<br>на столе тоже<br>звучат. нажми<br>на любую!</span></div><div class="fd-card"><b>что звучало</b>${DAYS.slice(-4).map(x=>`<span>♪ ${esc(x.song.name.split(" — ")[0].slice(0,24))}</span>`).join("")}</div><img class="fd-pen" alt="" src="tex/pen.webp"><img class="fd-leaf" alt="" src="tex/leaf.webp"><img class="fd-flower" alt="" src="tex/flower.webp"><img class="fd-tape" alt="" src="tex/washi.webp"><img class="fd-star a" alt="" src="tex/stargold.webp"><img class="fd-star b" alt="" src="tex/starcream.webp"><img class="fd-star c" alt="" src="tex/stargold.webp"><img class="fd-clip" alt="" src="tex/clip.webp"><i class="fd-ring"></i>`;
   $("fhint").innerHTML=`нажми на тетрадь, она откроется<small>${mi>=0?"✉ тебе пришло письмо из прошлого":`внутри ${n} ${dayWord(n)} · со звуком`} · версия ${VER}</small>`;
   const c=$("fcover");c.onclick=openFront;c.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openFront()}};
 }
@@ -1469,7 +1484,7 @@ function openFront(){
 }
 $("logo").onclick=()=>{show("book");showFront()};
 /* вещи на столе у закрытой тетради: нажал — звучат и подпрыгивают */
-$("fdesk").addEventListener("pointerdown",e=>{const cd=e.target.closest(".fd-card");if(cd){sfx("ding",2);bop(cd);return}const el=e.target.closest("img,i");if(!el)return;const c=el.className;sfx(/pen/.test(c)?"pencil":/sheet/.test(c)?"paper":/leaf|flower/.test(c)?"leaf":/tape/.test(c)?"tape":/star/.test(c)?"star":/clip/.test(c)?"ticket":"tag",[...el.parentNode.children].indexOf(el));bop(el)});$("logo").title="закрыть тетрадь";
+$("fdesk").addEventListener("pointerdown",e=>{const cd=e.target.closest(".fd-card");if(cd){sfx("ding",2);bop(cd);return}const shh=e.target.closest(".fd-sheet");if(shh){sfx("paper");bop(shh);return}const el=e.target.closest("img,i");if(!el)return;const c=el.className;sfx(/pen/.test(c)?"pencil":/sheet/.test(c)?"paper":/leaf|flower/.test(c)?"leaf":/tape/.test(c)?"tape":/star/.test(c)?"star":/clip/.test(c)?"ticket":"tag",[...el.parentNode.children].indexOf(el));bop(el)});$("logo").title="закрыть тетрадь";
 
 /* ---------- звуки нажатий: у каждой вещи на развороте свой ---------- */
 let MUTE=false;try{MUTE=localStorage.getItem("kino-mute")==="1"}catch(e){}
@@ -1607,7 +1622,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=33;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=34;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
