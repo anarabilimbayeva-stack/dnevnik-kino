@@ -1178,12 +1178,12 @@ function filmCaps(d){const w=words(d.text),c=[],add=v=>{if(v&&!c.includes(v))c.p
    pace — длина кадра, fade — склейка (длинный наплыв или встык), zoom — движение камеры, grade — цвет,
    tri — кадры по три или по одному, pol — вертикальные фото как полароиды на бумаге дня */
 const DIRECT={
-  iskry:{pace:.85,fade:.12,zoom:1.3,grade:"saturate(1.28) brightness(1.04)",tri:true,how:"яркий коллаж: кадры по три, сочные цвета, короткие склейки"},
-  pled:{pace:1.25,fade:1.1,zoom:.7,grade:"sepia(.2) saturate(.95) brightness(1.02)",tri:true,how:"медленные наплывы, тёплый оттенок, кадры по три, как в семейном альбоме"},
-  tishina:{pace:1.6,fade:1.4,zoom:.45,grade:"saturate(.8) brightness(1.03)",tri:false,pol:true,how:"по одному кадру, долго и почти неподвижно, фото лежат полароидами на бумаге"},
-  uragan:{pace:.62,fade:.05,zoom:1.7,grade:"contrast(1.15) saturate(1.1)",tri:true,how:"короткие кадры встык, резкий наезд камеры, без пауз"},
-  tuchi:{pace:1.35,fade:1.2,zoom:.6,grade:"saturate(.45) brightness(.92) contrast(1.05)",tri:false,pol:true,how:"по одному кадру, цвета приглушены, длинные наплывы, фото лежат полароидами на бумаге"},
-  kolyuchki:{pace:.72,fade:.04,zoom:1.5,grade:"contrast(1.3) saturate(1.15) brightness(.95)",tri:false,pol:true,how:"жёсткие склейки без наплывов, высокий контраст, кадры по одному"}};
+  iskry:{pace:.85,fade:.12,zoom:1.3,grade:"saturate(1.28) brightness(1.04)",tri:true,tr:"slide",how:"яркий коллаж: кадры по три, сочные цвета, новый кадр въезжает сбоку"},
+  pled:{pace:1.25,fade:1.1,zoom:.7,grade:"sepia(.2) saturate(.95) brightness(1.02)",tri:true,tr:"develop",how:"кадры проявляются, как фото на плёнке, тёплый оттенок, по три, как в семейном альбоме"},
+  tishina:{pace:1.6,fade:1.4,zoom:.45,grade:"saturate(.8) brightness(1.03)",tri:false,pol:true,tr:"develop",how:"по одному кадру, долго и почти неподвижно; фото лежат полароидами и медленно проявляются"},
+  uragan:{pace:.62,fade:.05,zoom:1.7,grade:"contrast(1.15) saturate(1.1)",tri:true,tr:"flash",how:"короткие кадры встык со вспышкой, резкий наезд камеры, без пауз"},
+  tuchi:{pace:1.35,fade:1.2,zoom:.6,grade:"saturate(.45) brightness(.92) contrast(1.05)",tri:false,pol:true,tr:"develop",how:"по одному кадру, цвета приглушены; фото лежат полароидами и медленно проявляются из тумана"},
+  kolyuchki:{pace:.72,fade:.04,zoom:1.5,grade:"contrast(1.3) saturate(1.15) brightness(.95)",tri:false,pol:true,tr:"flash",how:"жёсткие склейки с красной вспышкой, высокий контраст, кадры по одному"}};
 const direct=d=>d&&!d.typeAuto&&DIRECT[d.type]||null;
 function filmLook(d){const D=direct(d),L=d.look;return D?{...L,shot:L.shot*D.pace,fade:D.fade,zoom:+(L.zoom*D.zoom).toFixed(3),gradeX:D.grade,D}:{...L,gradeX:""}}
 function filmPlan(d,med){
@@ -1229,7 +1229,7 @@ function noiseTiles(){if(NOISE)return NOISE;NOISE=[];for(let n=0;n<6;n++){const 
    Если фото встречается в фильме несколько раз, каждый следующий кадр продолжает путь с того места, где закончился прошлый — так видно всё фото, ничего не обрезано. */
 /* видео, которое ещё не готово показать кадр, заменяется своей картинкой — без чёрных вспышек */
 function elOf(F,m){const el=F.els.get(m.url);if(el&&el.videoWidth!==undefined&&(el.readyState<2||el.seeking||el.currentTime<(m.t0||0)+.02))return F.els.get(m.url+"#p")||el;return el}
-function drawTri(x,F,s,tt,alpha){const L=F.L,K=L.key,n=s.tri.length,gap=K==="rain"?7:10,pw=(CW-gap*(n+1))/n,ph=CH-gap*2,pp=F.els.get("paper"),u0=clamp(tt/(s.dur+.3)),grade=`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(.95) ${L.gradeX||""}`;
+function drawTri(x,F,s,tt,alpha){const L=F.L,K=L.key,n=s.tri.length,gap=K==="rain"?7:10,pw=(CW-gap*(n+1))/n,ph=CH-gap*2,pp=F.els.get("paper"),u0=clamp(tt/(s.dur+.3)),grade=`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(.95) ${L.gradeX||""}${devF(F)}`;
   x.globalAlpha=alpha;if(pp){const k=Math.max(CW/pp.naturalWidth,CH/pp.naturalHeight);x.drawImage(pp,(CW-pp.naturalWidth*k)/2,(CH-pp.naturalHeight*k)/2,pp.naturalWidth*k,pp.naturalHeight*k);x.fillStyle="rgba(0,0,0,.42)";x.fillRect(0,0,CW,CH)}else{x.fillStyle="#0b0705";x.fillRect(0,0,CW,CH)}
   s.tri.forEach((m,k)=>{const el=elOf(F,m);if(!el)return;const w=el.videoWidth||el.naturalWidth,h=el.videoHeight||el.naturalHeight;if(!w)return;
     /* кадры появляются по очереди: у громких дней выезжают, у ночных включаются, у тихих проявляются */
@@ -1238,10 +1238,12 @@ function drawTri(x,F,s,tt,alpha){const L=F.L,K=L.key,n=s.tri.length,gap=K==="rai
     x.filter=grade;x.drawImage(el,X+(pw-dw)/2,gap+oy+(ph-dh)*.3,dw,dh);x.filter="none";x.restore();
     x.globalAlpha=alpha*al;x.lineWidth=K==="night"?2:3;x.strokeStyle=K==="night"?L.acc:K==="rain"?"rgba(255,255,255,.4)":"#f7ead9";x.strokeRect(X+1,gap+oy+1,pw-2,ph-2)});
   x.globalAlpha=1}
+/* переход «проявление»: кадр выходит из светлого размытия, как снимок в проявителе */
+const devF=F=>F.dev<1?` blur(${((1-F.dev)*12).toFixed(1)}px) brightness(${(1+(1-F.dev)*.8).toFixed(2)}) saturate(${(.3+F.dev*.7).toFixed(2)})`:"";
 function drawShot(x,F,s,tt,alpha){
   if(s.tri){drawTri(x,F,s,tt,alpha);return}
   const el=elOf(F,s.media);if(!el)return;const w=el.videoWidth||el.naturalWidth,h=el.videoHeight||el.naturalHeight;if(!w)return;
-  const L=F.L,u0=clamp(tt/(s.dur+L.fade+.3)),u=u0*u0*(3-2*u0),grade=s.paper?"none":`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(${s.card||s.end?.58:.95}) ${L.gradeX||""}`;
+  const L=F.L,u0=clamp(tt/(s.dur+L.fade+.3)),u=u0*u0*(3-2*u0),grade=s.paper?"none":`sepia(.3) saturate(${(1.05+F.d.music.energy*.3).toFixed(2)}) contrast(1.07) brightness(${s.card||s.end?.58:.95}) ${L.gradeX||""}${devF(F)}`;
   const zz=1+L.zoom*.5*(s.mv==="out"?1-u:u),sc=Math.max(CW/w,CH/h)*1.02*(s.paper?1:zz),dw=w*sc,dh=h*sc,over=Math.max(0,dh-CH),fc=F.focus.get(s.media.url);
   let p;if(s.paper)p=.5;else if(s.card||s.end)p=fc?clamp((fc.cy*dh-CH/2)/(over||1)):.3;else{const a=s.p0??.3,b=s.p1??.3;p=a+(b-a)*u}
   x.globalAlpha=alpha;
@@ -1283,7 +1285,11 @@ function drawFx(x,F,t){const k=F.fx,R=F.fxr,beat=.5+.5*Math.sin(t*Math.PI*2/F.L.
 function frame(x,F,t){
   const{plan,L,d,h}=F,e=d.music.energy,sh=plan.shots;let i=sh.findIndex(s=>t<s.at+s.dur);if(i<0)i=sh.length-1;const s=sh[i],tt=t-s.at,fn=Math.floor(t*12);
   x.save();x.globalCompositeOperation="source-over";x.fillStyle="#0b0705";x.fillRect(0,0,CW,CH);x.translate(((fn*7)%3-1)*.5,((fn*5)%3-1)*.5);
-  if(i>0&&tt<L.fade){const p=sh[i-1];drawShot(x,F,p,t-p.at,1);drawShot(x,F,s,tt,clamp(tt/L.fade))}else drawShot(x,F,s,tt,1);
+  /* смена кадров зависит от типа дня: въезд сбоку, проявление или вспышка */
+  const TR=L.D&&L.D.tr,dv=TR==="develop"?clamp(tt/1.4):1,dv2=dv*dv*(3-2*dv);F.dev=1;
+  if(i>0&&TR==="slide"&&tt<.32){const p=sh[i-1],k=1-Math.pow(1-tt/.32,3);drawShot(x,F,p,t-p.at,1);x.save();x.translate((1-k)*CW*(i%2?1:-1),0);drawShot(x,F,s,tt,1);x.restore()}
+  else if(i>0&&tt<L.fade){const p=sh[i-1];drawShot(x,F,p,t-p.at,1);F.dev=dv2;drawShot(x,F,s,tt,clamp(tt/L.fade));F.dev=1}else{F.dev=dv2;drawShot(x,F,s,tt,1);F.dev=1}
+  if(i>0&&TR==="flash"&&tt<.16){x.globalAlpha=(1-tt/.16)*.6;x.fillStyle=d.type==="kolyuchki"?"#c73e24":"#fff6e0";x.fillRect(0,0,CW,CH);x.globalAlpha=1}
   x.restore();
   let g=x.createLinearGradient(0,0,0,CH);g.addColorStop(0,`hsl(${L.hue},80%,62%)`);g.addColorStop(1,`hsl(${(L.hue+330)%360},70%,30%)`);
   x.globalCompositeOperation="soft-light";x.globalAlpha=.8;x.fillStyle=g;x.fillRect(0,0,CW,CH);
@@ -1670,7 +1676,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=52;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=53;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
