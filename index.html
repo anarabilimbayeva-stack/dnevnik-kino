@@ -984,7 +984,7 @@ function whyRows(d){const L=d.look,m=d.music,v=voiceOf(d),kws=[...new Set((d.tex
   const A=d.ask||{},an=[A.weather&&({sun:"солнце",clouds:"пасмурно",rain:"дождь",snow:"снег",wind:"ветер",fog:"туман"}[A.weather]||A.weather),A.time&&{morning:"утро",day:"день",evening:"вечер",night:"ночь"}[A.time],A.pace&&({slow:"медленный день",mid:"обычный темп",fast:"суматошный день"}[A.pace]||A.pace),A.place].filter(Boolean);
   if(an.length)R.push(["ответы",an.join(", "),"погода задаёт эффект в фильме, часть дня — оттенок кадров и слово в названии, темп — длину кадров"]);
   {const gk=gkind(d);R.push(["вещь",`стиль песни — ${GNAME[gk][0]}`,`на правой странице лежит ${GNAME[gk][1]}`])}
-  {const st=danceOf(d),g=(d.song.genre||"").trim();R.push(["танец",`${g?g+", ":""}${m.bpm} ударов в минуту`,`стиль движения — ${DANCE[st].name}: кадры ${DANCE[st].how}${danceAmp(d)<1?" (в этот день — едва заметно)":""}; кадры меняются ровно на удар, перед первым — счёт «5, 6, 7, 8»; на смене новый кадр собирается из кусочков, которые танцуют под звук: большие слушают бас, мелкие — верх`])}
+  {const st=danceOf(d),g=(d.song.genre||"").trim();R.push(["танец",`${g?g+", ":""}${m.bpm} ударов в минуту`,`песня разбирается заранее: сайт находит все акценты баса и верха. После каждой смены кадра фото делится на куски, и на каждый акцент куски делают движение в манере «${DANCE[st].name}» — ${DANCE[st].how}${danceAmp(d)<1?" (в этот день — едва заметно)":""}; бас двигает большие куски, верх — мелкие; кадры меняются ровно на удар, перед первым — счёт «5, 6, 7, 8»`])}
   if(direct(d))R.push(["монтаж",`день назван «${TYPES[d.type].name}»`,direct(d).how]);
   R.push(["фильм",FXNAME[fxOf(d)],A.weather?"эффект взят из ответа про погоду":"эффект выбран по словам записи, а если подходящих слов нет — по звуку песни"]);
   if(VOICES.has(d.id))R.push(["голос","свой, записан при рассказе","скорость чтения чуть подстраивается под темп песни: у быстрых дней живее, у тихих спокойнее"]);
@@ -1198,14 +1198,14 @@ function filmCaps(d){const w=words(d.text),c=[],add=v=>{if(v&&!c.includes(v))c.p
 function onsetEnv(ab){const sr=ab.sampleRate,ch=ab.getChannelData(0),N=1024,hop=256,n=Math.max(0,Math.floor((ch.length-N)/hop)),H=N/2,win=new Float32Array(N),re=new Float32Array(N),im=new Float32Array(N),prev=new Float32Array(H),on=new Float32Array(n),rev=new Uint16Array(N),cs=new Float32Array(H),sn=new Float32Array(H);
   for(let k=0;k<N;k++){win[k]=.5-.5*Math.cos(2*Math.PI*k/(N-1));let r=0;for(let b=0;b<10;b++)r|=((k>>b)&1)<<(9-b);rev[k]=r}
   for(let k=0;k<H;k++){cs[k]=Math.cos(2*Math.PI*k/N);sn[k]=-Math.sin(2*Math.PI*k/N)}
-  const lowBins=Math.round(200/(sr/N)),top=Math.round(8000/(sr/N));
+  const lowBins=Math.round(200/(sr/N)),hiBins=Math.round(2500/(sr/N)),top=Math.round(9000/(sr/N)),lowF=new Float32Array(n),hiF=new Float32Array(n);
   for(let f=0;f<n;f++){const o=f*hop;for(let k=0;k<N;k++){re[rev[k]]=ch[o+k]*win[k];im[rev[k]]=0}
     for(let size=2;size<=N;size<<=1){const half=size>>1,step=N/size;for(let st=0;st<N;st+=size)for(let k=0;k<half;k++){const c=cs[k*step],d=sn[k*step],a=st+k,b=a+half,tr=re[b]*c-im[b]*d,ti=re[b]*d+im[b]*c;re[b]=re[a]-tr;im[b]=im[a]-ti;re[a]+=tr;im[a]+=ti}}
-    let fl=0;for(let k=1;k<top;k++){const m=Math.log(1+40*Math.sqrt(re[k]*re[k]+im[k]*im[k])/N*8),dd=m-prev[k];if(dd>0)fl+=dd*(k<=lowBins?2:1);prev[k]=m}on[f]=f?fl:0}
+    let fl=0,fL=0,fH=0;for(let k=1;k<top;k++){const m=Math.log(1+40*Math.sqrt(re[k]*re[k]+im[k]*im[k])/N*8),dd=m-prev[k];if(dd>0){fl+=dd*(k<=lowBins?2:1);if(k<=lowBins)fL+=dd;else if(k>=hiBins)fH+=dd}prev[k]=m}on[f]=f?fl:0;lowF[f]=f?fL:0;hiF[f]=f?fH:0}
   /* вычитаем местный средний уровень: остаются только всплески */
   const R=Math.round(.35*sr/hop),out=new Float32Array(n);let acc=0;for(let i=0;i<Math.min(n,R);i++)acc+=on[i];
   for(let i=0;i<n;i++){const a=Math.max(0,i-R),b=Math.min(n-1,i+R);if(i+R<n&&i>0)acc+=on[i+R];if(i-R-1>=0)acc-=on[i-R-1];out[i]=Math.max(0,on[i]-acc/(b-a+1))}
-  let mean=0;for(let i=0;i<n;i++)mean+=out[i];mean/=n||1;for(let i=0;i<n;i++)out[i]-=mean;return{on:out,fps:sr/hop,n,lead:(N/2)/sr}}
+  let mean=0;for(let i=0;i<n;i++)mean+=out[i];mean/=n||1;for(let i=0;i<n;i++)out[i]-=mean;return{on:out,lowF,hiF,fps:sr/hop,n,lead:(N/2)/sr}}
 function beatGrid(ab){try{const{on,fps,n,lead}=onsetEnv(ab);
   /* темп: как сильно рисунок ударов повторяется через один, два и четыре шага; ближе к 115 ударам в минуту — чуть вероятнее */
   const ac=lag=>{const l0=Math.floor(lag),f=lag-l0;if(l0+2>=n)return 0;let q=0;for(let i=0;i+l0+1<n;i++)q+=on[i]*(on[i+l0]*(1-f)+on[i+l0+1]*f);return q/(n-l0)};
@@ -1217,9 +1217,9 @@ function beatGrid(ab){try{const{on,fps,n,lead}=onsetEnv(ab);
   for(let o=0;o<per;o+=.5){let q=0;for(let k=0;;k++){const c=Math.round(o+k*per);if(c+W>=n)break;for(let w=-W;w<=W;w++)if(c+w>=0)q+=on[c+w]*(1-Math.abs(w)/(W+1))}if(q>ps){ps=q;ph=o}}
   return{P,ph:(ph/fps+lead)%P,bpm:+fb.toFixed(2)}}catch(e){return null}}
 const DANCE={
-  bounce:{name:"хип-хоп",how:"качают: на каждый удар кадр проседает и возвращается"},
-  hit:{name:"вакинг",how:"бьют точку: на удар кадр резко поворачивается и замирает, как поза"},
-  wave:{name:"афро",how:"идут волной: кадр плавно покачивается без остановок"}};
+  bounce:{name:"хип-хоп",how:"качают: падают вниз и толкаются вперёд"},
+  hit:{name:"вакинг",how:"бьют точку: резко поворачиваются и уходят вбок"},
+  wave:{name:"афро",how:"идут кругом и волной"}};
 function danceOf(d){if(d.dance&&DANCE[d.dance])return d.dance;const g=((d.song&&d.song.genre)||"").toLowerCase(),b=d.music.bpm;
   if(/hip|rap|рэп|хип|trap|r&b|drill/.test(g))return"bounce";if(/afro|афро|african|amapiano|dancehall|reggae|latin|латин/.test(g))return"wave";if(/disco|диско|funk|фанк|dance|танц|house|хаус|electro|электрон|pop|поп|soul/.test(g))return"hit";
   return b<100?"bounce":b<=118?"wave":"hit"}
@@ -1352,20 +1352,44 @@ function tilesFor(F,i){F.tl=F.tl||{};if(F.tl[i])return F.tl[i];const r=rng(F.d.s
   (function split(x,y,w,h,dep){const big=w*h>CW*CH*.12;if(dep>5||(!big&&dep>1&&r()<.34)||w<90||h<70){out.push({x,y,w,h,a:r(),b:r(),c:r()});return}
     const k=.32+r()*.36;if(w/h>1.25||(w/h>.8&&r()<.5)){split(x,y,w*k,h,dep+1);split(x+w*k,y,w*(1-k),h,dep+1)}else{split(x,y,w,h*k,dep+1);split(x,y+h*k,w,h*(1-k),dep+1)}})(0,0,CW,CH,0);
   const mx=Math.max(...out.map(q=>q.w*q.h));out.forEach(q=>q.band=q.w*q.h>mx*.5?0:q.w*q.h>mx*.18?1:2);return F.tl[i]=out}
-function shatter(x,F,s,tt,TW,i,t){const o=F.off||(F.off=Object.assign(document.createElement("canvas"),{width:CW,height:CH})),ox=o.getContext("2d");ox.fillStyle="#0b0705";ox.fillRect(0,0,CW,CH);drawShot(ox,F,s,tt,1);
-  const u=clamp(tt/TW),k=1-u*u*(3-2*u),kr=Math.sqrt(k),A=F.amp||1,lv=F.lv||[0,0,0],g=F.grid,bp=g?(((t-(F.lat||0)-g.ph)/g.P)%1+1)%1:0,pulse=Math.exp(-5*bp),st=F.dance||"bounce";
-  for(const q of tilesFor(F,i)){const cx=q.x+q.w/2,cy=q.y+q.h/2,a=(.55*lv[q.band]+.45*pulse)*A,dxn=(cx-CW/2)/CW,dyn=(cy-CH/2)/CH;
-    let dx=dxn*CW*.55*k*(.4+q.a),dy=dyn*CH*.9*k*(.4+q.b),rot=(q.c-.5)*.5*k,sc=1+a*.24*kr;
-    if(st==="bounce")dy-=a*CH*.1*kr;else if(st==="hit"){rot+=(q.a>.5?1:-1)*a*.17*kr;sc+=a*.1*kr}else{dy+=Math.sin(t*5+cx/CW*7)*CH*.055*A*kr;dx+=Math.cos(t*5+cy/CH*5)*CW*.013*A*kr}
-    x.save();x.globalAlpha=clamp(1.35-k*.9);x.translate(cx+dx,cy+dy);x.rotate(rot);x.scale(sc,sc);x.shadowColor="rgba(0,0,0,.55)";x.shadowBlur=18*k;x.drawImage(o,q.x,q.y,q.w,q.h,-q.w/2,-q.h/2,q.w,q.h);x.restore()}}
+/* карта акцентов: песня разбирается целиком ДО фильма. Отдельно ищем удары баса (бочка) и верха (щелчок, тарелка):
+   акцент — это всплеск, который заметно выше соседних и самый высокий рядом с собой. К ним добавляются доли сетки,
+   на которые удар не пришёлся (слабые акценты), чтобы движение не прерывалось */
+function accentsOf(ab,grid){try{if(!grid)return[];const E=onsetEnv(ab),P=grid.P,W=Math.max(2,Math.round(.05*E.fps)),out=[];
+  /* сила всплеска меряется относительно сильных ударов этой же песни (95-й процентиль), отдельно для баса и верха */
+  const det=arr=>{const R=Math.round(.35*E.fps),o=new Float32Array(E.n),pre=new Float64Array(E.n+1);for(let i=0;i<E.n;i++)pre[i+1]=pre[i]+arr[i];for(let i=0;i<E.n;i++){const a=Math.max(0,i-R),b=Math.min(E.n,i+R+1);o[i]=Math.max(0,arr[i]-(pre[b]-pre[a])/(b-a)*1.15)}return o};
+  E.lowF=det(E.lowF);E.hiF=det(E.hiF);
+  /* идём по сетке: доля, «и» между долями и шестнадцатые. Сила всплеска меряется относительно обычного удара на долю в этой же песне.
+     Доля — акцент всегда; «и» — если там есть удар хотя бы в 0,6 обычного; шестнадцатая — только если удар не слабее обычного.
+     Время акцента берётся по настоящему всплеску рядом с сеткой, поэтому движение совпадает со звуком, а не с расчётом */
+  const slots=[];for(let k=0;;k++){const tk=grid.ph+k*P/4;if(tk>ab.duration-.05)break;const c=Math.round((tk-E.lead)*E.fps);if(c<0)continue;let vL=0,iL=c,vH=0,iH=c;
+    for(let w=-W;w<=W;w++){const q=c+w;if(q<0||q>=E.n)continue;if(E.lowF[q]>vL){vL=E.lowF[q];iL=q}if(E.hiF[q]>vH){vH=E.hiF[q];iH=q}}slots.push({k,tk,vL,iL,vH,iH})}
+  const ref=f=>{const c=slots.filter(q=>q.k%4===0).map(f).sort((a,b)=>a-b);return c[Math.floor(c.length*.75)]||1},rL=ref(q=>q.vL),rH=ref(q=>q.vH);
+  for(const q of slots){const sL=q.vL/rL,sH=q.vH/rH,b=sL>=sH?0:1,v=Math.max(sL,sH),kind=q.k%4===0?0:q.k%2===0?1:2;
+    if(kind===1&&v<.6)continue;if(kind===2&&v<1)continue;
+    out.push({t:v>.3?(b?q.iH:q.iL)/E.fps+E.lead:q.tk,s:Math.min(1,kind===0?Math.max(.5,v):v*(kind===1?.8:.65)),b,kind})}
+  return out}catch(e){return[]}}
+/* хореография кусков: на каждый акцент часть кусков делает одно движение — вперёд, назад, влево, вправо, вверх, вниз,
+   поворот или круг — и возвращается на место. Бас двигает большие куски, верх — мелкие. Набор движений зависит от стиля танца */
+const MOVES_BY={bounce:[5,5,0,4,2,3,8,1],hit:[6,7,2,3,0,1,6,7],wave:[8,8,2,3,0,4,5,8]};
+function pieces(x,F,s,i,t,tt,alpha){const o=F.off||(F.off=Object.assign(document.createElement("canvas"),{width:CW,height:CH})),ox=o.getContext("2d");ox.fillStyle="#0b0705";ox.fillRect(0,0,CW,CH);drawShot(ox,F,s,tt,1);
+  const g=F.grid,P=g?g.P:.5,TWIN=Math.min(4*P,2.8,Math.max(P,s.dur-.25)),w=tt<TWIN-P?1:clamp((TWIN-tt)/P),A=(F.amp||1)*w,tv=t-(F.lat||0)+.02,acc=F.acc||[],pal=MOVES_BY[F.dance]||MOVES_BY.bounce;
+  x.globalAlpha=alpha;x.filter="brightness(.42)";x.drawImage(o,0,0);x.filter="none";
+  let a0=F.ai||0;while(a0>0&&acc[a0-1].t>tv-.7)a0--;while(a0<acc.length&&acc[a0].t<tv-.7)a0++;F.ai=a0;
+  const T=tilesFor(F,i);for(let j=0;j<T.length;j++){const q=T[j],cx=q.x+q.w/2,cy=q.y+q.h/2,u=Math.min(q.w,q.h)*.3;let dx=0,dy=0,rot=0,sc=1;
+    for(let k=a0;k<acc.length&&acc[k].t<=tv;k++){const a=acc[k];if(a.t<s.at-.02)continue;const h=((k*2654435761+j*40503+i*977)>>>0)%1000/1000,pr=a.b===0?[.92,.5,.16][q.band]:[.12,.5,.88][q.band];if(h>pr)continue;
+      const tau=tv-a.t,e=(tau<.03?tau/.03:Math.exp(-(tau-.03)/.17))*a.s*A,mv=pal[((k*7+j*13)>>>0)%pal.length];
+      if(mv===0)sc+=.16*e;else if(mv===1)sc-=.11*e;else if(mv===2)dx-=u*e;else if(mv===3)dx+=u*e;else if(mv===4)dy-=u*e;else if(mv===5)dy+=u*.8*e;else if(mv===6)rot+=.11*e;else if(mv===7)rot-=.11*e;else{const ph=tau*2*Math.PI/.42;dx+=Math.cos(ph)*u*.8*e;dy+=Math.sin(ph)*u*.8*e}}
+    x.save();x.translate(cx+dx,cy+dy);x.rotate(rot);x.scale(sc,sc);if(Math.abs(dx)+Math.abs(dy)+Math.abs(rot)*100+Math.abs(sc-1)*100>1){x.shadowColor="rgba(0,0,0,.5)";x.shadowBlur=14}x.drawImage(o,q.x,q.y,q.w,q.h,-q.w/2,-q.h/2,q.w,q.h);x.restore()}
+  x.globalAlpha=1}
 function frame(x,F,t){
   if(F.an){F.an.getByteFrequencyData(F.fd);const av=(a,b)=>{let z=0;for(let k=a;k<b;k++)z+=F.fd[k];return z/(b-a)/255};F.lv=[av(1,5),av(5,30),av(30,110)].map((v,j)=>Math.max(v,(F.lv?F.lv[j]:0)*.8))}
   const{plan,L,d,h}=F,e=d.music.energy,sh=plan.shots;let i=sh.findIndex(s=>t<s.at+s.dur);if(i<0)i=sh.length-1;const s=sh[i],tt=t-s.at,fn=Math.floor(t*12);
-  x.save();x.globalCompositeOperation="source-over";x.fillStyle="#0b0705";x.fillRect(0,0,CW,CH);x.translate(((fn*7)%3-1)*.5,((fn*5)%3-1)*.5);danceMove(x,F,t);
+  x.save();x.globalCompositeOperation="source-over";x.fillStyle="#0b0705";x.fillRect(0,0,CW,CH);
   /* смена кадров зависит от типа дня: въезд сбоку, проявление или вспышка */
   const TR=L.D&&L.D.tr,dv=TR==="develop"?clamp(tt/1.4):1,dv2=dv*dv*(3-2*dv);F.dev=1;
-  const TW=F.grid?Math.min(1.3,2*F.grid.P):.8;
-  if(i>0&&tt<TW){const p=sh[i-1];drawShot(x,F,p,t-p.at,1);F.dev=dv2;shatter(x,F,s,tt,TW,i,t);F.dev=1}
+  const PW=F.grid&&F.acc&&i>0?Math.min(4*F.grid.P,2.8,Math.max(F.grid.P,s.dur-.25)):0;
+  if(PW&&tt<PW){if(tt<L.fade){const p=sh[i-1];drawShot(x,F,p,t-p.at,1)}F.dev=dv2;pieces(x,F,s,i,t,tt,tt<L.fade?clamp(tt/L.fade):1);F.dev=1}
   else if(i>0&&tt<L.fade){const p=sh[i-1];drawShot(x,F,p,t-p.at,1);F.dev=dv2;drawShot(x,F,s,tt,clamp(tt/L.fade));F.dev=1}else{F.dev=dv2;drawShot(x,F,s,tt,1);F.dev=1}
   if(i>0&&TR==="flash"&&tt<.16){x.globalAlpha=(1-tt/.16)*.6;x.fillStyle=d.type==="kolyuchki"?"#c73e24":"#fff6e0";x.fillRect(0,0,CW,CH);x.globalAlpha=1}
   x.restore();
@@ -1425,7 +1449,7 @@ async function openFilm(record){stopSong();
   plan=F.plan=filmPlan(d,ALLM.filter(m=>F.els.has(m.url)));
   if(!d.music.buf){try{d.music.buf=(await analyzeSong(d.song.url)).buf}catch(e){}if(!F.alive)return}
   if(d.music.buf){if(!d.music.grid)d.music.grid=beatGrid(d.music.buf);
-    if(d.music.grid){F.grid=d.music.grid;F.dance=danceOf(d);F.amp=danceAmp(d);plan=F.plan=filmPlan(d,ALLM.filter(m=>F.els.has(m.url)),F.grid)}}
+    if(d.music.grid){if(!d.music.acc)d.music.acc=accentsOf(d.music.buf,d.music.grid);F.acc=d.music.acc;F.grid=d.music.grid;F.dance=danceOf(d);F.amp=danceAmp(d);plan=F.plan=filmPlan(d,ALLM.filter(m=>F.els.has(m.url)),F.grid)}}
   if(d.music.buf){try{const a=actx();a.resume();const src=a.createBufferSource(),g=a.createGain(),now=a.currentTime;src.buffer=d.music.buf;src.loop=false;F.a=a;F.at0=now;F.lat=record?0:Math.min(.25,a.outputLatency||a.baseLatency||0);
     g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(.9,now+1.8);g.gain.setValueAtTime(.9,now+Math.max(1.9,plan.total-1.6));g.gain.linearRampToValueAtTime(0,now+plan.total+.2);
     src.connect(g);g.connect(a.destination);try{F.an=a.createAnalyser();F.an.fftSize=512;F.an.smoothingTimeConstant=.5;F.fd=new Uint8Array(256);src.connect(F.an)}catch(e){}if(record){F.dest=a.createMediaStreamDestination();g.connect(F.dest)}src.start();F.src=src}catch(e){}}
@@ -1765,7 +1789,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=57;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=58;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
