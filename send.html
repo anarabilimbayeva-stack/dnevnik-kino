@@ -27,7 +27,7 @@ small{font-family:"PT Mono",monospace;font-size:10px;letter-spacing:.1em;color:#
   <div id="bar"><i></i></div>
   <div id="list"></div>
   <p>Когда всё отправится, эту страницу можно закрыть.</p>
-  <small id="ver">страница отправки · версия 8</small>
+  <small id="ver">страница отправки · версия 9</small>
 </div>
 <script>
 const $=id=>document.getElementById(id),msg=t=>$("msg").textContent=t;
@@ -67,8 +67,9 @@ function shrinkVideo(f){return new Promise(res=>{if(!f.type.startsWith("video")|
   $("in").onchange=async()=>{const fs=[...$("in").files];let exif=null,k=0;$("pick").hidden=true;
     for(const f of fs){k++;msg("отправляю "+k+" из "+fs.length+"…");$("bar").firstChild.style.width=((k-.5)/fs.length*100)+"%";
       try{if(f.type.startsWith("image")&&!exif)exif=await exifDate(f);
-        if(f.type.startsWith("video"))msg("сжимаю видео "+k+" из "+fs.length+"… это займёт столько же, сколько оно длится");
-        const b=f.type.startsWith("video")?await shrinkVideo(f):await shrink(f);if(b.size>CAP){bad++;why="видео слишком длинное для отправки с телефона — добавь его файлом на компьютере";continue}
+        if(f.type.startsWith("video")&&!OWN)msg("сжимаю видео "+k+" из "+fs.length+"… это займёт столько же, сколько оно длится");
+        /* через свой сервис видео идёт как есть: перезапись на телефоне давала чёрные кадры */
+        const b=f.type.startsWith("video")?(OWN?f:await shrinkVideo(f)):await shrink(f);if(b.size>CAP){bad++;why="видео слишком длинное для отправки с телефона — добавь его файлом на компьютере";continue}
         /* сервис пересылки принимает куски до 2 МБ: большой файл уходит частями, компьютер склеивает их обратно */
         const name=f.name.replace(/\.[^.]+$/,"")+(b===f?(f.name.match(/\.[^.]+$/)||[""])[0]:/webm/.test(b.type)?".webm":/mp4/.test(b.type)?".mp4":".jpg"),CH=PART,parts=Math.max(1,Math.ceil(b.size/CH)),fid=Math.random().toString(36).slice(2);
         for(let i=0;i<parts;i++){if(parts>1)msg("отправляю "+k+" из "+fs.length+": часть "+(i+1)+" из "+parts+"…");
