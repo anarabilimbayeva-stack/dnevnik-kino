@@ -604,6 +604,13 @@ header{z-index:8!important}
 @media (hover:hover){.page :is(.pol,.contact,.stamp,.slip,.sticker,.flower,.star,.fq,.fstub,.ftags b):hover{cursor:pointer}.page .text em:hover{cursor:pointer;filter:brightness(1.15)}}
 #tip{position:fixed;z-index:50;pointer-events:none;font-family:"Caveat",cursive;font-weight:700;font-size:22px;line-height:1;color:#2a1d14;background:#f6d04a;padding:5px 12px 7px;transform:rotate(-3deg);box-shadow:2px 3px 0 rgba(0,0,0,.35);opacity:0;transition:opacity .15s;white-space:nowrap}
 #tip.on{opacity:1}
+.ymode{display:flex;gap:8px;margin:0 0 16px}.ymode button{border:1.5px solid #2a1d14;background:rgba(255,255,255,.35);font-family:var(--note);font-size:21px;padding:5px 16px 7px;color:#2a1d14;filter:url(#rough2)}.ymode button.on{background:#2a1d14;color:#f4ecdd}
+.lenta{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:30px 26px;margin:6px 0 10px}
+.lcard{border:0;padding:0;background:none;text-align:left;color:#2a1d14;display:grid;gap:8px;cursor:pointer;transition:transform .2s}.lcard:hover{transform:translateY(-4px) rotate(-.4deg)}.lcard.dim{opacity:.28}
+.lwin{position:relative;width:100%;aspect-ratio:1100/650;overflow:hidden;box-shadow:0 0 0 5px #22140c,0 18px 26px -12px rgba(0,0,0,.8);container-type:inline-size}
+.lspread{position:absolute;left:0;top:0;width:1100px;display:grid;grid-template-columns:1fr 1fr;transform-origin:0 0;transform:scale(calc(100cqw/1100px));pointer-events:none}
+.lspread .page{position:relative;min-height:650px}.lspread .poke,.lspread .envmini,.lspread .rip,.lspread .unfilm{display:none!important}
+.lcap{font-family:var(--note);font-size:19px;line-height:1.15;display:grid;gap:1px}.lcap b{font-weight:400;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}.lcap i{font-style:normal;font-size:15px;opacity:.7}
 </style>
 </head>
 <body>
@@ -632,8 +639,10 @@ header{z-index:8!important}
   <div id="view-year" hidden>
     <section class="year"><i class="pin" style="left:8%;transform:rotate(-5deg)"></i><i class="pin" style="right:8%;transform:rotate(4deg)"></i>
       <div class="yhead"><div class="ynav"><button id="yprev" aria-label="Прошлый год">‹</button><div class="big" id="ybig"></div><button id="ynext" aria-label="Следующий год">›</button></div><p id="ystat"></p></div>
+      <div class="ymode" id="ymode"><button type="button" data-ym="cal" class="on">календарь</button><button type="button" data-ym="lenta">лента: все дни рядом</button></div>
       <div class="ylegend" id="ylegend"></div>
       <div class="tfilter" id="tfilter"></div>
+      <div class="lenta" id="lenta" hidden></div>
       <div class="months" id="months"></div>
       <div class="strip" id="strip"></div>
     </section>
@@ -1058,10 +1067,17 @@ function show(v){if(typeof stopSong==="function")stopSong();$("nav-more").classL
 const sortDays=()=>DAYS.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
 
 /* ---------- год: календарь, где каждый записанный день — клочок своей бумаги ---------- */
+/* лента: развороты всех дней года лежат рядом — видно, что это один дневник, а дни разные */
+let YM="cal";
+function renderLenta(){const y=YEAR,ds=DAYS.map((d,i)=>({d,i})).filter(x=>human(x.d.date).y===y),box=$("lenta");box.replaceChildren();
+  ds.forEach(({d,i})=>{const card=document.createElement("button");card.type="button";card.className="lcard"+(YT&&d.type!==YT?" dim":"");card.dataset.i=i;card.setAttribute("aria-label",human(d.date).big+": "+d.title);
+    const sp=document.createElement("div");sp.className="lspread";sp.append(pageEl(d,"l"),pageEl(d,"r"));const win=document.createElement("div");win.className="lwin";win.append(sp);
+    const cap=document.createElement("span");cap.className="lcap";cap.innerHTML=`<b>${human(d.date).big}</b>${esc(d.title)}<i>${d.look.pname} бумага · ${TYPES[d.type].name}</i>`;card.append(win,cap);box.append(card)})}
 function renderYear(){
   const years=[...new Set(DAYS.map(d=>human(d.date).y))].sort();if(!years.includes(YEAR))YEAR=human(DAYS[cur].date).y;
   const y=YEAR,by=new Map(DAYS.map((d,i)=>[d.date,i])),inY=DAYS.filter(d=>human(d.date).y===y),yi=years.indexOf(y);
   $("yprev").hidden=$("ynext").hidden=years.length<2;$("yprev").disabled=yi===0;$("ynext").disabled=yi===years.length-1;
+  $("lenta").hidden=YM!=="lenta";$("months").hidden=$("strip").hidden=YM==="lenta";if(YM==="lenta")renderLenta();$("ymode").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.ym===YM));
   $("yprev").onclick=()=>{YEAR=years[yi-1];renderYear()};$("ynext").onclick=()=>{YEAR=years[yi+1];renderYear()};
   $("ybig").innerHTML=ransom(String(y)+" год",y,7,.7);
   $("tfilter").innerHTML=`<button data-t="" class="${YT?"":"on"}">все дни</button>`+TKEYS.map(t=>`<button data-t="${t}" class="${YT===t?"on":""}">${tsvg(t)}${TYPES[t].name}</button>`).join("");
@@ -1585,7 +1601,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=27;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=28;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
@@ -1647,6 +1663,7 @@ $("prev").onclick=()=>go(cur-1);$("next").onclick=()=>go(cur+1);
 $("under").addEventListener("click",e=>{const o=e.target.closest("[data-open]");if(o){const i=DAYS.findIndex(d=>d.id===o.dataset.open);if(i>=0){go(i);scrollTo({top:0,behavior:"smooth"})}}});
 $("tfilter").addEventListener("click",e=>{const b=e.target.closest("[data-t]");if(b){YT=b.dataset.t||null;renderYear()}});
 $("nav-hard").onclick=()=>show("hard");$("nav-mail").onclick=()=>show("mail");
+$("ymode").addEventListener("click",e=>{const b=e.target.closest("[data-ym]");if(!b)return;YM=b.dataset.ym;sfx("tab");renderYear()});
 /* «ещё»: письма себе и «мне непросто»; значок ✉ появляется, когда пришло письмо */
 const navPop=o=>{$("navpop").hidden=!o;$("nav-more").setAttribute("aria-expanded",o)};
 $("nav-more").onclick=e=>{e.stopPropagation();navPop($("navpop").hidden)};
