@@ -1181,6 +1181,23 @@ function moodFor(d){
   return names.slice(0,need).map(f=>({url:`mood/${f}.jpg`,video:false,mood:true}));
 }
 /* титры фильма: не повтор записи, а короткие «главы» дня — где, с кем, что, песня, что получилось, каким был день */
+/* выжимка дня: вместо фраз в фильме идут отдельные главные слова, по порядку рассказа.
+   У встроенных дней выжимка составлена заранее; у нового дня сайт собирает её сам: события, места, люди, вещи и слова о чувствах */
+const FEEL=["обожа","люблю","никогда","впервые","незабыва","смея","смех","счаст","весел","груст","обид","устал","страшн","красив","вкусн","уютн","спокой","круто","легче","горжусь","мечта","скуча","злил","плака"];
+function keyWords(d){if(d.words&&d.words.length)return d.words.map(w=>String(w).toUpperCase());const w=words(d.text),found=[];
+  for(const x of[...hits(EVENTS,w),...hits(PLACES,w),...hits(WITH,w),...hits(THINGS,w)])found.push({t:x.p.replace(/^и /,""),at:x.first});
+  const seen=new Set();w.forEach((x,i)=>{const k=FEEL.find(f=>x.startsWith(f)&&x.length<f.length+7);if(k&&!seen.has(k)){seen.add(k);found.push({t:x,at:i})}});
+  const out=[];found.sort((a,b)=>a.at-b.at).forEach(f=>{const t=f.t.toUpperCase();if(!out.includes(t))out.push(t)});return out.slice(0,10)}
+/* слово буквами-вырезками, как заголовки в тетради: каждая буква — на своём клочке бумаги, своим шрифтом, чуть криво */
+const RSTY=[null,{bg:"#f2c53d",fg:"#15110e",f:'900 SZpx "Playfair Display",serif',k:1.2},{bg:"#f2e6d0",fg:"#c73e24",f:'400 SZpx "Rubik Mono One",sans-serif',k:.88},{bg:"#7f9a6a",fg:"#f2e6d0",f:'700 SZpx "Oswald",sans-serif',k:1.15},{bg:"#15110e",fg:"#f2e6d0",f:'italic 900 SZpx "Playfair Display",serif',k:1.1},{bg:"#c73e24",fg:"#f2c53d",f:'700 SZpx "Oswald",sans-serif',k:1.15}];
+function drawRansom(x,text,cx,cy,size,seed,age,alpha){const r=rng(seed);let last=0;x.save();x.textAlign="center";x.textBaseline="middle";
+  const mk=sz=>[...text].map(c=>{if(c===" ")return{sp:1,w:sz*.38};let s=0;if(r()<.66){do{s=1+Math.floor(r()*5)}while(s===last);last=s}const st=RSTY[s],fs=sz*(st?st.k:.92),font=st?st.f.replace("SZ",Math.round(fs)):`400 ${Math.round(fs)}px "PT Mono",monospace`;x.font=font;return{c,st,font,fs,w:x.measureText(c).width+fs*.34,rot:(r()-.5)*.17*(st?1:.4),dy:(r()-.5)*sz*.13}});
+  let L=mk(size),gap=size*.05,tot=L.reduce((a,l)=>a+l.w,0)+(L.length-1)*gap;if(tot>CW*.82){const k=CW*.82/tot;size*=k;gap*=k;L.forEach(l=>{l.w*=k;l.fs*=k;l.dy*=k;l.font=l.font&&l.font.replace(/(\d+)px/,(m,n)=>Math.round(n*k)+"px")});tot*=k}
+  cx=clamp(cx,tot/2+CW*.04,CW-tot/2-CW*.04);let px=cx-tot/2;
+  L.forEach((l,j)=>{if(!l.sp){const a=clamp((age-j*.028)/.13),pop=1+.35*(1-a)*(1-a);x.save();x.globalAlpha=alpha*a;x.translate(px+l.w/2,cy+l.dy);x.rotate(l.rot);x.scale(pop,pop);
+      if(l.st){x.shadowColor="rgba(0,0,0,.45)";x.shadowBlur=6;x.shadowOffsetY=3;x.fillStyle=l.st.bg;x.fillRect(-l.w/2,-l.fs*.62,l.w,l.fs*1.24);x.shadowColor="transparent";x.shadowBlur=0;x.shadowOffsetY=0;x.fillStyle=l.st.fg}else{x.fillStyle="#fbf5e8";x.shadowColor="rgba(0,0,0,.75)";x.shadowBlur=8}
+      x.font=l.font;x.fillText(l.c,0,l.fs*.05);x.restore()}px+=l.w+gap});
+  x.restore()}
 function filmCaps(d){const w=words(d.text),c=[],add=v=>{if(v&&!c.includes(v))c.push(v)};
   /* берём до пяти самых частых тем рассказа и ставим их в том порядке, в каком о них рассказано */
   const all=[...hits(EVENTS,w),...hits(PLACES,w),...hits(WITH,w),...hits(THINGS,w).map(x=>({...x,p:x.p.replace(/^и /,""),n:x.n*.6}))];
@@ -1277,13 +1294,11 @@ function filmPlan(d,med,grid){
       /* короче уже нельзя — убираем одиночный кадр из середины */
       let ri=-1,best=1e9;shots.forEach((q,i)=>{if(i&&!q.end&&!q.tri){const dd=Math.abs(i-shots.length/2);if(dd<best){best=dd;ri=i}}});if(ri<0)break;t0-=shots[ri].dur;shots.splice(ri,1)}}
   let t=0;shots.forEach(q=>{q.at=t;t+=q.dur});
-  /* рассказ идёт мелкими субтитрами через весь фильм, как закадровый голос в дневниковом кино:
-     фразы из записи по порядку, каждая — пока идут свои кадры; последней строкой — «что получилось» */
+  /* вместо фраз — выжимка дня: главные слова по порядку рассказа. Каждое слово появляется на долю и держится пару счётов */
   const bodyS=shots.filter(q=>!q.card&&!q.paper&&!q.end),subs=[];
-  if(bodyS.length){const cut=z=>{z=z.replace(/\s+/g," ").replace(/[.…]+$/,"").trim();if(z.length<=72)return z;const c=z.slice(0,72);return c.slice(0,Math.max(30,c.lastIndexOf(" ")))+"…"};
-    const lines=sentences(d.text).map(cut).filter(z=>z.length>3);if(midText)lines.push(cut(midText));
-    const b0=bodyS[0].at,b1=t-shots[shots.length-1].dur,T=b1-b0,n=Math.min(lines.length,Math.floor(T/2.3));
-    for(let k=0;k<n;k++){const idx=n===1?0:Math.round(k*(lines.length-1)/(n-1));subs.push({text:lines[idx],from:b0+k*T/n+.15,to:b0+(k+1)*T/n-.15})}}
+  if(bodyS.length){const KW=keyWords(d),b0=bodyS[0].at,b1=t-shots[shots.length-1].dur,T=b1-b0,n=Math.min(KW.length,Math.floor(T/1.8));
+    for(let k=0;k<n;k++){const idx=n===1?0:Math.round(k*(KW.length-1)/(n-1));let from=b0+(k+.12)*T/n;if(grid)from=grid.ph+Math.round((from-grid.ph)/grid.P)*grid.P;
+      subs.push({text:KW[idx],word:1,k,from,to:Math.min(from+Math.min(T/n-.25,2.1),b1-.1)})}}
   return{shots,subs,total:t,moods:media.length-d.media.length};
 }
 const CW=1280,CH=536;
@@ -1458,8 +1473,9 @@ function frame(x,F,t){
   if(F.grid&&i===0&&sh[1]){const P=F.grid.P,left=(sh[1].at-(t-(F.lat||0)))/P;if(left>0&&left<=4){const num=8-Math.floor(left-1e-6),bp=1-(left-Math.floor(left-1e-6));x.save();x.globalAlpha=clamp(1.15-bp)*.95;x.fillStyle="#fbf3e2";x.textAlign="center";x.shadowColor="rgba(0,0,0,.6)";x.shadowBlur=10;
     x.font=`500 ${Math.round(CH*(.2+.05*Math.exp(-6*bp)))}px "Caveat",cursive`;x.fillText(String(num),CW*.9,CH*.86);x.restore()}}
   const sb=s.paper||s.card||s.end?null:plan.subs.find(b=>t>=b.from&&t<b.to);
-  if(sb){x.globalAlpha=clamp((t-sb.from)/.35)*clamp((sb.to-t)/.3)*.97;x.shadowBlur=10;x.fillStyle="#fbf5e8";x.font=`italic 500 ${Math.round(CH*.056)}px "Cormorant Garamond",Georgia,serif`;
-    const lines=wrapLines(x,sb.text,CW*.7),lh=CH*.066;lines.forEach((ln,k)=>x.fillText(ln,CW/2,CH*.9-(lines.length-1-k)*lh))}
+  if(sb){if(sb.word){x.shadowBlur=0;drawRansom(x,sb.text,CW*[.3,.52,.7,.42,.62][sb.k%5],CH*.79,CH*.125,F.d.seed+sb.k*53,t-(F.lat||0)-sb.from,clamp((sb.to-t)/.3))}
+    else{x.globalAlpha=clamp((t-sb.from)/.35)*clamp((sb.to-t)/.3)*.97;x.shadowBlur=10;x.fillStyle="#fbf5e8";x.font=`italic 500 ${Math.round(CH*.056)}px "Cormorant Garamond",Georgia,serif`;
+    const lines=wrapLines(x,sb.text,CW*.7),lh=CH*.066;lines.forEach((ln,k)=>x.fillText(ln,CW/2,CH*.9-(lines.length-1-k)*lh))}}
   x.shadowBlur=0;x.globalAlpha=1;
   /* углы кадра скруглены, как у старого телевизора */
   if(x.roundRect){x.fillStyle="#000";x.beginPath();x.rect(0,0,CW,CH);x.roundRect(5,5,CW-10,CH-10,CH*.075);x.fill("evenodd")}
@@ -1475,7 +1491,7 @@ async function openFilm(record){stopSong();
   const film=$("film"),cv=$("cv"),x=cv.getContext("2d");film.classList.add("on");film.classList.toggle("rec",!!record);
   $("fmsg").textContent=record?"идёт запись — досмотри фильм до конца, видео сохранится само":"";$("bar").style.width="0";
   x.fillStyle="#000";x.fillRect(0,0,CW,CH);noiseTiles();
-  await Promise.all([document.fonts.load('italic 400 40px "Cormorant Garamond"').catch(()=>{}),document.fonts.load('400 16px "PT Mono"').catch(()=>{}),document.fonts.load('500 40px "Caveat"').catch(()=>{}),document.fonts.load('400 30px "Neucha"').catch(()=>{}),loadImg("tex/paper-"+L.key+".jpg").then(i=>F.els.set("paper",i)).catch(()=>{}),
+  await Promise.all([document.fonts.load('italic 400 40px "Cormorant Garamond"').catch(()=>{}),document.fonts.load('400 16px "PT Mono"').catch(()=>{}),document.fonts.load('500 40px "Caveat"').catch(()=>{}),document.fonts.load('400 30px "Neucha"').catch(()=>{}),document.fonts.load('900 40px "Playfair Display"').catch(()=>{}),document.fonts.load('italic 900 40px "Playfair Display"').catch(()=>{}),document.fonts.load('400 40px "Rubik Mono One"').catch(()=>{}),document.fonts.load('700 40px "Oswald"').catch(()=>{}),loadImg("tex/paper-"+L.key+".jpg").then(i=>F.els.set("paper",i)).catch(()=>{}),
     ...ALLM.map(async m=>{try{const el=await(m.video?loadVid:loadImg)(m.url);F.els.set(m.url,el);m.ar=(el.videoWidth||el.naturalWidth)/(el.videoHeight||el.naturalHeight)||1;
       if(m.video){if(m.poster)try{F.els.set(m.url+"#p",await loadImg(m.poster))}catch(e){}try{el.currentTime=(m.t0||0)+.05}catch(e){}}
       if(!m.video&&window.FaceDetector){const fs=await new FaceDetector({fastMode:true}).detect(el),f=fs.sort((a,b)=>b.boundingBox.width*b.boundingBox.height-a.boundingBox.width*a.boundingBox.height)[0];
@@ -1521,7 +1537,7 @@ const DB={db:null,mem:new Map(),
 const CAPS={"demo-1":["с мамой","какао"],"demo-2":["волны!","мороженое"],"demo-3":["2:00","огни"],"demo-4":["капли","чай"],"demo-5":["никого","музыка"],"demo-6":["плед","чай"],"real-1":["Пекин","18 июня"],"real-2":["прогулка","20 июля"],"real-3":["зал","22 ноября"]};
 const TAIL={громкий:"на полной громкости",яркий:"полный смеха",тёплый:"в тёплом свете",тихий:"в тихом ритме"};
 const hash=s=>{let h=7;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)%100000+1};
-const fromDemo=d=>({moods:d.moods||null,noRepeat:d.noRepeat||null,ask:d.ask||{},letter0:d.letter||null,id:d.id,date:d.date,text:d.text,type:d.type,good:d.good||"",kind:d.kind||"",media:d.photos.map(p=>({url:"demo/"+p,video:/\.(mp4|webm|mov)$/i.test(p)})),song:{nn:d.song.url?d.song.nn||null:null,pre:d.song.url?d.song.music:null,name:d.song.url?d.song.name:(d.song.itunes?"мелодия (песня не загрузилась)":d.song.name),url:d.song.url||"demo/"+d.song.file,genre:d.song.genre||"",year:d.song.year||"",link:d.song.link||""}});
+const fromDemo=d=>({words:d.words||null,moods:d.moods||null,noRepeat:d.noRepeat||null,ask:d.ask||{},letter0:d.letter||null,id:d.id,date:d.date,text:d.text,type:d.type,good:d.good||"",kind:d.kind||"",media:d.photos.map(p=>({url:"demo/"+p,video:/\.(mp4|webm|mov)$/i.test(p)})),song:{nn:d.song.url?d.song.nn||null:null,pre:d.song.url?d.song.music:null,name:d.song.url?d.song.name:(d.song.itunes?"мелодия (песня не загрузилась)":d.song.name),url:d.song.url||"demo/"+d.song.file,genre:d.song.genre||"",year:d.song.year||"",link:d.song.link||""}});
 const fromStored=r=>({ask:r.ask||{},id:r.id,date:r.date,text:r.text,own:true,film:!!r.film,mood:r.mood!==false,type:r.type,good:r.good||"",kind:r.kind||"",media:r.files.map(f=>({url:URL.createObjectURL(f),video:(f.type||"").startsWith("video")})),song:{name:r.song.name,url:URL.createObjectURL(r.song.blob),genre:r.song.genre||"",year:r.song.year||"",link:r.song.link||""}});
 /* проверка кадров: чёрные и нечитаемые фото и видео в день не попадают */
 function mediaOk(m){return new Promise(res=>{let done=false;const fin=(ok,poster,q,ar,t0)=>{if(!done){done=true;res({ok,poster,q:q||0,ar,t0:t0||0})}},
@@ -1831,7 +1847,7 @@ $("under").addEventListener("click",e=>{const qb=e.target.closest(".askb button[
   else if(k==="tear"&&confirm("Порвать письмо? Его нельзя будет прочитать.")){LETTERS[d.id]=null;saveLetters();sfx("paper");render(cur);renderYear()}});
 
 /* ---------- фото с телефона по QR. Телефон шифрует фото (ключ есть только в QR-коде) и отправляет через сервис пересылки ntfy.sh; компьютер получает и расшифровывает ---------- */
-const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=63;
+const SEND=new URLSearchParams(location.search).get("send"),RELAYS={o:"https://relay.62.238.3.191.sslip.io/",n:"https://ntfy.sh/"},VER=64;
 /* если открыта старая копия сайта (браузер хранит её до 10 минут), предлагаем обновить */
 fetch("version.json?"+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{if(j.v>VER){const b=document.createElement("button");b.textContent="вышла новая версия сайта — нажми, чтобы обновить";b.style.cssText="position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:70;background:#c73e24;color:#fff;border:0;padding:12px 18px;font:20px Neucha,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.5)";b.onclick=()=>location.replace(location.pathname+"?r="+Date.now());document.body.append(b)}}).catch(()=>{});
 const loadJs=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const x=document.createElement("script");x.src=u;x.onload=res;x.onerror=rej;document.head.append(x)});
