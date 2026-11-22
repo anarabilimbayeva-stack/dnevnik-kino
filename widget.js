@@ -24,6 +24,7 @@ async function build() {
     s.font = Font.systemFont(11); s.textColor = new Color("#1d1a14");
     return w;
   }
+  w.url = BASE + "?d=" + d.date;
   const ink = new Color(d.ink), paper = new Color(d.paper);
   w.backgroundColor = paper;
   const [y, m, day] = d.date.split("-").map(Number);
